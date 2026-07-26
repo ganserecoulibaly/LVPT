@@ -1,0 +1,245 @@
+{
+  "France": {
+    "numbers": { "Police": "17", "Pompiers": "18", "Urgences (SAMU)": "15", "Numéro européen": "112" }
+  },
+  "États-Unis": {
+    "numbers": { "Police / Urgences": "911" },
+    "consulate": { "address": "4101 Reservoir Rd NW, Washington, DC 20007", "phone": "+1 202 944 6000" }
+  },
+  "Japon": {
+    "numbers": { "Police": "110", "Pompiers / Ambulance": "119" },
+    "consulate": { "address": "4-11-44 Minami-Azabu, Minato-ku, Tokyo 106-8514", "phone": "+81 3 5798 6000" }
+  },
+  "Thaïlande": {
+    "numbers": { "Police": "191", "Pompiers": "199", "Ambulance": "1669", "Police touristique": "1155" },
+    "consulate": { "address": "35 Charoen Krung Rd Soi 36, Bangkok 10500", "phone": "+66 2 657 5100" }
+  },
+  "Maroc": {
+    "numbers": { "Police": "19", "Gendarmerie": "177", "Pompiers / Urgences": "15" },
+    "consulate": { "address": "3 Rue Sahnoun, Agdal, Rabat", "phone": "+212 5 37 68 97 00" }
+  },
+  "Royaume-Uni": {
+    "numbers": { "Police / Pompiers / Ambulance": "999", "Numéro non-urgent": "101" },
+    "consulate": { "address": "58 Knightsbridge, London SW1X 7JT", "phone": "+44 20 7073 1000" }
+  },
+  "Italie": {
+    "numbers": { "Police": "113", "Carabiniers": "112", "Pompiers": "115", "Ambulance": "118" },
+    "consulate": { "address": "Piazza Farnese 67, 00186 Roma", "phone": "+39 06 686 011" }
+  },
+  "Espagne": {
+    "numbers": { "Urgences générales": "112", "Police nationale": "091" },
+    "consulate": { "address": "Calle de Salustiano Olózaga 9, 28001 Madrid", "phone": "+34 91 700 78 00" }
+  },
+  "Grèce": {
+    "numbers": { "Police": "100", "Pompiers": "199", "Ambulance": "166" },
+    "consulate": { "address": "Vassilissis Sofias 7, 106 71 Athènes", "phone": "+30 21 0339 1000" }
+  },
+  "Portugal": {
+    "numbers": { "Urgences générales": "112" },
+    "consulate": { "address": "Rua Santos-o-Velho 5, 1200-812 Lisboa", "phone": "+351 21 393 91 00" }
+  },
+  "Pays-Bas": {
+    "numbers": { "Urgences générales": "112" },
+    "consulate": { "address": "Anna Paulownastraat 76, 2518 BJ Den Haag", "phone": "+31 70 312 58 00" }
+  },
+  "Islande": {
+    "numbers": { "Urgences générales": "112" },
+    "consulate": { "address": "Túngata 22, 101 Reykjavik", "phone": "+354 552 12 30" }
+  },
+  "Émirats arabes unis": {
+    "numbers": { "Police": "999", "Ambulance": "998", "Pompiers": "997" },
+    "consulate": { "address": "Al Mina Road, Zone 1, Dubai", "phone": "+971 4 408 22 00" }
+  },
+  "Corée du Sud": {
+    "numbers": { "Police": "112", "Pompiers / Ambulance": "119" },
+    "consulate": { "address": "43-12 Seosomun-ro, Jung-gu, Séoul", "phone": "+82 2 3149 4300" }
+  },
+  "Égypte": {
+    "numbers": { "Police": "122", "Ambulance": "123", "Pompiers": "180" },
+    "consulate": { "address": "29 Charles de Gaulle Ave, Guizeh, Le Caire", "phone": "+20 2 3567 3200" }
+  },
+  "Chine": {
+    "numbers": { "Police": "110", "Pompiers": "119", "Ambulance": "120" },
+    "consulate": { "address": "60 Tianze Lu, Chaoyang, Pékin", "phone": "+86 10 8531 2000" }
+  },
+  "Vietnam": {
+    "numbers": { "Police": "113", "Pompiers": "114", "Ambulance": "115" },
+    "consulate": { "address": "57 Tran Hung Dao, Hanoï", "phone": "+84 24 3944 5700" }
+  },
+  "Indonésie": {
+    "numbers": { "Police": "110", "Pompiers": "113", "Ambulance": "118" },
+    "consulate": { "address": "Jl. M.H. Thamrin No.20, Jakarta", "phone": "+62 21 2355 7600" }
+  },
+  "Australie": {
+    "numbers": { "Police / Pompiers / Ambulance": "000" },
+    "consulate": { "address": "6 Perth Ave, Yarralumla ACT 2600, Canberra", "phone": "+61 2 6216 0100" }
+  },
+  "Canada": {
+    "numbers": { "Police / Pompiers / Ambulance": "911" },
+    "consulate": { "address": "42 Sussex Drive, Ottawa, ON K1M 2C9", "phone": "+1 613 789 1795" }
+  },
+  "Mexique": {
+    "numbers": { "Urgences générales": "911" },
+    "consulate": { "address": "Campos Elíseos 339, Polanco, Mexico", "phone": "+52 55 9171 9700" }
+  },
+  "Brésil": {
+    "numbers": { "Police": "190", "Pompiers": "193", "Ambulance (SAMU)": "192" },
+    "consulate": { "address": "SES Av das Nações, Lote 4, Brasília", "phone": "+55 61 3222 1700" }
+  },
+  "Argentine": {
+    "numbers": { "Urgences générales": "911" },
+    "consulate": { "address": "Cerrito 1399, C1010 Buenos Aires", "phone": "+54 11 4515 7030" }
+  },
+  "Inde": {
+    "numbers": { "Urgences générales": "112", "Police": "100" },
+    "consulate": { "address": "2/50-E Shantipath, Chanakyapuri, New Delhi", "phone": "+91 11 4319 6100" }
+  },
+  "Afrique du Sud": {
+    "numbers": { "Police": "10111", "Ambulance": "10177" },
+    "consulate": { "address": "250 Melk Street, Nieuw Muckleneuk, Pretoria", "phone": "+27 12 425 1600" }
+  },
+  "Kenya": {
+    "numbers": { "Urgences générales": "999" },
+    "consulate": { "address": "Barclays Plaza, Loita Street, Nairobi", "phone": "+254 20 277 8000" }
+  },
+  "Tanzanie": {
+    "numbers": { "Police": "112", "Ambulance": "115" },
+    "consulate": { "address": "7 Ali Hassan Mwinyi Rd, Dar es Salaam", "phone": "+255 22 219 8800" }
+  },
+  "Turquie": {
+    "numbers": { "Urgences générales": "112" },
+    "consulate": { "address": "Kırlangıç Sokak 15, Gaziosmanpaşa, Ankara", "phone": "+90 312 455 4545" }
+  },
+  "Allemagne": {
+    "numbers": { "Police": "110", "Pompiers / Ambulance": "112" },
+    "consulate": { "address": "Pariser Platz 5, 10117 Berlin", "phone": "+49 30 590 03 90 00" }
+  },
+  "Suisse": {
+    "numbers": { "Police": "117", "Pompiers": "118", "Ambulance": "144" },
+    "consulate": { "address": "Schosshaldenstrasse 46, 3006 Bern", "phone": "+41 31 359 21 11" }
+  },
+  "Autriche": {
+    "numbers": { "Police": "133", "Pompiers": "122", "Ambulance": "144" },
+    "consulate": { "address": "Technikerstraße 2, 1040 Wien", "phone": "+43 1 502 75 0" }
+  },
+  "Irlande": {
+    "numbers": { "Urgences générales": "112" },
+    "consulate": { "address": "66 Fitzwilliam Lane, Dublin 2", "phone": "+353 1 277 5000" }
+  },
+  "Pologne": {
+    "numbers": { "Urgences générales": "112" },
+    "consulate": { "address": "Ul. Piękna 1, 00-477 Warszawa", "phone": "+48 22 529 30 00" }
+  },
+  "République tchèque": {
+    "numbers": { "Urgences générales": "112" },
+    "consulate": { "address": "Velkopřevorské náměstí 2, 118 01 Praha", "phone": "+420 251 171 711" }
+  },
+  "Hongrie": {
+    "numbers": { "Urgences générales": "112" },
+    "consulate": { "address": "Lendvay utca 27, 1062 Budapest", "phone": "+36 1 374 11 00" }
+  },
+  "Croatie": {
+    "numbers": { "Urgences générales": "112" },
+    "consulate": { "address": "Schlosserove stube 3, 10000 Zagreb", "phone": "+385 1 6194 451" }
+  },
+  "Suède": {
+    "numbers": { "Urgences générales": "112" },
+    "consulate": { "address": "Kommendörsgatan 13, 114 58 Stockholm", "phone": "+46 8 459 53 00" }
+  },
+  "Norvège": {
+    "numbers": { "Police": "112", "Pompiers": "110", "Ambulance": "113" },
+    "consulate": { "address": "Drammensveien 69, 0271 Oslo", "phone": "+47 23 28 46 00" }
+  },
+  "Danemark": {
+    "numbers": { "Urgences générales": "112" },
+    "consulate": { "address": "Kongens Nytorv 4, 1050 København", "phone": "+45 33 67 01 00" }
+  },
+  "Finlande": {
+    "numbers": { "Urgences générales": "112" },
+    "consulate": { "address": "Itäinen Puistotie 13, 00140 Helsinki", "phone": "+358 9 618 780" }
+  },
+  "Russie": {
+    "numbers": { "Urgences générales": "112" },
+    "consulate": { "address": "Boulvar Bolchoï Levchinski 4, 119034 Moscou", "phone": "+7 495 937 15 00" }
+  },
+  "Israël": {
+    "numbers": { "Police": "100", "Pompiers": "102", "Ambulance": "101" },
+    "consulate": { "address": "112 Herbert Samuel St, Tel Aviv", "phone": "+972 3 520 8300" }
+  },
+  "Jordanie": {
+    "numbers": { "Urgences générales": "911" },
+    "consulate": { "address": "31 Zahran Street, Amman", "phone": "+962 6 460 1200" }
+  },
+  "Liban": {
+    "numbers": { "Police": "112", "Pompiers": "175", "Ambulance": "140" },
+    "consulate": { "address": "Rue de Damas, Beyrouth", "phone": "+961 1 420 000" }
+  },
+  "Arabie saoudite": {
+    "numbers": { "Police": "999", "Ambulance": "997", "Pompiers": "998" },
+    "consulate": { "address": "Diplomatic Quarter, Riyad", "phone": "+966 11 488 1255" }
+  },
+  "Qatar": {
+    "numbers": { "Urgences générales": "999" },
+    "consulate": { "address": "Onaiza, Zone 66, Doha", "phone": "+974 4430 3500" }
+  },
+  "Singapour": {
+    "numbers": { "Police": "999", "Pompiers / Ambulance": "995" },
+    "consulate": { "address": "101-103 Cluny Park Road, Singapore", "phone": "+65 6880 7800" }
+  },
+  "Malaisie": {
+    "numbers": { "Urgences générales": "999" },
+    "consulate": { "address": "196 Jalan Ampang, 50450 Kuala Lumpur", "phone": "+60 3 2053 5500" }
+  },
+  "Philippines": {
+    "numbers": { "Urgences générales": "911" },
+    "consulate": { "address": "16th Floor, Pacific Star Building, Makati", "phone": "+63 2 8857 6900" }
+  },
+  "Cambodge": {
+    "numbers": { "Police": "117", "Pompiers": "118", "Ambulance": "119" },
+    "consulate": { "address": "1 Boulevard Monivong, Phnom Penh", "phone": "+855 23 430 020" }
+  },
+  "Sri Lanka": {
+    "numbers": { "Urgences générales": "119" },
+    "consulate": { "address": "89 Rosmead Place, Colombo 7", "phone": "+94 11 263 9400" }
+  },
+  "Népal": {
+    "numbers": { "Police": "100", "Pompiers": "101", "Ambulance": "102" },
+    "consulate": { "address": "Lazimpat, Katmandou", "phone": "+977 1 441 1749" }
+  },
+  "Nigeria": {
+    "numbers": { "Urgences générales": "112" },
+    "consulate": { "address": "1 Oyinkan Abayomi Drive, Ikoyi, Lagos", "phone": "+234 1 460 1400" }
+  },
+  "Sénégal": {
+    "numbers": { "Police": "17", "Pompiers": "18" },
+    "consulate": { "address": "1 Rue El Hadj Amadou Assane Ndoye, Dakar", "phone": "+221 33 839 51 00" }
+  },
+  "Éthiopie": {
+    "numbers": { "Police": "991", "Ambulance": "907" },
+    "consulate": { "address": "Kirkos Sub City, Addis-Abeba", "phone": "+251 11 553 3319" }
+  },
+  "Colombie": {
+    "numbers": { "Urgences générales": "123" },
+    "consulate": { "address": "Carrera 11 No. 93-12, Bogotá", "phone": "+57 1 638 1400" }
+  },
+  "Pérou": {
+    "numbers": { "Police": "105", "Pompiers": "116", "Ambulance": "106" },
+    "consulate": { "address": "Av. Arequipa 3415, San Isidro, Lima", "phone": "+51 1 215 8400" }
+  },
+  "Chili": {
+    "numbers": { "Police": "133", "Pompiers": "132", "Ambulance": "131" },
+    "consulate": { "address": "Av. Condell 65, Providencia, Santiago", "phone": "+56 2 2470 8000" }
+  },
+  "Cuba": {
+    "numbers": { "Police": "106", "Pompiers": "105", "Ambulance": "104" },
+    "consulate": { "address": "Calle 14 No.312, Miramar, La Havane", "phone": "+53 7 201 3131" }
+  },
+  "Costa Rica": {
+    "numbers": { "Urgences générales": "911" },
+    "consulate": { "address": "Oficentro Ejecutivo La Sabana, San José", "phone": "+506 2234 4167" }
+  },
+  "Nouvelle-Zélande": {
+    "numbers": { "Urgences générales": "111" },
+    "consulate": { "address": "34-42 Manners Street, Wellington", "phone": "+64 4 384 2555" }
+  }
+}

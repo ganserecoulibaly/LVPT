@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from './supabaseClient'
+import AirportAutocomplete from './AirportAutocomplete'
 
-// Site Key Turnstile (publique, sans risque de la laisser en dur ici)
-const TURNSTILE_SITE_KEY = '0x4AAAAAADxke8mq1ks8yjEN'
+// Site Key Turnstile définie dans le fichier .env (VITE_TURNSTILE_SITE_KEY)
+const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY
 
 export default function AuthModal({ onClose, initialMode = 'login' }) {
   const navigate = useNavigate()
@@ -13,6 +14,7 @@ export default function AuthModal({ onClose, initialMode = 'login' }) {
   const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
+  const [villeDepartFav, setVilleDepartFav] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [newsletter, setNewsletter] = useState(false)
@@ -103,6 +105,13 @@ export default function AuthModal({ onClose, initialMode = 'login' }) {
         return
       }
 
+      if (!villeDepartFav) {
+        setError('Merci de choisir ton aéroport de départ dans la liste proposée.')
+        setLoading(false)
+        resetCaptcha()
+        return
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -115,6 +124,10 @@ export default function AuthModal({ onClose, initialMode = 'login' }) {
             full_name: `${firstName} ${lastName}`.trim(),
             phone: phone || null,
             newsletter_opt_in: newsletter,
+            // AirportAutocomplete renvoie "Ville (CODE)" (ex: "Paris (CDG)"),
+            // on ne garde que le nom de ville : simple et lisible, sert
+            // directement pour le matching avec d_vol.aeroport_depart.
+            ville_depart_fav: villeDepartFav.split(' (')[0].trim(),
           },
         },
       })
@@ -227,34 +240,49 @@ export default function AuthModal({ onClose, initialMode = 'login' }) {
         <form onSubmit={handleEmailSubmit} className="flex flex-col gap-3">
           {mode === 'signup' && (
             <>
-              <input
-                type="text"
-                required
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                placeholder="Prénom"
-                className={inputClass}
-              />
-              <input
-                type="text"
-                required
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                placeholder="Nom"
-                className={inputClass}
-              />
+              <div>
+                <label className="text-xs text-navy/50 mb-1 block">
+                  Prénom<span className="text-coral"> *</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="Prénom"
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label className="text-xs text-navy/50 mb-1 block">
+                  Nom<span className="text-coral"> *</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder="Nom"
+                  className={inputClass}
+                />
+              </div>
             </>
           )}
 
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="ton@email.com"
-            className={inputClass}
-            autoComplete="email"
-          />
+          <div>
+            <label className="text-xs text-navy/50 mb-1 block">
+              Email<span className="text-coral"> *</span>
+            </label>
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="ton@email.com"
+              className={inputClass}
+              autoComplete="email"
+            />
+          </div>
 
           {mode === 'signup' && (
             <input
@@ -267,28 +295,48 @@ export default function AuthModal({ onClose, initialMode = 'login' }) {
             />
           )}
 
-          <input
-            type="password"
-            required
-            minLength={6}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Mot de passe"
-            className={inputClass}
-            autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
-          />
-
           {mode === 'signup' && (
+            <AirportAutocomplete
+              label="Aéroport de départ favori"
+              placeholder="Paris (CDG)"
+              value={villeDepartFav}
+              onChange={(val) => setVilleDepartFav(val)}
+              required
+            />
+          )}
+
+          <div>
+            <label className="text-xs text-navy/50 mb-1 block">
+              Mot de passe<span className="text-coral"> *</span>
+            </label>
             <input
               type="password"
               required
               minLength={6}
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Confirmer le mot de passe"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Mot de passe"
               className={inputClass}
-              autoComplete="new-password"
+              autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
             />
+          </div>
+
+          {mode === 'signup' && (
+            <div>
+              <label className="text-xs text-navy/50 mb-1 block">
+                Confirmer le mot de passe<span className="text-coral"> *</span>
+              </label>
+              <input
+                type="password"
+                required
+                minLength={6}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirmer le mot de passe"
+                className={inputClass}
+                autoComplete="new-password"
+              />
+            </div>
           )}
 
           {mode === 'signup' && (

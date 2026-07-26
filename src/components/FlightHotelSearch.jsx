@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
 import AirportAutocomplete from './AirportAutocomplete'
 
-// 👉 Remplace cette clé par la tienne, générée sur https://web3forms.com/
-const WEB3FORMS_KEY = '130e4580-30bb-453f-9d8e-040faa4698f3'
+// Clé Web3Forms définie dans le fichier .env (VITE_WEB3FORMS_KEY)
+const WEB3FORMS_KEY = import.meta.env.VITE_WEB3FORMS_KEY
 
 // Calcule la date du jour et J+1 au format AAAA-MM-JJ (format attendu par <input type="date">)
 function getDefaultDates() {
@@ -34,7 +34,10 @@ const emptyForm = {
   typeHebergement: '',
 }
 
-export default function FlightHotelSearch() {
+// hideIntro : true quand le formulaire est affiché à un utilisateur déjà
+// connecté (ex: depuis "Vols & hébergements") — masque tout l'habillage
+// marketing destiné aux visiteurs de la landing page publique.
+export default function FlightHotelSearch({ hideIntro = false }) {
   const [mode, setMode] = useState('vols')
   const [form, setForm] = useState(emptyForm)
   const [status, setStatus] = useState('idle') // idle | sending | success | error
@@ -79,25 +82,27 @@ export default function FlightHotelSearch() {
   }
 
   return (
-    <section id="recherche" className="bg-cream pt-16 pb-20">
-      <div className="max-w-6xl mx-auto px-6">
+    <section id="recherche" className={`bg-cream ${hideIntro ? '' : 'pt-16 pb-20'}`}>
+      <div className={hideIntro ? '' : 'max-w-6xl mx-auto px-6'}>
 
-        {/* Eyebrow + titre, avec les classes utilitaires du projet */}
-        <div className="text-center mb-10">
-          <p className="section-eyebrow">✦ par où commencer ?</p>
-          <h2 className="section-title mb-3">
-            Et si on cherchait <em className="text-coral not-italic">ton prochain billet</em> ?
-          </h2>
-          <p className="section-subtitle max-w-md mx-auto">
-            Vols et/ou hébergements, on te trouve les meilleures options pour poser ta valise sans te prendre la tête.
-          </p>
-          <p className="font-sans text-xl font-bold text-coral/70 mt-2">
-             100% gratuit, sans inscription
-          </p>
-        </div>
+        {/* Eyebrow + titre marketing — uniquement pour les visiteurs non connectés */}
+        {!hideIntro && (
+          <div className="text-center mb-10">
+            <p className="section-eyebrow">✦ par où commencer ?</p>
+            <h2 className="section-title mb-3">
+              Et si on cherchait <em className="text-coral not-italic">ton prochain billet</em> ?
+            </h2>
+            <p className="section-subtitle max-w-md mx-auto">
+              Vols et/ou hébergements, on te trouve les meilleures options pour poser ta valise sans te prendre la tête.
+            </p>
+            <p className="font-sans text-xl font-bold text-coral/70 mt-2">
+               100% gratuit, sans inscription
+            </p>
+          </div>
+        )}
 
         {/* Carte façon polaroïd */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 max-w-3xl mx-auto rotate-[-0.4deg]">
+        <div className={`bg-white rounded-2xl shadow-lg p-6 md:p-8 max-w-3xl mx-auto ${hideIntro ? '' : 'rotate-[-0.4deg]'}`}>
 
           {/* Toggle vols / hébergements */}
           <div className="flex gap-2 mb-6 bg-cream rounded-full p-1 w-fit mx-auto">
@@ -235,14 +240,18 @@ export default function FlightHotelSearch() {
               </div>
             )}
 
-            {/* Newsletter — facultative, pour rester aux normes RGPD (consentement libre) */}
-            <label className="flex items-start gap-3 mt-6 cursor-pointer">
-              <input type="checkbox" className="mt-1 w-4 h-4 accent-coral cursor-pointer"
-                checked={form.newsletter} onChange={(e) => update('newsletter', e.target.checked)} />
-              <span className="font-sans text-navy/70 text-sm">
-                Je veux recevoir les bons plans et nouveautés du Voyage Pour Tous par email
-              </span>
-            </label>
+            {/* Newsletter — facultative, pour rester aux normes RGPD (consentement libre).
+                Inutile côté "Vols & hébergements" : l'utilisateur connecté a déjà fait
+                ce choix à l'inscription. */}
+            {!hideIntro && (
+              <label className="flex items-start gap-3 mt-6 cursor-pointer">
+                <input type="checkbox" className="mt-1 w-4 h-4 accent-coral cursor-pointer"
+                  checked={form.newsletter} onChange={(e) => update('newsletter', e.target.checked)} />
+                <span className="font-sans text-navy/70 text-sm">
+                  Je veux recevoir les bons plans et nouveautés du Voyage Pour Tous par email
+                </span>
+              </label>
+            )}
 
             <div className="flex justify-center mt-6">
               <SearchButton
@@ -257,9 +266,12 @@ export default function FlightHotelSearch() {
               </p>
             )}
 
-            <p className="font-sans text-navy/40 text-xs text-center mt-6">
-              On compare les meilleurs partenaires pour toi — aucune carte bancaire, juste pour repérer le terrain.
-            </p>
+            {/* Réassurance marketing — uniquement pour les visiteurs non connectés */}
+            {!hideIntro && (
+              <p className="font-sans text-navy/40 text-xs text-center mt-6">
+                On compare les meilleurs partenaires pour toi — aucune carte bancaire, juste pour repérer le terrain.
+              </p>
+            )}
           </form>
         </div>
 

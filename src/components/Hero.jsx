@@ -73,16 +73,26 @@ export default function Hero() {
           </div>
         </div>
 
-        {/* Right — polaroid stack */}
-        <div className="relative flex justify-center items-center h-96 md:h-auto">
-          {/* Annotation */}
-          <span className="absolute top-0 right-8 font-handwriting text-coral text-lg rotate-3 z-10">
+        {/*
+          Right — polaroid stack.
+          overflow-hidden en dessous de md : les polaroïds sont en position
+          absolute avec des largeurs fixes (w-52 = 208px). Sur un écran étroit
+          (~360px, moins le padding), deux polaroïds de 208px positionnés
+          gauche/droite se chevauchent ou débordent du conteneur et
+          provoquaient un scroll horizontal de toute la page. La largeur est
+          réduite sur mobile (w-40) et resserrée (left-2/right-2 au lieu de
+          left-4/right-4), avec overflow-hidden en filet de sécurité en
+          dessous de md — désactivé à partir de md où il y a assez de place.
+        */}
+        <div className="relative flex justify-center items-center h-80 sm:h-96 md:h-auto overflow-hidden md:overflow-visible">
+          {/* Annotation — décorative, masquée sous sm pour éviter la surcharge visuelle */}
+          <span className="hidden sm:block absolute top-0 right-8 font-handwriting text-coral text-lg rotate-3 z-10">
             ✦ ton carnet, partout
           </span>
 
           {/* Polaroid 1 — map/planning */}
-          <div className="absolute top-8 left-4 md:left-8 bg-white p-3 shadow-lg rotate-[-4deg] z-20 w-52">
-            <div className="w-full h-36 bg-gradient-to-br from-amber-100 to-amber-200 rounded flex items-center justify-center overflow-hidden">
+          <div className="absolute top-8 left-2 sm:left-4 md:left-8 bg-white p-3 shadow-lg rotate-[-4deg] z-20 w-40 sm:w-52">
+            <div className="w-full h-28 sm:h-36 bg-gradient-to-br from-amber-100 to-amber-200 rounded flex items-center justify-center overflow-hidden">
               <div className="text-center">
                 <div className="grid grid-cols-4 gap-0.5 p-2">
                   {Array.from({length:16}).map((_,i) => (
@@ -95,8 +105,8 @@ export default function Hero() {
           </div>
 
           {/* Polaroid 2 — food */}
-          <div className="absolute bottom-4 right-0 md:right-4 bg-white p-3 shadow-lg rotate-[3deg] z-20 w-52">
-            <div className="w-full h-36 bg-gradient-to-br from-orange-900 via-orange-700 to-amber-800 rounded overflow-hidden flex items-center justify-center">
+          <div className="absolute bottom-4 right-2 sm:right-0 md:right-4 bg-white p-3 shadow-lg rotate-[3deg] z-20 w-40 sm:w-52">
+            <div className="w-full h-28 sm:h-36 bg-gradient-to-br from-orange-900 via-orange-700 to-amber-800 rounded overflow-hidden flex items-center justify-center">
               {/* Abstract restaurant scene */}
               <div className="relative w-full h-full">
                 <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-black/30" />
@@ -114,8 +124,8 @@ export default function Hero() {
           </div>
 
           {/* Badge */}
-          <div className="absolute bottom-16 left-0 md:left-4 bg-white rounded-2xl px-4 py-3 shadow-md z-30 flex items-center gap-2">
-            <div className="w-7 h-7 rounded-full bg-coral/20 flex items-center justify-center">
+          <div className="absolute bottom-16 left-2 sm:left-0 md:left-4 bg-white rounded-2xl px-3 sm:px-4 py-2.5 sm:py-3 shadow-md z-30 flex items-center gap-2">
+            <div className="w-7 h-7 rounded-full bg-coral/20 flex items-center justify-center shrink-0">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e8735a" strokeWidth="2">
                 <circle cx="12" cy="12" r="10"/>
                 <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>

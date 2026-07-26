@@ -4,3 +4,6 @@ dist
 .env
 .env.local
 *.log
+lvpt_schema_production.sql
+lvpt_seed_dev.sql
+

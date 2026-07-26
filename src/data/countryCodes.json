@@ -1,0 +1,15 @@
+{
+  "France": "FR", "États-Unis": "US", "Japon": "JP", "Thaïlande": "TH", "Maroc": "MA",
+  "Royaume-Uni": "GB", "Italie": "IT", "Espagne": "ES", "Grèce": "GR", "Portugal": "PT",
+  "Pays-Bas": "NL", "Islande": "IS", "Émirats arabes unis": "AE", "Corée du Sud": "KR",
+  "Égypte": "EG", "Chine": "CN", "Vietnam": "VN", "Indonésie": "ID", "Australie": "AU",
+  "Canada": "CA", "Mexique": "MX", "Brésil": "BR", "Argentine": "AR", "Inde": "IN",
+  "Afrique du Sud": "ZA", "Kenya": "KE", "Tanzanie": "TZ", "Turquie": "TR", "Allemagne": "DE",
+  "Suisse": "CH", "Autriche": "AT", "Irlande": "IE", "Pologne": "PL", "République tchèque": "CZ",
+  "Hongrie": "HU", "Croatie": "HR", "Suède": "SE", "Norvège": "NO", "Danemark": "DK",
+  "Finlande": "FI", "Russie": "RU", "Israël": "IL", "Jordanie": "JO", "Liban": "LB",
+  "Arabie saoudite": "SA", "Qatar": "QA", "Singapour": "SG", "Malaisie": "MY",
+  "Philippines": "PH", "Cambodge": "KH", "Sri Lanka": "LK", "Népal": "NP", "Nigeria": "NG",
+  "Sénégal": "SN", "Éthiopie": "ET", "Colombie": "CO", "Pérou": "PE", "Chili": "CL",
+  "Cuba": "CU", "Costa Rica": "CR", "Nouvelle-Zélande": "NZ"
+}
