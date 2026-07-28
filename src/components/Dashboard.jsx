@@ -8,6 +8,8 @@ import FavoritesModal from './FavoritesModal'
 import ToolboxModal from './ToolboxModal'
 import Footer from './Footer'
 import Sidebar from './Sidebar'
+import PageHeader from './PageHeader'
+import EditProfileModal from './EditProfileModal'
 import NextTripCard from './NextTripCard'
 import ActivityFeed from './ActivityFeed'
 import DealsRow from './DealsRow'
@@ -291,6 +293,8 @@ export default function Dashboard() {
   const [isAdmin, setIsAdmin] = useState(false)
   const [pricingOpen, setPricingOpen] = useState(false)
   const [favoritesOpen, setFavoritesOpen] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
+  const [firstTimeProfileOpen, setFirstTimeProfileOpen] = useState(false)
   const [toolboxOpen, setToolboxOpen] = useState(false)
   const [toolboxTab, setToolboxTab] = useState('currency')
 
@@ -311,6 +315,18 @@ export default function Dashboard() {
     if (!user) return
     supabase.from('lvpt').select('is_admin').eq('id', user.id).single()
       .then(({ data }) => setIsAdmin(Boolean(data?.is_admin)))
+  }, [user])
+
+  // Popup "Compléter mon profil" : ne s'affiche qu'une seule fois dans la
+  // vie d'un compte (profil_a_completer_vu), jamais réévaluée sur la base
+  // des champs remplis — le téléphone est facultatif, son absence ne doit
+  // pas rouvrir la popup indéfiniment.
+  useEffect(() => {
+    if (!user) return
+    supabase.from('lvpt').select('profil_a_completer_vu').eq('id', user.id).single()
+      .then(({ data }) => {
+        if (!data?.profil_a_completer_vu) setFirstTimeProfileOpen(true)
+      })
   }, [user])
 
   useEffect(() => {
@@ -417,31 +433,11 @@ export default function Dashboard() {
 
         <div className="flex-1 ml-0 sm:ml-16 px-4 sm:px-6 pt-20 sm:pt-10 pb-10">
           <div className="max-w-4xl mx-auto">
-            <div className="flex items-center justify-end mb-10">
-              <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
-                <button
-                  onClick={() => setFavoritesOpen(true)}
-                  className="btn-primary text-sm py-2.5 px-5"
-                >
-                  Mes favoris
-                </button>
-                <button className="btn-primary text-sm py-2.5 px-5">
-                  Nos ateliers
-                </button>
-                <button
-                  onClick={() => setPricingOpen(true)}
-                  className="btn-primary text-sm py-2.5 px-5"
-                >
-                  Upgrade plan
-                </button>
-                <button
-                  onClick={() => supabase.auth.signOut()}
-                  className="text-sm text-navy/60 hover:text-coral transition-colors"
-                >
-                  Se déconnecter
-                </button>
-              </div>
-            </div>
+            <PageHeader
+              onFavoritesClick={() => setFavoritesOpen(true)}
+              onUpgradeClick={() => setPricingOpen(true)}
+              onProfileClick={() => setProfileOpen(true)}
+            />
 
             <h1 className="font-serif text-3xl text-navy mb-2">
               Dashboard
@@ -512,6 +508,14 @@ export default function Dashboard() {
 
       {toolboxOpen && (
         <ToolboxModal onClose={() => setToolboxOpen(false)} initialTab={toolboxTab} />
+      )}
+
+      {profileOpen && (
+        <EditProfileModal userId={user.id} onClose={() => setProfileOpen(false)} />
+      )}
+
+      {firstTimeProfileOpen && (
+        <EditProfileModal userId={user.id} firstTime onClose={() => setFirstTimeProfileOpen(false)} />
       )}
     </>
   )

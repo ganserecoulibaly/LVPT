@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from './supabaseClient'
 import { formatDate } from './dateUtils'
 import Sidebar from './Sidebar'
+import PageHeader from './PageHeader'
+import EditProfileModal from './EditProfileModal'
 import Footer from './Footer'
 import PricingModal from './PricingModal'
 import FavoritesModal from './FavoritesModal'
@@ -137,6 +139,7 @@ export default function ItineraireDetail() {
   const [isAdmin, setIsAdmin] = useState(false)
   const [pricingOpen, setPricingOpen] = useState(false)
   const [favoritesOpen, setFavoritesOpen] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
   const [toolboxOpen, setToolboxOpen] = useState(false)
   const [toolboxTab, setToolboxTab] = useState('currency')
 
@@ -300,14 +303,11 @@ export default function ItineraireDetail() {
 
         <div className="flex-1 ml-0 sm:ml-16 px-4 sm:px-6 pt-20 sm:pt-10 pb-10">
           <div className="max-w-4xl mx-auto">
-            <div className="flex items-center justify-end mb-8">
-              <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
-                <button onClick={() => setFavoritesOpen(true)} className="btn-primary text-sm py-2.5 px-5">Mes favoris</button>
-                <button className="btn-primary text-sm py-2.5 px-5">Nos ateliers</button>
-                <button onClick={() => setPricingOpen(true)} className="btn-primary text-sm py-2.5 px-5">Upgrade plan</button>
-                <button onClick={() => supabase.auth.signOut()} className="text-sm text-navy/60 hover:text-coral transition-colors">Se déconnecter</button>
-              </div>
-            </div>
+            <PageHeader
+              onFavoritesClick={() => setFavoritesOpen(true)}
+              onUpgradeClick={() => setPricingOpen(true)}
+              onProfileClick={() => setProfileOpen(true)}
+            />
 
             <button onClick={() => navigate('/itineraires')} className="text-sm text-navy/50 hover:text-coral transition-colors mb-4 flex items-center gap-1">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -449,6 +449,8 @@ export default function ItineraireDetail() {
         <FavoritesModal onClose={() => setFavoritesOpen(false)} favoriteDeals={favoriteDeals} userId={user.id} favoriteIds={favoriteIds} onToggleFavorite={toggleFavorite} />
       )}
       {toolboxOpen && <ToolboxModal onClose={() => setToolboxOpen(false)} initialTab={toolboxTab} />}
+
+      {profileOpen && <EditProfileModal userId={user.id} onClose={() => setProfileOpen(false)} />}
     </>
   )
 }

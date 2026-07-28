@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { supabase } from './supabaseClient'
 import { formatDate } from './dateUtils'
 import Sidebar from './Sidebar'
+import PageHeader from './PageHeader'
+import EditProfileModal from './EditProfileModal'
 import Footer from './Footer'
 import PricingModal from './PricingModal'
 import FavoritesModal from './FavoritesModal'
@@ -421,6 +423,7 @@ export default function VolsHebergements() {
   const [user, setUser] = useState(null)
   const [pricingOpen, setPricingOpen] = useState(false)
   const [favoritesOpen, setFavoritesOpen] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
   const [toolboxOpen, setToolboxOpen] = useState(false)
   const [toolboxTab, setToolboxTab] = useState('currency')
   const [searchOpen, setSearchOpen] = useState(false)
@@ -537,14 +540,11 @@ export default function VolsHebergements() {
 
         <div className="flex-1 ml-0 sm:ml-16 px-4 sm:px-6 pt-20 sm:pt-10 pb-10">
           <div className="max-w-6xl mx-auto">
-            <div className="flex items-center justify-end mb-10">
-              <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
-                <button onClick={() => setFavoritesOpen(true)} className="btn-primary text-sm py-2.5 px-5">Mes favoris</button>
-                <button className="btn-primary text-sm py-2.5 px-5">Nos ateliers</button>
-                <button onClick={() => setPricingOpen(true)} className="btn-primary text-sm py-2.5 px-5">Upgrade plan</button>
-                <button onClick={() => supabase.auth.signOut()} className="text-sm text-navy/60 hover:text-coral transition-colors">Se déconnecter</button>
-              </div>
-            </div>
+            <PageHeader
+              onFavoritesClick={() => setFavoritesOpen(true)}
+              onUpgradeClick={() => setPricingOpen(true)}
+              onProfileClick={() => setProfileOpen(true)}
+            />
 
             <div className="flex items-start justify-between gap-4 mb-6">
               <div>
@@ -622,6 +622,8 @@ export default function VolsHebergements() {
         />
       )}
       {toolboxOpen && <ToolboxModal onClose={() => setToolboxOpen(false)} initialTab={toolboxTab} />}
+
+      {profileOpen && <EditProfileModal userId={user.id} onClose={() => setProfileOpen(false)} />}
 
       {searchOpen && (
         <div
