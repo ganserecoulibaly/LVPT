@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from './supabaseClient'
 import { formatDate } from './dateUtils'
 import Sidebar from './Sidebar'
 import PageHeader from './PageHeader'
 import TipBanner from './TipBanner'
 import EditProfileModal from './EditProfileModal'
+import CreateItineraireModal from './CreateItineraireModal'
+import CreateVoyageCommunModal from './CreateVoyageCommunModal'
+import QuickAddMenu from './QuickAddMenu'
 import Footer from './Footer'
 import PricingModal from './PricingModal'
 import FavoritesModal from './FavoritesModal'
@@ -421,6 +425,7 @@ function BudgetSummary({ vols, stays, nights }) {
 }
 
 export default function VolsHebergements() {
+  const navigate = useNavigate()
   const [user, setUser] = useState(null)
   const [pricingOpen, setPricingOpen] = useState(false)
   const [favoritesOpen, setFavoritesOpen] = useState(false)
@@ -428,6 +433,9 @@ export default function VolsHebergements() {
   const [toolboxOpen, setToolboxOpen] = useState(false)
   const [toolboxTab, setToolboxTab] = useState('currency')
   const [searchOpen, setSearchOpen] = useState(false)
+  const [quickAddOpen, setQuickAddOpen] = useState(false)
+  const [quickCreateItineraireOpen, setQuickCreateItineraireOpen] = useState(false)
+  const [quickCreateVoyageCommunOpen, setQuickCreateVoyageCommunOpen] = useState(false)
 
   const [flightDeals, setFlightDeals] = useState([])
   const [hotelDeals, setHotelDeals] = useState([])
@@ -547,16 +555,21 @@ export default function VolsHebergements() {
               onProfileClick={() => setProfileOpen(true)}
             />
 
-            <div className="flex items-start justify-between gap-4 mb-6">
-              <div>
-                <h1 className="font-serif text-3xl text-navy mb-2">Vols & hébergements</h1>
-                <p className="text-navy/70">
-                  Retrouve ici toutes tes propositions, et choisis celles qui comptent pour ton dashboard.
-                </p>
+            <div className="mb-6">
+              <div className="flex items-center justify-center sm:justify-start gap-3 mb-2">
+                <h1 className="font-serif text-3xl text-navy">Vols & hébergements</h1>
+                <QuickAddMenu
+                  open={quickAddOpen}
+                  onToggle={() => setQuickAddOpen((o) => !o)}
+                  onClose={() => setQuickAddOpen(false)}
+                  onCreateItineraire={() => { setQuickAddOpen(false); setQuickCreateItineraireOpen(true) }}
+                  onCreateVoyageCommun={() => { setQuickAddOpen(false); setQuickCreateVoyageCommunOpen(true) }}
+                  onSearchFlights={() => { setQuickAddOpen(false); setSearchOpen(true) }}
+                />
               </div>
-              <button onClick={() => setSearchOpen(true)} className="btn-primary text-sm py-2.5 px-5 shrink-0 whitespace-nowrap">
-                + nouvelle recherche
-              </button>
+              <p className="text-navy/70 text-center sm:text-left">
+                Retrouve ici toutes tes propositions, et choisis celles qui comptent pour ton dashboard.
+              </p>
             </div>
 
             <TipBanner nomPage="vols-hebergements" />
@@ -652,6 +665,22 @@ export default function VolsHebergements() {
             <FlightHotelSearch hideIntro />
           </div>
         </div>
+      )}
+
+      {quickCreateItineraireOpen && (
+        <CreateItineraireModal
+          userId={user.id}
+          onClose={() => setQuickCreateItineraireOpen(false)}
+          onCreated={() => { setQuickCreateItineraireOpen(false); navigate('/itineraires') }}
+        />
+      )}
+
+      {quickCreateVoyageCommunOpen && (
+        <CreateVoyageCommunModal
+          userId={user.id}
+          onClose={() => setQuickCreateVoyageCommunOpen(false)}
+          onCreated={() => { setQuickCreateVoyageCommunOpen(false); navigate('/voyage-commun') }}
+        />
       )}
 
     </>

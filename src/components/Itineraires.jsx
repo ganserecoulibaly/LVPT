@@ -10,6 +10,9 @@ import PricingModal from './PricingModal'
 import FavoritesModal from './FavoritesModal'
 import ToolboxModal from './ToolboxModal'
 import CreateItineraireModal from './CreateItineraireModal'
+import CreateVoyageCommunModal from './CreateVoyageCommunModal'
+import QuickAddMenu from './QuickAddMenu'
+import TipBanner from './TipBanner'
 
 const GRADIENTS = [
   'from-[#D85A30]/30 to-[#8B2F1A]/20',
@@ -233,6 +236,8 @@ export default function Itineraires() {
   const [toolboxOpen, setToolboxOpen] = useState(false)
   const [toolboxTab, setToolboxTab] = useState('currency')
   const [createOpen, setCreateOpen] = useState(false)
+  const [quickAddOpen, setQuickAddOpen] = useState(false)
+  const [createVoyageCommunOpen, setCreateVoyageCommunOpen] = useState(false)
 
   const [itineraires, setItineraires] = useState([])
   const [authors, setAuthors] = useState({})
@@ -387,15 +392,22 @@ export default function Itineraires() {
               onProfileClick={() => setProfileOpen(true)}
             />
 
-            <div className="flex items-start justify-between gap-4 mb-8">
-              <div>
-                <h1 className="font-serif text-3xl text-navy mb-2">Itinéraires</h1>
-                <p className="text-navy/70">Des parcours partagés par la communauté, ou crée le tien.</p>
+            <div className="mb-8">
+              <div className="flex items-center justify-center sm:justify-start gap-3 mb-2">
+                <h1 className="font-serif text-3xl text-navy">Itinéraires</h1>
+                <QuickAddMenu
+                  open={quickAddOpen}
+                  onToggle={() => setQuickAddOpen((o) => !o)}
+                  onClose={() => setQuickAddOpen(false)}
+                  onCreateItineraire={() => { setQuickAddOpen(false); setCreateOpen(true) }}
+                  onCreateVoyageCommun={() => { setQuickAddOpen(false); setCreateVoyageCommunOpen(true) }}
+                  onSearchFlights={() => { setQuickAddOpen(false); navigate('/vols-hebergements') }}
+                />
               </div>
-              <button onClick={() => setCreateOpen(true)} className="btn-primary text-sm py-2.5 px-5 shrink-0 whitespace-nowrap">
-                + Créer un itinéraire
-              </button>
+              <p className="text-navy/70 text-center sm:text-left">Des parcours partagés par la communauté, ou crée le tien.</p>
             </div>
+
+            <TipBanner nomPage="itineraires" />
 
             {isFree && (
               <div className="mb-6 px-4 py-3 rounded-xl bg-coral/5 border border-coral/20 text-sm text-navy/70">
@@ -519,6 +531,14 @@ export default function Itineraires() {
           userId={user.id}
           onClose={() => setCreateOpen(false)}
           onCreated={() => { setCreateOpen(false); loadItineraires() }}
+        />
+      )}
+
+      {createVoyageCommunOpen && (
+        <CreateVoyageCommunModal
+          userId={user.id}
+          onClose={() => setCreateVoyageCommunOpen(false)}
+          onCreated={() => { setCreateVoyageCommunOpen(false); navigate('/voyage-commun') }}
         />
       )}
     </>

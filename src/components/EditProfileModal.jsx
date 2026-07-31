@@ -24,6 +24,7 @@ export default function EditProfileModal({ userId, onClose, firstTime = false })
   const [confirmPassword, setConfirmPassword] = useState('')
 
   const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(false)
 
@@ -56,6 +57,46 @@ export default function EditProfileModal({ userId, onClose, firstTime = false })
       await supabase.from('lvpt').update({ profil_a_completer_vu: true }).eq('id', userId)
     }
     onClose()
+  }
+
+  // Anonymise plutôt que supprime réellement la ligne : plusieurs tables
+  // (s_voyage_commun, voyage_commun_commentaire, feature_vote,
+  // s_feature_idee) ont "on delete cascade" vers lvpt(id) — une vraie
+  // suppression effacerait aussi tout le contenu créé par la personne,
+  // ce qu'on ne veut pas. La ligne reste, ses champs personnels sont
+  // vidés, et "Compte supprimé" s'affiche automatiquement partout via
+  // la vue public_profiles.
+  const handleDeleteAccount = async () => {
+    const confirmed = window.confirm(
+      "Supprimer ton compte ? Ton profil sera anonymisé (nom, email, téléphone effacés) et tu seras déconnecté. Cette action est irréversible.\n\nLes itinéraires et posts que tu as publiés resteront visibles, mais affichés comme provenant d'un « Compte supprimé »."
+    )
+    if (!confirmed) return
+
+    setDeleting(true)
+    const { error: deleteError } = await supabase
+      .from('lvpt')
+      .update({
+        prenom: null,
+        nom: null,
+        telephone: null,
+        email: null,
+        ville_depart_fav: null,
+        pays_depart_fav: null,
+        compte_supprime: true,
+      })
+      .eq('id', userId)
+
+    if (deleteError) {
+      setError(deleteError.message)
+      setDeleting(false)
+      return
+    }
+
+    await supabase.auth.signOut()
+    // Rechargement complet plutôt qu'une navigation React Router : le
+    // compte vient de disparaître fonctionnellement, on repart de zéro
+    // proprement plutôt que de risquer un état incohérent dans l'app.
+    window.location.href = '/'
   }
 
   const handleSubmit = async () => {
@@ -231,6 +272,16 @@ export default function EditProfileModal({ userId, onClose, firstTime = false })
                   className="text-xs text-navy/50 hover:text-navy transition-colors text-center mt-1"
                 >
                   Plus tard
+                </button>
+              )}
+
+              {!firstTime && (
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={deleting}
+                  className="text-xs text-navy/40 hover:text-red-500 transition-colors text-center mt-2 disabled:opacity-50"
+                >
+                  {deleting ? 'Suppression…' : 'Supprimer mon compte'}
                 </button>
               )}
             </div>

@@ -9,6 +9,9 @@ import PricingModal from './PricingModal'
 import FavoritesModal from './FavoritesModal'
 import ToolboxModal from './ToolboxModal'
 import CreateVoyageCommunModal from './CreateVoyageCommunModal'
+import CreateItineraireModal from './CreateItineraireModal'
+import QuickAddMenu from './QuickAddMenu'
+import TipBanner from './TipBanner'
 
 const GRADIENTS = [
   'from-[#D85A30]/30 to-[#8B2F1A]/20',
@@ -140,6 +143,8 @@ export default function VoyageCommun() {
   const [toolboxOpen, setToolboxOpen] = useState(false)
   const [toolboxTab, setToolboxTab] = useState('currency')
   const [createOpen, setCreateOpen] = useState(false)
+  const [quickAddOpen, setQuickAddOpen] = useState(false)
+  const [createItineraireOpen, setCreateItineraireOpen] = useState(false)
 
   const [categories, setCategories] = useState([])
   const [posts, setPosts] = useState([])
@@ -348,15 +353,22 @@ export default function VoyageCommun() {
               onProfileClick={() => setProfileOpen(true)}
             />
 
-            <div className="flex items-start justify-between gap-4 mb-8">
-              <div>
-                <h1 className="font-serif text-3xl text-navy mb-2">Voyage commun</h1>
-                <p className="text-navy/70">Conseils, bons plans et alertes partagés par la communauté.</p>
+            <div className="mb-8">
+              <div className="flex items-center justify-center sm:justify-start gap-3 mb-2">
+                <h1 className="font-serif text-3xl text-navy">Voyage commun</h1>
+                <QuickAddMenu
+                  open={quickAddOpen}
+                  onToggle={() => setQuickAddOpen((o) => !o)}
+                  onClose={() => setQuickAddOpen(false)}
+                  onCreateItineraire={() => { setQuickAddOpen(false); setCreateItineraireOpen(true) }}
+                  onCreateVoyageCommun={() => { setQuickAddOpen(false); setCreateOpen(true) }}
+                  onSearchFlights={() => { setQuickAddOpen(false); navigate('/vols-hebergements') }}
+                />
               </div>
-              <button onClick={() => setCreateOpen(true)} className="btn-primary text-sm py-2.5 px-5 shrink-0 whitespace-nowrap">
-                + Partager un post
-              </button>
+              <p className="text-navy/70 text-center sm:text-left">Conseils, bons plans et alertes partagés par la communauté.</p>
             </div>
+
+            <TipBanner nomPage="voyage-commun" />
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
               <div className="lg:col-span-1">
@@ -485,6 +497,14 @@ export default function VoyageCommun() {
           userId={user.id}
           onClose={() => setCreateOpen(false)}
           onCreated={() => { setCreateOpen(false); loadFirstPage(); loadFilterMeta() }}
+        />
+      )}
+
+      {createItineraireOpen && (
+        <CreateItineraireModal
+          userId={user.id}
+          onClose={() => setCreateItineraireOpen(false)}
+          onCreated={() => { setCreateItineraireOpen(false); navigate('/itineraires') }}
         />
       )}
     </>

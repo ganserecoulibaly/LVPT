@@ -1,5 +1,6 @@
 import React from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import ScrollToTop from './components/ScrollToTop'
 import Navbar from './components/Navbar'
 import Hero from './components/Hero'
 import FlightHotelSearch from './components/FlightHotelSearch'
@@ -15,6 +16,14 @@ import Itineraires from './components/Itineraires'
 import ItineraireDetail from './components/ItineraireDetail'
 import VoyageCommun from './components/VoyageCommun'
 import VoyageCommunDetail from './components/VoyageCommunDetail'
+import RoadmapInterne from './components/RoadmapInterne'
+import MentionsLegales from './components/legal/MentionsLegales'
+import CGU from './components/legal/CGU'
+import CGV from './components/legal/CGV'
+import Confidentialite from './components/legal/Confidentialite'
+import Ateliers from './components/atelier/Ateliers'
+import AtelierDetail from './components/atelier/AtelierDetail'
+import AtelierConfirmation from './components/atelier/AtelierConfirmation'
 import ProtectedRoute from './components/ProtectedRoute'
 // Au fur et à mesure, importe ici les futures pages privées :
 // import Carnet from './components/Carnet'
@@ -39,6 +48,7 @@ function HomePage() {
 export default function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         {/* Page publique */}
         <Route path="/" element={<HomePage />} />
@@ -92,6 +102,46 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/feuille-de-route"
+          element={
+            <ProtectedRoute>
+              <RoadmapInterne />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Pages légales — publiques, consultables sans compte */}
+        <Route path="/mentions-legales" element={<MentionsLegales />} />
+        <Route path="/cgu" element={<CGU />} />
+        <Route path="/cgv" element={<CGV />} />
+        <Route path="/confidentialite" element={<Confidentialite />} />
+
+        <Route
+          path="/ateliers"
+          element={
+            <ProtectedRoute>
+              <Ateliers />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/ateliers/confirmation"
+          element={
+            <ProtectedRoute>
+              <AtelierConfirmation />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/ateliers/:id"
+          element={
+            <ProtectedRoute>
+              <AtelierDetail />
+            </ProtectedRoute>
+          }
+        />
+
         {/*
           Pour chaque nouvelle page privée, même schéma :
           <Route

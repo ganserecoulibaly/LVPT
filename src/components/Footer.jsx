@@ -1,4 +1,13 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
+
+const LEGAL_LINKS = [
+  { label: 'Mentions légales', href: '/mentions-legales' },
+  { label: 'CGU', href: '/cgu' },
+  { label: 'CGV', href: '/cgv' },
+  { label: 'Confidentialité', href: '/confidentialite' },
+]
+
 export default function Footer() {
   return (
     <footer className="bg-navy text-white">
@@ -64,7 +73,17 @@ export default function Footer() {
           </div>
         </div>
         <div className="border-t border-white/10 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="font-sans text-white/30 text-xs">© 2026 Le Voyage Pour Tous</p>
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 font-sans text-white/30 text-xs">
+            <span>© 2026 Le Voyage Pour Tous</span>
+            {LEGAL_LINKS.map((link) => (
+              <React.Fragment key={link.href}>
+                <span className="text-white/15">·</span>
+                <Link to={link.href} className="underline underline-offset-2 hover:text-coral transition-colors">
+                  {link.label}
+                </Link>
+              </React.Fragment>
+            ))}
+          </div>
           <p className="font-handwriting text-white/30 text-sm">✦ Bon voyage</p>
         </div>
       </div>

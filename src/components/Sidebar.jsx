@@ -117,6 +117,13 @@ const icons = {
       <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
     </svg>
   ),
+  clipboard: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="8" y="2" width="8" height="4" rx="1" />
+      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+      <path d="M9 12h6" /><path d="M9 16h6" />
+    </svg>
+  ),
 }
 
 // À remplacer plus tard par le vrai plan de l'utilisateur (récupéré depuis Supabase)
@@ -235,6 +242,7 @@ function ToolboxNavItem({ onToolboxClick, forceLabelVisible }) {
 export default function Sidebar({ onLockedClick, onToolboxClick }) {
   const [user, setUser] = useState(null)
   const [currentPlan, setCurrentPlan] = useState('free')
+  const [isAdminUser, setIsAdminUser] = useState(false)
   const [seenModules, setSeenModules] = useState(() => loadSeenModules())
   const [flightsNewCount, setFlightsNewCount] = useState(0)
   // Tiroir mobile : fermé par défaut. Sans lui, la sidebar desktop (qui ne
@@ -258,7 +266,10 @@ export default function Sidebar({ onLockedClick, onToolboxClick }) {
   useEffect(() => {
     if (!user) return
     supabase.from('lvpt').select('abonnement, is_admin').eq('id', user.id).single()
-      .then(({ data }) => setCurrentPlan(data?.is_admin ? 'frequent' : (data?.abonnement || 'free')))
+      .then(({ data }) => {
+        setCurrentPlan(data?.is_admin ? 'frequent' : (data?.abonnement || 'free'))
+        setIsAdminUser(Boolean(data?.is_admin))
+      })
   }, [user])
 
   // Vrai compteur : lignes s_vol + s_hebergement créées depuis la dernière
@@ -330,6 +341,20 @@ export default function Sidebar({ onLockedClick, onToolboxClick }) {
         ))}
 
         <ToolboxNavItem onToolboxClick={onToolboxClick} forceLabelVisible={forceLabelVisible} />
+
+        <div className="h-px bg-navy/10 mx-4 my-2" />
+        <Link
+          to="/feuille-de-route"
+          onClick={() => setMobileOpen(false)}
+          className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-navy/5 transition-colors"
+        >
+          <span className="shrink-0 text-navy/70">{icons.clipboard}</span>
+          <span className={`text-sm whitespace-nowrap transition-opacity duration-200 text-navy ${
+            forceLabelVisible ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+          }`}>
+            RetroCommission
+          </span>
+        </Link>
       </div>
     </>
   )

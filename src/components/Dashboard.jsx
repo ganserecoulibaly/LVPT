@@ -15,6 +15,8 @@ import ActivityFeed from './ActivityFeed'
 import FeatureVoting from './FeatureVoting'
 import CreateItineraireModal from './CreateItineraireModal'
 import CreateVoyageCommunModal from './CreateVoyageCommunModal'
+import QuickAddMenu from './QuickAddMenu'
+import TipBanner from './TipBanner'
 import DealsRow from './DealsRow'
 
 const GRADIENTS = [
@@ -291,59 +293,8 @@ function ItineraireRow({ itineraires, userId, favoriteIds, onToggleFavorite, ref
   )
 }
 
-// Menu "+" — pas de dépendance externe, fermeture au clic extérieur
-// (même pattern que le menu de compte dans Navbar.jsx). Volontairement
-// simple : 3 actions fixes, pas de logique dynamique à maintenir.
-function QuickAddMenu({ open, onToggle, onClose, onCreateItineraire, onCreateVoyageCommun, onSearchFlights }) {
-  const ref = React.useRef(null)
-
-  useEffect(() => {
-    function handleClickOutside(e) {
-      if (ref.current && !ref.current.contains(e.target)) onClose()
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [onClose])
-
-  return (
-    <div className="relative" ref={ref}>
-      <button
-        onClick={onToggle}
-        className="w-10 h-10 rounded-full bg-coral text-white flex items-center justify-center hover:bg-coral/90 transition-colors"
-        aria-label="Ajouter du contenu"
-        title="Ajouter du contenu"
-      >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-          <line x1="12" y1="5" x2="12" y2="19" />
-          <line x1="5" y1="12" x2="19" y2="12" />
-        </svg>
-      </button>
-
-      {open && (
-        <div className="absolute left-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-navy/10 py-1.5 z-20">
-          <button
-            onClick={onCreateItineraire}
-            className="w-full text-left px-4 py-2.5 text-sm text-navy hover:bg-navy/5 transition-colors"
-          >
-            Créer un itinéraire
-          </button>
-          <button
-            onClick={onCreateVoyageCommun}
-            className="w-full text-left px-4 py-2.5 text-sm text-navy hover:bg-navy/5 transition-colors"
-          >
-            Partager un post Voyage Commun
-          </button>
-          <button
-            onClick={onSearchFlights}
-            className="w-full text-left px-4 py-2.5 text-sm text-navy hover:bg-navy/5 transition-colors"
-          >
-            Rechercher un vol ou un hébergement
-          </button>
-        </div>
-      )}
-    </div>
-  )
-}
+// Menu "+" — voir QuickAddMenu.jsx, extrait en composant partagé pour
+// être réutilisé sur Itineraires.jsx, VolsHebergements.jsx et VoyageCommun.jsx.
 
 export default function Dashboard() {
   const navigate = useNavigate()
@@ -519,7 +470,7 @@ export default function Dashboard() {
               onProfileClick={() => setProfileOpen(true)}
             />
 
-            <div className="flex items-center gap-3 mb-2">
+            <div className="flex items-center justify-center sm:justify-start gap-3 mb-2">
               <h1 className="font-serif text-3xl text-navy">Dashboard</h1>
               <QuickAddMenu
                 open={quickAddOpen}
@@ -530,12 +481,14 @@ export default function Dashboard() {
                 onSearchFlights={() => { setQuickAddOpen(false); navigate('/vols-hebergements') }}
               />
             </div>
-            <p className="text-navy/70 mb-6">
+            <p className="text-navy/70 mb-6 text-center sm:text-left">
               Bienvenue, {firstName} 👋
             </p>
             <p className="font-serif text-2xl sm:text-3xl text-coral text-center mb-10">
               Planifiez, vibrez, apprenez.<br className="hidden sm:block" /> Votre prochain voyage commence ici.
             </p>
+
+            <TipBanner nomPage="dashboard" />
 
             <NextTripCard />
 
