@@ -135,6 +135,7 @@ export default function FeatureVoting({ userId }) {
 
   const sortedIdeas = [...ideas].sort((a, b) => (tallies[b.id_idee] || 0) - (tallies[a.id_idee] || 0))
   const leaderId = sortedIdeas[0]?.id_idee
+  const totalAllVotes = Object.values(tallies).reduce((sum, n) => sum + n, 0)
 
   return (
     <div className="mb-10">
@@ -212,20 +213,16 @@ export default function FeatureVoting({ userId }) {
                 const mine = myVotes[idea.id_idee] || 0
                 const isLeader = idea.id_idee === leaderId && total > 0
                 const widthPct = Math.round((total / maxTally) * 100)
+                const pctOfTotal = totalAllVotes > 0 ? Math.round((total / totalAllVotes) * 100) : 0
                 return (
                   <div
                     key={idea.id_idee}
                     className={`bg-white rounded-xl p-3 ${isLeader ? 'border border-coral' : 'border border-navy/10'}`}
                   >
                     <div className="flex items-center justify-between mb-1.5">
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium text-navy">{idea.titre}</p>
-                        {isLeader && (
-                          <span className="bg-coral/10 text-[#712B13] text-[10px] px-2 py-0.5 rounded-md">En tête</span>
-                        )}
-                      </div>
+                      <p className="text-sm font-medium text-navy">{idea.titre}</p>
                       <span className={`text-xs font-medium ${isLeader ? 'text-coral' : 'text-navy/55'}`}>
-                        {total} vote{total > 1 ? 's' : ''}
+                        {pctOfTotal}%
                       </span>
                     </div>
                     <div className="bg-navy/5 rounded h-2 overflow-hidden mb-2">
