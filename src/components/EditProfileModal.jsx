@@ -18,6 +18,7 @@ export default function EditProfileModal({ userId, onClose, firstTime = false })
   const [nom, setNom] = useState('')
   const [telephone, setTelephone] = useState('')
   const [villeDepartFav, setVilleDepartFav] = useState('')
+  const [paysDepartFav, setPaysDepartFav] = useState('')
 
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -29,7 +30,7 @@ export default function EditProfileModal({ userId, onClose, firstTime = false })
   useEffect(() => {
     async function load() {
       const [{ data: profile }, { data: { user } }] = await Promise.all([
-        supabase.from('lvpt').select('prenom, nom, telephone, ville_depart_fav').eq('id', userId).single(),
+        supabase.from('lvpt').select('prenom, nom, telephone, ville_depart_fav, pays_depart_fav').eq('id', userId).single(),
         supabase.auth.getUser(),
       ])
       if (profile) {
@@ -37,6 +38,7 @@ export default function EditProfileModal({ userId, onClose, firstTime = false })
         setNom(profile.nom || '')
         setTelephone(profile.telephone || '')
         setVilleDepartFav(profile.ville_depart_fav || '')
+        setPaysDepartFav(profile.pays_depart_fav || '')
       }
       // Un compte connecté uniquement via Google n'a pas de mot de passe —
       // proposer d'en changer un n'aurait pas de sens pour lui.
@@ -87,6 +89,7 @@ export default function EditProfileModal({ userId, onClose, firstTime = false })
         // que AuthModal.jsx à l'inscription, pour rester cohérent avec
         // d_vol.aeroport_depart.
         ville_depart_fav: villeDepartFav.split(' (')[0].trim(),
+        pays_depart_fav: paysDepartFav || null,
       })
       .eq('id', userId)
 
@@ -180,6 +183,7 @@ export default function EditProfileModal({ userId, onClose, firstTime = false })
                 placeholder="Paris (CDG)"
                 value={villeDepartFav}
                 onChange={(val) => setVilleDepartFav(val)}
+                onSelectAirport={(airport) => setPaysDepartFav(airport.country)}
                 required
               />
 
