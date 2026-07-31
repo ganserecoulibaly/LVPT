@@ -351,30 +351,19 @@ export default function Dashboard() {
       setFlightDeals(transformVols(vols || []))
       setHotelDeals(transformHebergements(hebergements || []))
 
-      // Cascade : 1) activités dans la ville favorite, 2) sinon dans le
-      // pays favori, 3) sinon tout le catalogue (comportement d'origine) —
-      // jamais de rangée vide tant qu'il existe des activités en base.
+      // Priorité d'affichage : ville du départ favori d'abord, puis pays,
+      // puis le reste du catalogue — jamais d'exclusion, juste un tri, pour
+      // que la rangée reste toujours complète comme les autres.
       const allActivites = activites || []
-      let filteredActivites = allActivites
-      if (villeDepartFav) {
-        const parVille = allActivites.filter(
-          (a) => a.ville?.trim().toLowerCase() === villeDepartFav.trim().toLowerCase()
-        )
-        if (parVille.length > 0) filteredActivites = parVille
-        else if (paysDepartFav) {
-          const parPays = allActivites.filter(
-            (a) => a.pays?.trim().toLowerCase() === paysDepartFav.trim().toLowerCase()
-          )
-          if (parPays.length > 0) filteredActivites = parPays
-        }
-      } else if (paysDepartFav) {
-        const parPays = allActivites.filter(
-          (a) => a.pays?.trim().toLowerCase() === paysDepartFav.trim().toLowerCase()
-        )
-        if (parPays.length > 0) filteredActivites = parPays
-      }
+      const scored = allActivites.map((a) => {
+        const matchVille = villeDepartFav && a.ville?.trim().toLowerCase() === villeDepartFav.trim().toLowerCase()
+        const matchPays = paysDepartFav && a.pays?.trim().toLowerCase() === paysDepartFav.trim().toLowerCase()
+        const priority = matchVille ? 0 : matchPays ? 1 : 2
+        return { ...a, _priority: priority }
+      })
+      scored.sort((a, b) => a._priority - b._priority || (b.score || 0) - (a.score || 0))
 
-      setActivityDeals(transformActivites(filteredActivites))
+      setActivityDeals(transformActivites(scored))
       setItineraires(itinerairesData || [])
 
       // Un favori "vol" ou "hébergement" dont la date de fin est dépassée
