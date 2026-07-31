@@ -13,6 +13,8 @@ import EditProfileModal from './EditProfileModal'
 import NextTripCard from './NextTripCard'
 import ActivityFeed from './ActivityFeed'
 import FeatureVoting from './FeatureVoting'
+import CreateItineraireModal from './CreateItineraireModal'
+import CreateVoyageCommunModal from './CreateVoyageCommunModal'
 import DealsRow from './DealsRow'
 
 const GRADIENTS = [
@@ -289,13 +291,71 @@ function ItineraireRow({ itineraires, userId, favoriteIds, onToggleFavorite, ref
   )
 }
 
+// Menu "+" — pas de dépendance externe, fermeture au clic extérieur
+// (même pattern que le menu de compte dans Navbar.jsx). Volontairement
+// simple : 3 actions fixes, pas de logique dynamique à maintenir.
+function QuickAddMenu({ open, onToggle, onClose, onCreateItineraire, onCreateVoyageCommun, onSearchFlights }) {
+  const ref = React.useRef(null)
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (ref.current && !ref.current.contains(e.target)) onClose()
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [onClose])
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={onToggle}
+        className="w-10 h-10 rounded-full bg-coral text-white flex items-center justify-center hover:bg-coral/90 transition-colors"
+        aria-label="Ajouter du contenu"
+        title="Ajouter du contenu"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="absolute left-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-navy/10 py-1.5 z-20">
+          <button
+            onClick={onCreateItineraire}
+            className="w-full text-left px-4 py-2.5 text-sm text-navy hover:bg-navy/5 transition-colors"
+          >
+            Créer un itinéraire
+          </button>
+          <button
+            onClick={onCreateVoyageCommun}
+            className="w-full text-left px-4 py-2.5 text-sm text-navy hover:bg-navy/5 transition-colors"
+          >
+            Partager un post Voyage Commun
+          </button>
+          <button
+            onClick={onSearchFlights}
+            className="w-full text-left px-4 py-2.5 text-sm text-navy hover:bg-navy/5 transition-colors"
+          >
+            Rechercher un vol ou un hébergement
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function Dashboard() {
+  const navigate = useNavigate()
   const [user, setUser] = useState(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [paysDepartFav, setPaysDepartFav] = useState(null)
   const [villeDepartFav, setVilleDepartFav] = useState(null)
   const [pricingOpen, setPricingOpen] = useState(false)
   const [favoritesOpen, setFavoritesOpen] = useState(false)
+  const [quickAddOpen, setQuickAddOpen] = useState(false)
+  const [quickCreateItineraireOpen, setQuickCreateItineraireOpen] = useState(false)
+  const [quickCreateVoyageCommunOpen, setQuickCreateVoyageCommunOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [firstTimeProfileOpen, setFirstTimeProfileOpen] = useState(false)
   const [toolboxOpen, setToolboxOpen] = useState(false)
@@ -459,9 +519,17 @@ export default function Dashboard() {
               onProfileClick={() => setProfileOpen(true)}
             />
 
-            <h1 className="font-serif text-3xl text-navy mb-2">
-              Dashboard
-            </h1>
+            <div className="flex items-center gap-3 mb-2">
+              <h1 className="font-serif text-3xl text-navy">Dashboard</h1>
+              <QuickAddMenu
+                open={quickAddOpen}
+                onToggle={() => setQuickAddOpen((o) => !o)}
+                onClose={() => setQuickAddOpen(false)}
+                onCreateItineraire={() => { setQuickAddOpen(false); setQuickCreateItineraireOpen(true) }}
+                onCreateVoyageCommun={() => { setQuickAddOpen(false); setQuickCreateVoyageCommunOpen(true) }}
+                onSearchFlights={() => { setQuickAddOpen(false); navigate('/vols-hebergements') }}
+              />
+            </div>
             <p className="text-navy/70 mb-6">
               Bienvenue, {firstName} 👋
             </p>
@@ -538,6 +606,22 @@ export default function Dashboard() {
 
       {firstTimeProfileOpen && (
         <EditProfileModal userId={user.id} firstTime onClose={() => setFirstTimeProfileOpen(false)} />
+      )}
+
+      {quickCreateItineraireOpen && (
+        <CreateItineraireModal
+          userId={user.id}
+          onClose={() => setQuickCreateItineraireOpen(false)}
+          onCreated={() => { setQuickCreateItineraireOpen(false); navigate('/itineraires') }}
+        />
+      )}
+
+      {quickCreateVoyageCommunOpen && (
+        <CreateVoyageCommunModal
+          userId={user.id}
+          onClose={() => setQuickCreateVoyageCommunOpen(false)}
+          onCreated={() => { setQuickCreateVoyageCommunOpen(false); navigate('/voyage-commun') }}
+        />
       )}
     </>
   )
