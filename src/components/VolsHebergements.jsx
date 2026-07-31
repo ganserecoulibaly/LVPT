@@ -3,6 +3,7 @@ import { supabase } from './supabaseClient'
 import { formatDate } from './dateUtils'
 import Sidebar from './Sidebar'
 import PageHeader from './PageHeader'
+import TipBanner from './TipBanner'
 import EditProfileModal from './EditProfileModal'
 import Footer from './Footer'
 import PricingModal from './PricingModal'
@@ -557,6 +558,8 @@ export default function VolsHebergements() {
                 + nouvelle recherche
               </button>
             </div>
+
+            <TipBanner nomPage="vols-hebergements" />
 
             <div className="mb-6 px-4 py-3.5 rounded-xl bg-white border border-navy/10">
               <p className="text-xs font-medium text-navy/70 mb-2.5">Comment ça marche ?</p>
