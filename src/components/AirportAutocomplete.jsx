@@ -27,13 +27,18 @@ function searchAirports(query) {
  * Champ avec autocomplétion d'aéroports.
  *
  * Props :
- * - label       : texte au-dessus du champ (ex: "Je pars de")
- * - placeholder : texte indicatif (ex: "Paris (CDG)")
- * - value       : valeur actuelle (string, ex: "Paris (CDG)")
- * - onChange    : appelé avec la nouvelle valeur formatée quand l'utilisateur choisit un aéroport
- * - required    : affiche l'astérisque rouge si vrai
+ * - label         : texte au-dessus du champ (ex: "Je pars de")
+ * - placeholder   : texte indicatif (ex: "Paris (CDG)")
+ * - value         : valeur actuelle (string, ex: "Paris (CDG)")
+ * - onChange      : appelé avec la nouvelle valeur formatée quand l'utilisateur choisit un aéroport
+ * - onSelectAirport : optionnel — appelé avec l'objet aéroport complet
+ *                     ({ city, name, country, iata }) au moment de la sélection.
+ *                     Utile quand l'appelant a aussi besoin du pays
+ *                     (ex: aéroport de départ favori), sans casser les
+ *                     usages existants qui ne lisent que la valeur formatée.
+ * - required      : affiche l'astérisque rouge si vrai
  */
-export default function AirportAutocomplete({ label, placeholder, value, onChange, required }) {
+export default function AirportAutocomplete({ label, placeholder, value, onChange, onSelectAirport, required }) {
   const [inputValue, setInputValue] = useState(value || '')
   const [suggestions, setSuggestions] = useState([])
   const [isOpen, setIsOpen] = useState(false)
@@ -71,6 +76,7 @@ export default function AirportAutocomplete({ label, placeholder, value, onChang
     const formatted = `${airport.city} (${airport.iata})`
     setInputValue(formatted)
     onChange(formatted)
+    onSelectAirport?.(airport)
     setIsOpen(false)
     setSuggestions([])
   }
