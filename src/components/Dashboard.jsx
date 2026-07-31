@@ -12,6 +12,7 @@ import PageHeader from './PageHeader'
 import EditProfileModal from './EditProfileModal'
 import NextTripCard from './NextTripCard'
 import ActivityFeed from './ActivityFeed'
+import FeatureVoting from './FeatureVoting'
 import DealsRow from './DealsRow'
 
 const GRADIENTS = [
@@ -484,6 +485,8 @@ export default function Dashboard() {
             />
 
             <ActivityFeed />
+
+            <FeatureVoting userId={user.id} />
           </div>
         </div>
 
