@@ -293,6 +293,7 @@ export default function Dashboard() {
   const [user, setUser] = useState(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [paysDepartFav, setPaysDepartFav] = useState(null)
+  const [villeDepartFav, setVilleDepartFav] = useState(null)
   const [pricingOpen, setPricingOpen] = useState(false)
   const [favoritesOpen, setFavoritesOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
@@ -315,10 +316,11 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!user) return
-    supabase.from('lvpt').select('is_admin, pays_depart_fav').eq('id', user.id).single()
+    supabase.from('lvpt').select('is_admin, pays_depart_fav, ville_depart_fav').eq('id', user.id).single()
       .then(({ data }) => {
         setIsAdmin(Boolean(data?.is_admin))
         setPaysDepartFav(data?.pays_depart_fav || null)
+        setVilleDepartFav(data?.ville_depart_fav || null)
       })
   }, [user])
 
@@ -338,24 +340,30 @@ export default function Dashboard() {
     if (!user) return
 
     async function loadDeals() {
-      let activiteQuery = supabase.from('d_activite').select('*').order('score', { ascending: false })
-      // Filtré sur le pays de l'aéroport favori de l'utilisateur — masqué
-      // entièrement plus bas si ce pays n'est pas renseigné.
-      if (paysDepartFav) {
-        activiteQuery = activiteQuery.eq('pays', paysDepartFav)
-      }
-
       const [{ data: vols }, { data: hebergements }, { data: activites }, { data: favoris }, { data: itinerairesData }] = await Promise.all([
         supabase.from('d_vol').select('*').order('score', { ascending: false }),
         supabase.from('d_hebergement').select('*').order('score', { ascending: false }),
-        activiteQuery,
+        supabase.from('d_activite').select('*').order('score', { ascending: false }),
         supabase.from('favoris').select('id_entite, nom').eq('actif', true),
         supabase.from('s_itineraire').select('*').order('created_at', { ascending: false }),
       ])
 
       setFlightDeals(transformVols(vols || []))
       setHotelDeals(transformHebergements(hebergements || []))
-      setActivityDeals(transformActivites(activites || []))
+
+      // Priorité d'affichage : ville du départ favori d'abord, puis pays,
+      // puis le reste du catalogue — jamais d'exclusion, juste un tri, pour
+      // que la rangée reste toujours complète comme les autres.
+      const allActivites = activites || []
+      const scored = allActivites.map((a) => {
+        const matchVille = villeDepartFav && a.ville?.trim().toLowerCase() === villeDepartFav.trim().toLowerCase()
+        const matchPays = paysDepartFav && a.pays?.trim().toLowerCase() === paysDepartFav.trim().toLowerCase()
+        const priority = matchVille ? 0 : matchPays ? 1 : 2
+        return { ...a, _priority: priority }
+      })
+      scored.sort((a, b) => a._priority - b._priority || (b.score || 0) - (a.score || 0))
+
+      setActivityDeals(transformActivites(scored))
       setItineraires(itinerairesData || [])
 
       // Un favori "vol" ou "hébergement" dont la date de fin est dépassée
@@ -391,7 +399,7 @@ export default function Dashboard() {
       }
     }
     loadDeals()
-  }, [user, paysDepartFav])
+  }, [user, paysDepartFav, villeDepartFav])
 
   const toggleFavorite = async (deal) => {
     const key = `${deal.type}:${deal.id}`
@@ -479,15 +487,13 @@ export default function Dashboard() {
               onToggleFavorite={toggleFavorite}
             />
 
-            {paysDepartFav && (
-              <DealsRow
-                title="Bons plans activités"
-                deals={activityDeals}
-                userId={user.id}
-                favoriteIds={favoriteIds}
-                onToggleFavorite={toggleFavorite}
-              />
-            )}
+            <DealsRow
+              title="Bons plans activités"
+              deals={activityDeals}
+              userId={user.id}
+              favoriteIds={favoriteIds}
+              onToggleFavorite={toggleFavorite}
+            />
 
             <ItineraireRow
               itineraires={itineraires}
