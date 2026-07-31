@@ -15,6 +15,7 @@ export default function AuthModal({ onClose, initialMode = 'login' }) {
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [villeDepartFav, setVilleDepartFav] = useState('')
+  const [paysDepartFav, setPaysDepartFav] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [newsletter, setNewsletter] = useState(false)
@@ -128,6 +129,7 @@ export default function AuthModal({ onClose, initialMode = 'login' }) {
             // on ne garde que le nom de ville : simple et lisible, sert
             // directement pour le matching avec d_vol.aeroport_depart.
             ville_depart_fav: villeDepartFav.split(' (')[0].trim(),
+            pays_depart_fav: paysDepartFav || null,
           },
         },
       })
@@ -301,6 +303,7 @@ export default function AuthModal({ onClose, initialMode = 'login' }) {
               placeholder="Paris (CDG)"
               value={villeDepartFav}
               onChange={(val) => setVilleDepartFav(val)}
+              onSelectAirport={(airport) => setPaysDepartFav(airport.country)}
               required
             />
           )}
