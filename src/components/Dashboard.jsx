@@ -292,6 +292,7 @@ function ItineraireRow({ itineraires, userId, favoriteIds, onToggleFavorite, ref
 export default function Dashboard() {
   const [user, setUser] = useState(null)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [paysDepartFav, setPaysDepartFav] = useState(null)
   const [pricingOpen, setPricingOpen] = useState(false)
   const [favoritesOpen, setFavoritesOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
@@ -314,8 +315,11 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!user) return
-    supabase.from('lvpt').select('is_admin').eq('id', user.id).single()
-      .then(({ data }) => setIsAdmin(Boolean(data?.is_admin)))
+    supabase.from('lvpt').select('is_admin, pays_depart_fav').eq('id', user.id).single()
+      .then(({ data }) => {
+        setIsAdmin(Boolean(data?.is_admin))
+        setPaysDepartFav(data?.pays_depart_fav || null)
+      })
   }, [user])
 
   // Popup "Compléter mon profil" : ne s'affiche qu'une seule fois dans la
@@ -334,10 +338,17 @@ export default function Dashboard() {
     if (!user) return
 
     async function loadDeals() {
+      let activiteQuery = supabase.from('d_activite').select('*').order('score', { ascending: false })
+      // Filtré sur le pays de l'aéroport favori de l'utilisateur — masqué
+      // entièrement plus bas si ce pays n'est pas renseigné.
+      if (paysDepartFav) {
+        activiteQuery = activiteQuery.eq('pays', paysDepartFav)
+      }
+
       const [{ data: vols }, { data: hebergements }, { data: activites }, { data: favoris }, { data: itinerairesData }] = await Promise.all([
         supabase.from('d_vol').select('*').order('score', { ascending: false }),
         supabase.from('d_hebergement').select('*').order('score', { ascending: false }),
-        supabase.from('d_activite').select('*').order('score', { ascending: false }),
+        activiteQuery,
         supabase.from('favoris').select('id_entite, nom').eq('actif', true),
         supabase.from('s_itineraire').select('*').order('created_at', { ascending: false }),
       ])
@@ -380,7 +391,7 @@ export default function Dashboard() {
       }
     }
     loadDeals()
-  }, [user])
+  }, [user, paysDepartFav])
 
   const toggleFavorite = async (deal) => {
     const key = `${deal.type}:${deal.id}`
@@ -468,13 +479,15 @@ export default function Dashboard() {
               onToggleFavorite={toggleFavorite}
             />
 
-            <DealsRow
-              title="Bons plans activités"
-              deals={activityDeals}
-              userId={user.id}
-              favoriteIds={favoriteIds}
-              onToggleFavorite={toggleFavorite}
-            />
+            {paysDepartFav && (
+              <DealsRow
+                title="Bons plans activités"
+                deals={activityDeals}
+                userId={user.id}
+                favoriteIds={favoriteIds}
+                onToggleFavorite={toggleFavorite}
+              />
+            )}
 
             <ItineraireRow
               itineraires={itineraires}
