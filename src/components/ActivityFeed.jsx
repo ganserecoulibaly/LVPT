@@ -103,7 +103,7 @@ export default function ActivityFeed() {
         .from('activity_feed')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(10)
+        .limit(5)
 
       if (!feed || feed.length === 0) {
         setLoading(false)
