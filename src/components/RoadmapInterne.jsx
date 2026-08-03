@@ -149,24 +149,7 @@ export default function RoadmapInterne() {
               </div>
             </section>
 
-            {/* -------------------- 4. Composante Miles -------------------- */}
-            <section className="mb-8">
-              <p className="font-serif text-lg text-navy mb-3">
-                4. Composante Miles <span className="text-xs font-sans text-navy/40">(nouveau sujet, tout début de réflexion)</span>
-              </p>
-              <ul className="list-disc list-outside pl-5 flex flex-col gap-2 text-sm text-navy/75">
-                <li>
-                  <span className="font-medium text-navy">Contexte</span> : les champs miles Star Alliance/SkyTeam/Oneworld viennent d'être ajoutés au profil utilisateur (saisie manuelle, affichage sur le Dashboard). Cette section explore comment aller plus loin.
-                </li>
-                <li>
-                  <span className="font-medium text-navy">Idée n°1 — outil d'appel</span> : un petit widget public (landing page probable, à confirmer) qui calcule "combien tu aurais pu économiser sur ton dernier voyage" — 2-3 questions max (prix payé, classe, direct/escale), résultat sous forme d'estimation indicative (pas un vrai comparateur de prix en temps réel pour commencer), qui pousse vers l'atelier "Voyager en business sans payer le plein tarif" ou vers l'inscription.
-                </li>
-                <li className="text-navy/50">
-                  <span className="font-medium">Non tranché</span> : public ou privé, quelles questions exactement poser, vers quoi rediriger le résultat, lien ou non avec les miles déjà saisis au profil. Sujet mis en pause ce soir au profit du point 3, à reprendre.
-                </li>
-              </ul>
-            </section>
-
+  
             {/* -------------------- Reste à trancher -------------------- */}
             <div className="border-t border-navy/10 pt-6">
               <p className="text-xs font-medium text-navy mb-2">Reste à trancher pour boucler le point 3</p>
