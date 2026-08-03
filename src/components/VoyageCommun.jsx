@@ -275,6 +275,13 @@ export default function VoyageCommun() {
   }
 
   useEffect(() => { loadFilterMeta() }, [])
+
+  // Bug corrigé : `categories` n'était jamais rempli — le select "Type"
+  // n'avait donc jamais que "Tous les types" comme option possible.
+  useEffect(() => {
+    supabase.from('voyage_commun_categorie').select('*').order('ordre', { ascending: true })
+      .then(({ data }) => setCategories(data || []))
+  }, [])
   useEffect(() => { loadFirstPage() }, [loadFirstPage])
 
   // Recherche libre : on attend une pause de 400ms après la dernière frappe

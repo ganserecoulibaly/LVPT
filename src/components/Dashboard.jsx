@@ -302,6 +302,7 @@ export default function Dashboard() {
   const [isAdmin, setIsAdmin] = useState(false)
   const [paysDepartFav, setPaysDepartFav] = useState(null)
   const [villeDepartFav, setVilleDepartFav] = useState(null)
+  const [miles, setMiles] = useState({ starAlliance: null, skyteam: null, oneworld: null })
   const [pricingOpen, setPricingOpen] = useState(false)
   const [favoritesOpen, setFavoritesOpen] = useState(false)
   const [quickAddOpen, setQuickAddOpen] = useState(false)
@@ -327,11 +328,16 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!user) return
-    supabase.from('lvpt').select('is_admin, pays_depart_fav, ville_depart_fav').eq('id', user.id).single()
+    supabase.from('lvpt').select('is_admin, pays_depart_fav, ville_depart_fav, miles_star_alliance, miles_skyteam, miles_oneworld').eq('id', user.id).single()
       .then(({ data }) => {
         setIsAdmin(Boolean(data?.is_admin))
         setPaysDepartFav(data?.pays_depart_fav || null)
         setVilleDepartFav(data?.ville_depart_fav || null)
+        setMiles({
+          starAlliance: data?.miles_star_alliance ?? null,
+          skyteam: data?.miles_skyteam ?? null,
+          oneworld: data?.miles_oneworld ?? null,
+        })
       })
   }, [user])
 
@@ -481,9 +487,36 @@ export default function Dashboard() {
                 onSearchFlights={() => { setQuickAddOpen(false); navigate('/vols-hebergements') }}
               />
             </div>
-            <p className="text-navy/70 mb-6 text-center sm:text-left">
-              Bienvenue, {firstName} 👋
-            </p>
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 mb-6">
+              <p className="text-navy/70">
+                Bienvenue, {firstName} 👋
+              </p>
+              <button
+                onClick={() => setProfileOpen(true)}
+                className="bg-white border border-navy/10 rounded-full pl-1.5 pr-3 py-1.5 flex items-center gap-2 text-xs text-navy hover:border-coral transition-colors"
+              >
+                <span className="w-7 h-7 rounded-full bg-coral/15 flex items-center justify-center shrink-0">✈️</span>
+                <span className="text-navy/50">Turkish Airlines</span>
+                <span className="font-medium">{(miles.starAlliance || 0).toLocaleString('fr-FR')} miles</span>
+              </button>
+              <button
+                onClick={() => setProfileOpen(true)}
+                className="bg-white border border-navy/10 rounded-full pl-1.5 pr-3 py-1.5 flex items-center gap-2 text-xs text-navy hover:border-coral transition-colors"
+              >
+                <span className="w-7 h-7 rounded-full bg-coral/15 flex items-center justify-center shrink-0">✈️</span>
+                <span className="text-navy/50">Air France</span>
+                <span className="font-medium">{(miles.skyteam || 0).toLocaleString('fr-FR')} miles</span>
+              </button>
+              <button
+                onClick={() => setProfileOpen(true)}
+                className="bg-white border border-navy/10 rounded-full pl-1.5 pr-3 py-1.5 flex items-center gap-2 text-xs text-navy hover:border-coral transition-colors"
+              >
+                <span className="w-7 h-7 rounded-full bg-coral/15 flex items-center justify-center shrink-0">✈️</span>
+                <span className="text-navy/50">Iberia</span>
+                <span className="font-medium">{(miles.oneworld || 0).toLocaleString('fr-FR')} miles</span>
+              </button>
+            </div>
+
             <p className="font-serif text-2xl sm:text-3xl text-coral text-center mb-10">
               Planifiez, vibrez, apprenez.<br className="hidden sm:block" /> Votre prochain voyage commence ici.
             </p>

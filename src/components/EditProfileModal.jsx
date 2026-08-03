@@ -19,6 +19,9 @@ export default function EditProfileModal({ userId, onClose, firstTime = false })
   const [telephone, setTelephone] = useState('')
   const [villeDepartFav, setVilleDepartFav] = useState('')
   const [paysDepartFav, setPaysDepartFav] = useState('')
+  const [milesStarAlliance, setMilesStarAlliance] = useState('')
+  const [milesSkyteam, setMilesSkyteam] = useState('')
+  const [milesOneworld, setMilesOneworld] = useState('')
 
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -31,7 +34,7 @@ export default function EditProfileModal({ userId, onClose, firstTime = false })
   useEffect(() => {
     async function load() {
       const [{ data: profile }, { data: { user } }] = await Promise.all([
-        supabase.from('lvpt').select('prenom, nom, telephone, ville_depart_fav, pays_depart_fav').eq('id', userId).single(),
+        supabase.from('lvpt').select('prenom, nom, telephone, ville_depart_fav, pays_depart_fav, miles_star_alliance, miles_skyteam, miles_oneworld').eq('id', userId).single(),
         supabase.auth.getUser(),
       ])
       if (profile) {
@@ -40,6 +43,9 @@ export default function EditProfileModal({ userId, onClose, firstTime = false })
         setTelephone(profile.telephone || '')
         setVilleDepartFav(profile.ville_depart_fav || '')
         setPaysDepartFav(profile.pays_depart_fav || '')
+        setMilesStarAlliance(profile.miles_star_alliance != null ? String(profile.miles_star_alliance) : '')
+        setMilesSkyteam(profile.miles_skyteam != null ? String(profile.miles_skyteam) : '')
+        setMilesOneworld(profile.miles_oneworld != null ? String(profile.miles_oneworld) : '')
       }
       // Un compte connecté uniquement via Google n'a pas de mot de passe —
       // proposer d'en changer un n'aurait pas de sens pour lui.
@@ -131,6 +137,9 @@ export default function EditProfileModal({ userId, onClose, firstTime = false })
         // d_vol.aeroport_depart.
         ville_depart_fav: villeDepartFav.split(' (')[0].trim(),
         pays_depart_fav: paysDepartFav || null,
+        miles_star_alliance: milesStarAlliance ? parseInt(milesStarAlliance, 10) : null,
+        miles_skyteam: milesSkyteam ? parseInt(milesSkyteam, 10) : null,
+        miles_oneworld: milesOneworld ? parseInt(milesOneworld, 10) : null,
       })
       .eq('id', userId)
 
@@ -207,15 +216,15 @@ export default function EditProfileModal({ userId, onClose, firstTime = false })
 
             <div className="flex flex-col gap-3">
               <div>
-                <label className="text-xs text-navy/50 mb-1 block">Prénom</label>
+                <label className="text-xs text-navy/70 mb-1 block">Prénom</label>
                 <input type="text" value={prenom} onChange={(e) => setPrenom(e.target.value)} placeholder="Prénom" className={inputClass} />
               </div>
               <div>
-                <label className="text-xs text-navy/50 mb-1 block">Nom</label>
+                <label className="text-xs text-navy/70 mb-1 block">Nom</label>
                 <input type="text" value={nom} onChange={(e) => setNom(e.target.value)} placeholder="Nom" className={inputClass} />
               </div>
               <div>
-                <label className="text-xs text-navy/50 mb-1 block">Téléphone (facultatif)</label>
+                <label className="text-xs text-navy/70 mb-1 block">Téléphone (facultatif)</label>
                 <input type="tel" value={telephone} onChange={(e) => setTelephone(e.target.value)} placeholder="06 12 34 56 78" className={inputClass} />
               </div>
 
@@ -232,11 +241,11 @@ export default function EditProfileModal({ userId, onClose, firstTime = false })
                 <>
                   <div className="flex items-center gap-2 mt-2 mb-1">
                     <div className="flex-1 h-px bg-navy/10" />
-                    <span className="text-xs text-navy/40">changer le mot de passe (facultatif)</span>
+                    <span className="text-xs text-navy/60">changer le mot de passe (facultatif)</span>
                     <div className="flex-1 h-px bg-navy/10" />
                   </div>
                   <div>
-                    <label className="text-xs text-navy/50 mb-1 block">Nouveau mot de passe</label>
+                    <label className="text-xs text-navy/70 mb-1 block">Nouveau mot de passe</label>
                     <input
                       type="password" minLength={6} value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
@@ -245,7 +254,7 @@ export default function EditProfileModal({ userId, onClose, firstTime = false })
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-navy/50 mb-1 block">Confirmer le nouveau mot de passe</label>
+                    <label className="text-xs text-navy/70 mb-1 block">Confirmer le nouveau mot de passe</label>
                     <input
                       type="password" minLength={6} value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
@@ -255,6 +264,36 @@ export default function EditProfileModal({ userId, onClose, firstTime = false })
                   </div>
                 </>
               )}
+
+              <div className="flex items-center gap-2 mt-2 mb-1">
+                <div className="flex-1 h-px bg-navy/10" />
+                <span className="text-xs text-navy/60">miles & alliances (facultatif)</span>
+                <div className="flex-1 h-px bg-navy/10" />
+              </div>
+              <div>
+                <label className="text-xs text-navy/70 mb-1 block">Turkish Airlines (Star Alliance)</label>
+                <input
+                  type="number" min="0" value={milesStarAlliance}
+                  onChange={(e) => setMilesStarAlliance(e.target.value)}
+                  placeholder="Nombre de miles" className={inputClass}
+                />
+              </div>
+              <div>
+                <label className="text-xs text-navy/70 mb-1 block">Air France (SkyTeam)</label>
+                <input
+                  type="number" min="0" value={milesSkyteam}
+                  onChange={(e) => setMilesSkyteam(e.target.value)}
+                  placeholder="Nombre de miles" className={inputClass}
+                />
+              </div>
+              <div>
+                <label className="text-xs text-navy/70 mb-1 block">Iberia (Oneworld)</label>
+                <input
+                  type="number" min="0" value={milesOneworld}
+                  onChange={(e) => setMilesOneworld(e.target.value)}
+                  placeholder="Nombre de miles" className={inputClass}
+                />
+              </div>
 
               {error && <p className="text-sm text-red-600">{error}</p>}
 

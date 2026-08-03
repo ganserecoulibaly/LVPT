@@ -1,6 +1,7 @@
 import React from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import ScrollToTop from './components/ScrollToTop'
+import CookieConsent from './components/CookieConsent'
 import Navbar from './components/Navbar'
 import Hero from './components/Hero'
 import FlightHotelSearch from './components/FlightHotelSearch'
@@ -154,6 +155,7 @@ export default function App() {
           />
         */}
       </Routes>
+      <CookieConsent />
     </BrowserRouter>
   )
 }
