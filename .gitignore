@@ -7,4 +7,5 @@ dist
 lvpt_schema_production.sql
 lvpt_seed_dev.sql
 lvpt_recap_quotidien.sql
+lvpt_email_bienvenue.sql
 
