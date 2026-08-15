@@ -186,10 +186,7 @@ export default function FlightHotelSearch({ hideIntro = false }) {
                   <input type="text" placeholder="Hanoï, Vietnam" className="search-input"
                     value={form.destination} onChange={(e) => update('destination', e.target.value)} />
                 </Field>
-                <Field label="Adultes">
-                  <input type="number" min="1" className="search-input"
-                    value={form.adultes} onChange={(e) => update('adultes', e.target.value)} />
-                </Field>
+                <div className="hidden md:block" aria-hidden="true" />
                 <Field label="Arrivée">
                   <input type="date" className="search-input"
                     value={form.aller} onChange={(e) => update('aller', e.target.value)} />
@@ -198,13 +195,13 @@ export default function FlightHotelSearch({ hideIntro = false }) {
                   <input type="date" className="search-input"
                     value={form.retour} onChange={(e) => update('retour', e.target.value)} />
                 </Field>
+                <Field label="Adultes">
+                  <input type="number" min="1" className="search-input"
+                    value={form.adultes} onChange={(e) => update('adultes', e.target.value)} />
+                </Field>
                 <Field label="Enfants">
                   <input type="number" min="0" className="search-input"
                     value={form.enfants} onChange={(e) => update('enfants', e.target.value)} />
-                </Field>
-                <Field label="Téléphone">
-                  <input type="tel" placeholder="06 12 34 56 78" className="search-input"
-                    value={form.telephone} onChange={(e) => update('telephone', e.target.value)} />
                 </Field>
                 <Field label="Prénom" required>
                   <input type="text" placeholder="Léa" required className="search-input"
@@ -217,6 +214,10 @@ export default function FlightHotelSearch({ hideIntro = false }) {
                 <Field label="Email" required>
                   <input type="email" placeholder="lea.martin@email.com" required className="search-input"
                     value={form.email} onChange={(e) => update('email', e.target.value)} />
+                </Field>
+                <Field label="Téléphone">
+                  <input type="tel" placeholder="06 12 34 56 78" className="search-input"
+                    value={form.telephone} onChange={(e) => update('telephone', e.target.value)} />
                 </Field>
                 <Field label="Budget max / nuit (€)">
                    <input type="number" min="0" placeholder="ex : 80" className="search-input"

@@ -19,6 +19,7 @@ export default function AuthModal({ onClose, initialMode = 'login' }) {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [newsletter, setNewsletter] = useState(false)
+  const [ageConfirmed, setAgeConfirmed] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [message, setMessage] = useState(null)
@@ -227,11 +228,17 @@ export default function AuthModal({ onClose, initialMode = 'login' }) {
 
         <button
           onClick={handleGoogleAuth}
-          className="w-full border border-navy/15 rounded-full py-2.5 text-sm text-navy flex items-center justify-center gap-2 hover:bg-navy/5 transition-colors mb-5"
+          disabled={mode === 'signup' && !ageConfirmed}
+          className="w-full border border-navy/15 rounded-full py-2.5 text-sm text-navy flex items-center justify-center gap-2 hover:bg-navy/5 transition-colors mb-5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
         >
           <GoogleIcon />
           Continuer avec Google
         </button>
+        {mode === 'signup' && !ageConfirmed && (
+          <p className="text-[11px] text-navy/40 text-center -mt-4 mb-5">
+            Coche la certification d'âge ci-dessous pour activer l'inscription.
+          </p>
+        )}
 
         <div className="flex items-center gap-2 mb-5">
           <div className="flex-1 h-px bg-navy/10" />
@@ -354,6 +361,19 @@ export default function AuthModal({ onClose, initialMode = 'login' }) {
             </label>
           )}
 
+          {mode === 'signup' && (
+            <label className="flex items-start gap-2 text-xs text-navy/60">
+              <input
+                type="checkbox"
+                required
+                checked={ageConfirmed}
+                onChange={(e) => setAgeConfirmed(e.target.checked)}
+                className="mt-0.5 shrink-0"
+              />
+              Je certifie avoir 18 ans ou plus.<span className="text-coral"> *</span>
+            </label>
+          )}
+
           {error && <p className="text-sm text-red-600">{error}</p>}
           {message && <p className="text-sm text-green-700">{message}</p>}
 
@@ -362,7 +382,7 @@ export default function AuthModal({ onClose, initialMode = 'login' }) {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || (mode === 'signup' && !ageConfirmed)}
             className="btn-primary w-full text-sm py-2.5 mt-1 disabled:opacity-60 flex items-center justify-center text-center"
           >
             {loading ? 'Un instant...' : 'Continuer'}
