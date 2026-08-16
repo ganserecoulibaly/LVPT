@@ -6,18 +6,22 @@ const FILTERS = [
   { id: 'all', label: 'Tous' },
   { id: 'vol', label: 'Vols' },
   { id: 'hebergement', label: 'Hébergements' },
-  { id: 'activite', label: 'Activités' },
+  { id: 'activite', label: 'Activités', types: ['activite', 'lieu'] },
   { id: 'itineraire', label: 'Itinéraires' },
   { id: 'voyage_commun', label: 'Voyage commun' },
+  { id: 'plat', label: 'Plats' },
 ]
 
 export default function FavoritesModal({ onClose, favoriteDeals, userId, favoriteIds, onToggleFavorite }) {
   const [filter, setFilter] = useState('all')
 
+  const activeFilter = FILTERS.find((f) => f.id === filter)
   const filteredDeals =
     filter === 'all'
       ? favoriteDeals
-      : favoriteDeals.filter((deal) => deal.type === filter)
+      : favoriteDeals.filter((deal) =>
+          activeFilter?.types ? activeFilter.types.includes(deal.type) : deal.type === filter
+        )
 
   const modalContent = (
     <div

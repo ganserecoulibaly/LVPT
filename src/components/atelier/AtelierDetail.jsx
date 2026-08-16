@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
+import { useFavoriLieuxEtPlats } from '../useFavoriLieuxEtPlats'
 import Sidebar from '../Sidebar'
 import PageHeader from '../PageHeader'
 import EditProfileModal from '../EditProfileModal'
@@ -24,6 +25,7 @@ export default function AtelierDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [user, setUser] = useState(null)
+  const { favoriLieuxEtPlats, toggleFavoriGeneric } = useFavoriLieuxEtPlats(user)
   const [atelier, setAtelier] = useState(null)
   const [pricingOpen, setPricingOpen] = useState(false)
   const [favoritesOpen, setFavoritesOpen] = useState(false)
@@ -105,10 +107,10 @@ export default function AtelierDetail() {
       {favoritesOpen && (
         <FavoritesModal
           onClose={() => setFavoritesOpen(false)}
-          favoriteDeals={[]}
+          favoriteDeals={favoriLieuxEtPlats}
           userId={user.id}
-          favoriteIds={new Set()}
-          onToggleFavorite={() => {}}
+          favoriteIds={new Set(favoriLieuxEtPlats.map((d) => `${d.type}:${d.id}`))}
+          onToggleFavorite={toggleFavoriGeneric}
         />
       )}
       {toolboxOpen && <ToolboxModal onClose={() => setToolboxOpen(false)} initialTab={toolboxTab} />}

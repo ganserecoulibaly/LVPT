@@ -20,6 +20,32 @@ const GRADIENTS = [
 ]
 const PAGE_SIZE = 20
 
+// Lieux (Activités & musées) et plats (Carnet gastronomique) mis en
+// favoris — cette page ne charge pas ces catalogues pour son propre
+// usage, donc on récupère uniquement les entrées effectivement
+// favorites, pas tout le catalogue.
+function transformLieuxFavoris(rows) {
+  return rows.map((r, i) => ({
+    id: r.id_lieu, type: 'lieu',
+    title: r.nom,
+    price: 'Lieu à visiter',
+    date: `${r.ville}${r.quartier ? ` — ${r.quartier}` : ''}, ${r.pays}`,
+    emoji: '🏛️', fallbackGradient: GRADIENTS[i % GRADIENTS.length],
+    image: null,
+  }))
+}
+
+function transformPlatsFavoris(rows) {
+  return rows.map((r, i) => ({
+    id: r.id_plat, type: 'plat',
+    title: r.nom_plat,
+    price: r.prix,
+    date: `${r.nom_restaurant} · ${r.ville}, ${r.pays}`,
+    emoji: '🍽️', fallbackGradient: GRADIENTS[i % GRADIENTS.length],
+    image: r.lien_photo || null,
+  }))
+}
+
 function transformVolsDeals(rows) {
   return rows.map((r, i) => ({
     id: r.id_vol, type: 'vol',
@@ -166,6 +192,7 @@ export default function VoyageCommun() {
   const searchDebounce = useRef(null)
 
   const [favoriteIds, setFavoriteIds] = useState(new Set())
+  const [favoriLieuxEtPlats, setFavoriLieuxEtPlats] = useState([])
   const [authors, setAuthors] = useState({})
   const [flightDeals, setFlightDeals] = useState([])
   const [hotelDeals, setHotelDeals] = useState([])
@@ -192,6 +219,17 @@ export default function VoyageCommun() {
       setActivityDeals(transformActivitesDeals(a || []))
       setItineraireDeals(transformItineraireDeals(it || []))
       setFavoriteIds(new Set((f || []).map((x) => `${x.nom}:${x.id_entite}`)))
+
+      const idsLieux = (f || []).filter((x) => x.nom === 'lieu').map((x) => x.id_entite)
+      const idsPlats = (f || []).filter((x) => x.nom === 'plat').map((x) => x.id_entite)
+      const [{ data: lieuxFav }, { data: platsFav }] = await Promise.all([
+        idsLieux.length ? supabase.from('d_lieu').select('*').in('id_lieu', idsLieux) : Promise.resolve({ data: [] }),
+        idsPlats.length ? supabase.from('d_plat').select('*').in('id_plat', idsPlats) : Promise.resolve({ data: [] }),
+      ])
+      setFavoriLieuxEtPlats([
+        ...transformLieuxFavoris(lieuxFav || []),
+        ...transformPlatsFavoris(platsFav || []),
+      ])
     }
     loadFavoritesData()
   }, [user])
@@ -342,7 +380,10 @@ export default function VoyageCommun() {
     : posts
 
   const ALL_DEALS = [...flightDeals, ...hotelDeals, ...activityDeals, ...itineraireDeals, ...transformVoyageCommunDeals(posts)]
-  const favoriteDeals = ALL_DEALS.filter((deal) => favoriteIds.has(`${deal.type}:${deal.id}`))
+  const favoriteDeals = [
+    ...ALL_DEALS.filter((deal) => favoriteIds.has(`${deal.type}:${deal.id}`)),
+    ...favoriLieuxEtPlats,
+  ]
 
   return (
     <>

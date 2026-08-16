@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from './supabaseClient'
+import { useFavoriLieuxEtPlats } from './useFavoriLieuxEtPlats'
 import { formatDate } from './dateUtils'
 import Sidebar from './Sidebar'
 import PageHeader from './PageHeader'
@@ -504,6 +505,7 @@ export default function VolsHebergements() {
       { pid: user.id, id_entite: deal.id, nom: deal.type, actif: !isCurrentlyFavorite },
       { onConflict: 'pid,id_entite,nom' }
     )
+    if (deal.type === 'lieu' || deal.type === 'plat') refetchFavoriLieuxEtPlats()
   }
 
   const handleSelectVol = async (vol) => {
@@ -535,7 +537,8 @@ export default function VolsHebergements() {
   }
 
   const ALL_DEALS = [...flightDeals, ...hotelDeals, ...activityDeals]
-  const favoriteDeals = ALL_DEALS.filter((deal) => favoriteIds.has(`${deal.type}:${deal.id}`))
+  const { favoriLieuxEtPlats, refetchFavoriLieuxEtPlats } = useFavoriLieuxEtPlats(user)
+  const favoriteDeals = ALL_DEALS.filter((deal) => favoriteIds.has(`${deal.type}:${deal.id}`)).concat(favoriLieuxEtPlats)
 
   if (!user) return null
 

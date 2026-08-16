@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from './supabaseClient'
+import { useFavoriLieuxEtPlats } from './useFavoriLieuxEtPlats'
 import { formatDate } from './dateUtils'
 import Sidebar from './Sidebar'
 import PageHeader from './PageHeader'
@@ -277,6 +278,7 @@ export default function ItineraireDetail() {
         return next
       })
     }
+    if (deal.type === 'lieu' || deal.type === 'plat') refetchFavoriLieuxEtPlats()
   }
 
   const handleDelete = async () => {
@@ -293,7 +295,8 @@ export default function ItineraireDetail() {
 
   const currentDay = days.find((d) => d.id_jour === selectedDay)
   const ALL_DEALS = [...flightDeals, ...hotelDeals, ...activityDeals, ...itineraireDeals, ...voyageCommunDeals]
-  const favoriteDeals = ALL_DEALS.filter((deal) => favoriteIds.has(`${deal.type}:${deal.id}`))
+  const { favoriLieuxEtPlats, refetchFavoriLieuxEtPlats } = useFavoriLieuxEtPlats(user)
+  const favoriteDeals = ALL_DEALS.filter((deal) => favoriteIds.has(`${deal.type}:${deal.id}`)).concat(favoriLieuxEtPlats)
   const canManage = itineraire && (itineraire.pid === user.id || isAdmin)
 
   return (

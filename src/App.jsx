@@ -23,6 +23,12 @@ import CGU from './components/legal/CGU'
 import CGV from './components/legal/CGV'
 import Confidentialite from './components/legal/Confidentialite'
 import Ateliers from './components/atelier/Ateliers'
+import Sejours from './components/Sejours'
+import Depenses from './components/Depenses'
+import Playlist from './components/Playlist'
+import Activites from './components/Activites'
+import Gastronomie from './components/Gastronomie'
+import PlatDetail from './components/PlatDetail'
 import AtelierDetail from './components/atelier/AtelierDetail'
 import AtelierConfirmation from './components/atelier/AtelierConfirmation'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -117,6 +123,59 @@ export default function App() {
         <Route path="/cgu" element={<CGU />} />
         <Route path="/cgv" element={<CGV />} />
         <Route path="/confidentialite" element={<Confidentialite />} />
+
+        <Route
+          path="/sejours"
+          element={
+            <ProtectedRoute>
+              <Sejours />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/depenses"
+          element={
+            <ProtectedRoute>
+              <Depenses />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/playlist"
+          element={
+            <ProtectedRoute>
+              <Playlist />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/activites"
+          element={
+            <ProtectedRoute>
+              <Activites />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/carnet-gastronomique"
+          element={
+            <ProtectedRoute>
+              <Gastronomie />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/carnet-gastronomique/:id"
+          element={
+            <ProtectedRoute>
+              <PlatDetail />
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path="/ateliers"

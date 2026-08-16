@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { supabase } from './supabaseClient'
+import { useFavoriLieuxEtPlats } from './useFavoriLieuxEtPlats'
 import { formatDate } from './dateUtils'
 import Sidebar from './Sidebar'
 import PageHeader from './PageHeader'
@@ -321,6 +322,7 @@ export default function VoyageCommunDetail() {
         return next
       })
     }
+    if (deal.type === 'lieu' || deal.type === 'plat') refetchFavoriLieuxEtPlats()
   }
 
   const handleDeletePost = async () => {
@@ -390,7 +392,8 @@ export default function VoyageCommunDetail() {
   const color = getColor(categorie?.couleur)
   const lieu = post.ville ? `${post.ville} — ${post.pays}` : post.pays
   const ALL_DEALS = [...flightDeals, ...hotelDeals, ...activityDeals, ...itineraireDeals, ...voyageCommunDeals]
-  const favoriteDeals = ALL_DEALS.filter((deal) => favoriteIds.has(`${deal.type}:${deal.id}`))
+  const { favoriLieuxEtPlats, refetchFavoriLieuxEtPlats } = useFavoriLieuxEtPlats(user)
+  const favoriteDeals = ALL_DEALS.filter((deal) => favoriteIds.has(`${deal.type}:${deal.id}`)).concat(favoriLieuxEtPlats)
   const isFavorite = favoriteIds.has(`voyage_commun:${post.id_post}`)
   const canManagePost = post.pid === user.id || isAdmin
 

@@ -75,6 +75,32 @@ function transformItineraires(rows) {
   }))
 }
 
+// Lieux (Activités & musées) et plats (Carnet gastronomique) mis en
+// favoris — même modèle que transformItineraires, mais on ne récupère
+// que les entrées favorites (pas tout le catalogue), vu que cette
+// page n'a pas besoin du reste pour son propre usage.
+function transformLieuxFavoris(rows) {
+  return rows.map((r, i) => ({
+    id: r.id_lieu, type: 'lieu',
+    title: r.nom,
+    price: 'Lieu à visiter',
+    date: `${r.ville}${r.quartier ? ` — ${r.quartier}` : ''}, ${r.pays}`,
+    emoji: '🏛️', fallbackGradient: GRADIENTS[i % GRADIENTS.length],
+    image: null,
+  }))
+}
+
+function transformPlatsFavoris(rows) {
+  return rows.map((r, i) => ({
+    id: r.id_plat, type: 'plat',
+    title: r.nom_plat,
+    price: r.prix,
+    date: `${r.nom_restaurant} · ${r.ville}, ${r.pays}`,
+    emoji: '🍽️', fallbackGradient: GRADIENTS[i % GRADIENTS.length],
+    image: r.lien_photo || null,
+  }))
+}
+
 // ---------- Vote + favoris, même logique et même charte que DealCard.jsx ----------
 
 const NAVY = [27, 42, 65]
@@ -317,6 +343,7 @@ export default function Dashboard() {
   const [hotelDeals, setHotelDeals] = useState([])
   const [activityDeals, setActivityDeals] = useState([])
   const [favoriteIds, setFavoriteIds] = useState(new Set())
+  const [favoriLieuxEtPlats, setFavoriLieuxEtPlats] = useState([])
   const [itineraires, setItineraires] = useState([])
   const [voteRefreshKey, setVoteRefreshKey] = useState(0)
 
@@ -414,6 +441,20 @@ export default function Dashboard() {
           )
         )
       }
+
+      // Lieux/plats favoris : pas dans ALL_DEALS (cette page ne charge
+      // pas tout le catalogue Activités/Gastronomie), donc récupérés à
+      // part, seulement les entrées effectivement favorites.
+      const idsLieux = (favoris || []).filter((f) => f.nom === 'lieu').map((f) => f.id_entite)
+      const idsPlats = (favoris || []).filter((f) => f.nom === 'plat').map((f) => f.id_entite)
+      const [{ data: lieuxFav }, { data: platsFav }] = await Promise.all([
+        idsLieux.length ? supabase.from('d_lieu').select('*').in('id_lieu', idsLieux) : Promise.resolve({ data: [] }),
+        idsPlats.length ? supabase.from('d_plat').select('*').in('id_plat', idsPlats) : Promise.resolve({ data: [] }),
+      ])
+      setFavoriLieuxEtPlats([
+        ...transformLieuxFavoris(lieuxFav || []),
+        ...transformPlatsFavoris(platsFav || []),
+      ])
     }
     loadDeals()
   }, [user, paysDepartFav, villeDepartFav])
@@ -449,7 +490,10 @@ export default function Dashboard() {
   }
 
   const ALL_DEALS = [...flightDeals, ...hotelDeals, ...activityDeals, ...transformItineraires(itineraires)]
-  const favoriteDeals = ALL_DEALS.filter((deal) => favoriteIds.has(`${deal.type}:${deal.id}`))
+  const favoriteDeals = [
+    ...ALL_DEALS.filter((deal) => favoriteIds.has(`${deal.type}:${deal.id}`)),
+    ...favoriLieuxEtPlats,
+  ]
 
   if (!user) return null // évite un flash sans nom le temps que le user se charge
 
