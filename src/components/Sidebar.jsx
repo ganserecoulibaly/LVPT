@@ -101,6 +101,14 @@ const icons = {
       <path d="M9 8h4a2 2 0 0 1 0 4H9m0 0h4a2 2 0 0 1 0 4H9m2-12v12"/>
     </svg>
   ),
+  // Icône dédiée à l'encart "Miles" : un badge/étoile de programme de fidélité,
+  // pour la distinguer visuellement de "currency" (utilisée par la Boîte à outils).
+  miles: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="8" r="6"/>
+      <path d="M9 14.5 7 22l5-3 5 3-2-7.5"/>
+    </svg>
+  ),
   lock: (
     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
       <rect x="3" y="11" width="18" height="11" rx="2"/>
@@ -156,8 +164,21 @@ const MODULES = [
   { id: 'documents', name: 'Documents de transport', icon: 'fileText', requiredPlan: 'frequent', path: '/documents' },
 ]
 
+// Encart "Miles" : accessible à tous les plans (le choix du programme
+// Flying Blue / Avios / Turkish se fait dans la page elle-même, pas ici).
+const MILES_SECTION = {
+  id: 'miles',
+  name: 'Miles',
+  icon: 'miles',
+  requiredPlan: 'free',
+  children: [
+    { id: 'miles-vs-euros', name: 'Miles vs Euros', path: '/miles-vs-euros' },
+  ],
+}
+
 const SEEN_STORAGE_KEY = 'lvpt_seen_modules'
 const LAST_VISIT_FLIGHTS_KEY_PREFIX = 'lvpt_last_visit_flights_'
+const MILES_EXPANDED_KEY = 'lvpt_miles_expanded'
 
 function getLastFlightsVisit(userId) {
   return localStorage.getItem(LAST_VISIT_FLIGHTS_KEY_PREFIX + userId) || '1970-01-01T00:00:00Z'
@@ -220,6 +241,66 @@ function NavItem({ module, unseenCount, onLockedClick, onSeen, forceLabelVisible
         </span>
       )}
     </button>
+  )
+}
+
+// Encart "Miles" : un item parent repliable avec un unique sous-élément
+// "Miles vs Euros". Accessible à tous les plans, donc pas de logique de
+// verrouillage ici (contrairement à NavItem) — juste l'ouverture/fermeture.
+function MilesNavItem({ section, forceLabelVisible, onNavigate }) {
+  const navigate = useNavigate()
+  const [expanded, setExpanded] = useState(() => localStorage.getItem(MILES_EXPANDED_KEY) === '1')
+
+  const toggleExpanded = () => {
+    setExpanded((current) => {
+      const next = !current
+      localStorage.setItem(MILES_EXPANDED_KEY, next ? '1' : '0')
+      return next
+    })
+  }
+
+  const handleChildClick = (childPath) => {
+    navigate(childPath)
+    onNavigate?.()
+  }
+
+  return (
+    <div>
+      <button
+        onClick={toggleExpanded}
+        className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-navy/5 transition-colors"
+      >
+        <span className="shrink-0 text-navy/70">{icons[section.icon]}</span>
+        <span className={`text-sm whitespace-nowrap transition-opacity duration-200 text-navy ${
+          forceLabelVisible ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+        }`}>
+          {section.name}
+        </span>
+        <span className={`ml-auto shrink-0 text-navy/40 transition-all duration-200 ${
+          forceLabelVisible ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+        } ${expanded ? 'rotate-180' : ''}`}>
+          {icons.chevron}
+        </span>
+      </button>
+
+      {expanded && (
+        <div>
+          {section.children.map((child) => (
+            <button
+              key={child.id}
+              onClick={() => handleChildClick(child.path)}
+              className="w-full flex items-center gap-3 pl-11 pr-4 py-2 hover:bg-navy/5 transition-colors"
+            >
+              <span className={`text-sm whitespace-nowrap transition-opacity duration-200 text-navy/80 ${
+                forceLabelVisible ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+              }`}>
+                {child.name}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -339,6 +420,12 @@ export default function Sidebar({ onLockedClick, onToolboxClick }) {
             onNavigate={() => setMobileOpen(false)}
           />
         ))}
+
+        <MilesNavItem
+          section={MILES_SECTION}
+          forceLabelVisible={forceLabelVisible}
+          onNavigate={() => setMobileOpen(false)}
+        />
 
         <ToolboxNavItem onToolboxClick={onToolboxClick} forceLabelVisible={forceLabelVisible} />
 
