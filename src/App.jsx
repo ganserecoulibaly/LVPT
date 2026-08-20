@@ -32,7 +32,9 @@ import PlatDetail from './components/PlatDetail'
 import AtelierDetail from './components/atelier/AtelierDetail'
 import AtelierConfirmation from './components/atelier/AtelierConfirmation'
 import MilesVsEuros from './components/MilesVsEuros'
+import DefisCommunaute from './components/DefisCommunaute'
 import ProtectedRoute from './components/ProtectedRoute'
+
 // Au fur et à mesure, importe ici les futures pages privées :
 // import Carnet from './components/Carnet'
 // import Profil from './components/Profil'
@@ -210,6 +212,15 @@ export default function App() {
           element={
             <ProtectedRoute>
               <MilesVsEuros />
+            </ProtectedRoute>
+          }
+        />
+
+           <Route
+          path="/defis-communaute"
+          element={
+            <ProtectedRoute>
+              <DefisCommunaute />
             </ProtectedRoute>
           }
         />
