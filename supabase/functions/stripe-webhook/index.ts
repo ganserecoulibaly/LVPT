@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
             stripe_subscription_id: session.subscription,
             abonnement_statut: "active",
           })
-          .eq("pid", pid);
+          .eq("id", pid); 
 
         if (error) console.error("Erreur mise à jour lvpt (checkout.session.completed) :", error);
       }

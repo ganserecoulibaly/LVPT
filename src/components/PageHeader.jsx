@@ -2,19 +2,17 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from './supabaseClient'
 
-// Barre du haut partagée par toutes les pages privées (Dashboard,
-// Itineraires, VolsHebergements, ItineraireDetail, VoyageCommun,
-// VoyageCommunDetail) — remplace le bloc dupliqué à l'identique dans
-// chacune de ces 6 pages.
-//
-// Sur mobile, les 5 pastilles ne tenaient jamais sur une ligne et
-// retombaient en plusieurs lignes mal alignées (flex-wrap) — remplacé
-// par un menu compact (une seule icône "•••") en dessous du breakpoint
-// sm. Le rendu desktop (pastilles en ligne) reste inchangé.
+const PLAN_LABELS = {
+  free: 'Gratuit',
+  occasionnel: 'Voyageur occasionnel',
+  grand: 'Grand Voyageur',
+}
+
 export default function PageHeader({ onFavoritesClick, onUpgradeClick, onProfileClick }) {
   const navigate = useNavigate()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [accountMenuOpen, setAccountMenuOpen] = useState(false)
+  const [currentPlan, setCurrentPlan] = useState(null)
   const menuRef = useRef(null)
   const accountMenuRef = useRef(null)
 
@@ -26,6 +24,27 @@ export default function PageHeader({ onFavoritesClick, onUpgradeClick, onProfile
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
+
+  // Récupère le plan actuel de l'utilisateur connecté
+  useEffect(() => {
+    async function fetchPlan() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { data, error } = await supabase
+        .from('lvpt')
+        .select('abonnement')
+        .eq('id', user.id)
+        .single()
+
+      if (!error && data) {
+        setCurrentPlan(data.abonnement)
+      }
+    }
+    fetchPlan()
+  }, [])
+
+  const planLabel = PLAN_LABELS[currentPlan] ?? PLAN_LABELS.free
 
   const items = [
     { label: 'Mes favoris', onClick: onFavoritesClick },
@@ -60,6 +79,9 @@ export default function PageHeader({ onFavoritesClick, onUpgradeClick, onProfile
           </button>
           {accountMenuOpen && (
             <div className="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-lg border border-navy/10 py-1.5 overflow-hidden z-10">
+              <div className="px-4 py-2 text-xs text-navy/50 border-b border-navy/10 mb-1">
+                Abonnement {planLabel}
+              </div>
               <button
                 onClick={() => { setAccountMenuOpen(false); onProfileClick?.() }}
                 className="w-full text-left px-4 py-2.5 text-sm text-navy hover:bg-navy/5 transition-colors"
@@ -77,9 +99,7 @@ export default function PageHeader({ onFavoritesClick, onUpgradeClick, onProfile
         </div>
       </div>
 
-      {/* Mobile : icône fixe, alignée avec le hamburger de Sidebar (même
-          top-4) plutôt que dans le flux normal de la page — sinon le
-          padding-top de la page la décale plus bas que le hamburger. */}
+      {/* Mobile : icône fixe */}
       <div className="sm:hidden fixed top-4 right-4 z-40" ref={menuRef}>
         <button
           onClick={() => setMobileMenuOpen((o) => !o)}
@@ -93,6 +113,9 @@ export default function PageHeader({ onFavoritesClick, onUpgradeClick, onProfile
 
         {mobileMenuOpen && (
           <div className="absolute right-0 top-12 w-52 bg-white rounded-xl shadow-lg border border-navy/10 py-1.5">
+            <div className="px-4 py-2 text-xs text-navy/50 border-b border-navy/10 mb-1">
+              Abonnement {planLabel}
+            </div>
             {items.map((item) => (
               <button
                 key={item.label}
@@ -108,10 +131,6 @@ export default function PageHeader({ onFavoritesClick, onUpgradeClick, onProfile
         )}
       </div>
 
-      {/* Espace invisible, mobile uniquement : le bouton ci-dessus est en
-          fixed (pour s'aligner avec le hamburger de Sidebar), donc il ne
-          pousse plus rien vers le bas tout seul — sans ça, le contenu de
-          la page remonte et vient se superposer aux boutons fixes. */}
       <div className="sm:hidden h-10 mb-10" aria-hidden="true" />
     </>
   )
