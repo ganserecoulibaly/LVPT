@@ -1,4 +1,14 @@
 import React, { useState, useMemo } from 'react'
+import Sidebar from './Sidebar'
+import PageHeader from './PageHeader'
+import EditProfileModal from './EditProfileModal'
+import PricingModal from './PricingModal'
+import FavoritesModal from './FavoritesModal'
+import ToolboxModal from './ToolboxModal'
+import Footer from './Footer'
+import { usePlanAccess } from './usePlanAccess'
+import { useFavoriLieuxEtPlats } from './useFavoriLieuxEtPlats'
+import PlanLockedScreen from './PlanLockedScreen'
 
 // Seuils de rentabilité (en centimes / mile ou point) par programme.
 // En dessous du premier seuil : le billet payé en euros est plus avantageux.
@@ -90,7 +100,7 @@ function Gauge({ valueCts, program }) {
   )
 }
 
-export default function MilesVsEuros() {
+function MilesComparator() {
   const [programKey, setProgramKey] = useState('flyingblue')
   const [prixEuros, setPrixEuros] = useState('')
   const [taxesMiles, setTaxesMiles] = useState('')
@@ -118,120 +128,183 @@ export default function MilesVsEuros() {
   const colors = result ? verdictColors[result.verdict.level] : null
 
   return (
-    <div className="min-h-screen bg-cream pt-24 pb-16 px-4 sm:pl-72">
-      <div className="max-w-xl mx-auto">
-        {/* Fil d'ariane */}
-        <div className="flex items-center gap-2 text-sm text-navy/40 mb-6">
-          <span>Miles</span>
-          <span>›</span>
-          <span>Miles vs Euros</span>
-        </div>
-
-        <h1 className="font-serif text-3xl text-navy font-bold mb-2">Miles vs Euros</h1>
-        <p className="text-navy/50 mb-8">
-          Comparez la valeur réelle de vos miles à un billet payé cash, programme par programme.
-        </p>
-
-        {/* Sélecteur de programme en pills */}
-        <div className="flex flex-wrap gap-3 mb-8">
-          {Object.entries(PROGRAMS).map(([key, p]) => {
-            const active = key === programKey
-            return (
-              <button
-                key={key}
-                onClick={() => setProgramKey(key)}
-                className={`px-5 py-3 rounded-full text-sm font-medium transition-colors ${
-                  active
-                    ? 'bg-navy text-white'
-                    : 'bg-white text-navy border border-navy/15 hover:bg-navy/5'
-                }`}
-              >
-                {p.label}
-              </button>
-            )
-          })}
-        </div>
-
-        {/* Carte des inputs */}
-        <div className="bg-white border border-navy/10 rounded-2xl shadow-sm p-6 mb-6">
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs text-navy/50 mb-2">Prix du billet en euros</label>
-              <div className="flex items-center border border-navy/15 rounded-lg px-3 py-2.5 focus-within:ring-2 focus-within:ring-coral/40">
-                <input
-                  type="number"
-                  inputMode="decimal"
-                  value={prixEuros}
-                  onChange={(e) => setPrixEuros(e.target.value)}
-                  placeholder="95"
-                  className="w-full text-lg text-navy outline-none"
-                />
-                <span className="text-navy/30 text-sm ml-1">€</span>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs text-navy/50 mb-2">Taxes d'aéroport</label>
-              <div className="flex items-center border border-navy/15 rounded-lg px-3 py-2.5 focus-within:ring-2 focus-within:ring-coral/40">
-                <input
-                  type="number"
-                  inputMode="decimal"
-                  value={taxesMiles}
-                  onChange={(e) => setTaxesMiles(e.target.value)}
-                  placeholder="26"
-                  className="w-full text-lg text-navy outline-none"
-                />
-                <span className="text-navy/30 text-sm ml-1">€</span>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs text-navy/50 mb-2">
-                {program.unitLabel === 'Avios' ? 'Avios demandés' : 'Miles demandés'}
-              </label>
-              <div className="flex items-center border border-navy/15 rounded-lg px-3 py-2.5 focus-within:ring-2 focus-within:ring-coral/40">
-                <input
-                  type="number"
-                  inputMode="decimal"
-                  value={nombreMiles}
-                  onChange={(e) => setNombreMiles(e.target.value)}
-                  placeholder="30000"
-                  className="w-full text-lg text-navy outline-none"
-                />
-                <span className="text-navy/30 text-sm ml-1">{program.shortLabel}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Carte de résultat */}
-        {result ? (
-          <div className={`rounded-2xl border border-navy/5 p-6 ${colors.text}`} style={{ backgroundColor: '#F7F1E6' }}>
-            <div className="flex items-start justify-between">
-              <div>
-                <div className="text-xs uppercase tracking-wide opacity-60 mb-1">Valeur obtenue</div>
-                <div className="text-4xl font-serif font-bold">
-                  {result.valueCts.toFixed(2)} <span className="text-xl font-sans font-normal">ct/mile</span>
-                </div>
-              </div>
-              <div className={`w-10 h-10 rounded-full ${colors.dot} bg-opacity-15 flex items-center justify-center`}>
-                <span className={`w-2.5 h-2.5 rounded-full ${colors.dot}`} />
-              </div>
-            </div>
-
-            <div className="mt-4">
-              <div className="font-medium">{result.verdict.label}</div>
-              <div className="text-sm opacity-70 mt-0.5">{result.verdict.detail}</div>
-            </div>
-
-            <Gauge valueCts={result.valueCts} program={program} />
-          </div>
-        ) : (
-          <div className="bg-navy/5 rounded-2xl p-6 text-center text-sm text-navy/40 italic">
-            Remplissez les trois champs pour voir la valeur de vos {program.unitLabel} et le verdict.
-          </div>
-        )}
+    <div className="max-w-xl">
+      {/* Fil d'ariane */}
+      <div className="flex items-center gap-2 text-sm text-navy/40 mb-6">
+        <span>Miles</span>
+        <span>›</span>
+        <span>Miles vs Euros</span>
       </div>
+
+      <h1 className="font-serif text-3xl text-navy font-bold mb-2">Miles vs Euros</h1>
+      <p className="text-navy/50 mb-8">
+        Comparez la valeur réelle de vos miles à un billet payé cash, programme par programme.
+      </p>
+
+      {/* Sélecteur de programme en pills */}
+      <div className="flex flex-wrap gap-3 mb-8">
+        {Object.entries(PROGRAMS).map(([key, p]) => {
+          const active = key === programKey
+          return (
+            <button
+              key={key}
+              onClick={() => setProgramKey(key)}
+              className={`px-5 py-3 rounded-full text-sm font-medium transition-colors ${
+                active
+                  ? 'bg-navy text-white'
+                  : 'bg-white text-navy border border-navy/15 hover:bg-navy/5'
+              }`}
+            >
+              {p.label}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Carte des inputs */}
+      <div className="bg-white border border-navy/10 rounded-2xl shadow-sm p-6 mb-6">
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <label className="block text-xs text-navy/50 mb-2">Prix du billet en euros</label>
+            <div className="flex items-center border border-navy/15 rounded-lg px-3 py-2.5 focus-within:ring-2 focus-within:ring-coral/40">
+              <input
+                type="number"
+                inputMode="decimal"
+                value={prixEuros}
+                onChange={(e) => setPrixEuros(e.target.value)}
+                placeholder="95"
+                className="w-full text-lg text-navy outline-none"
+              />
+              <span className="text-navy/30 text-sm ml-1">€</span>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs text-navy/50 mb-2">Taxes d'aéroport</label>
+            <div className="flex items-center border border-navy/15 rounded-lg px-3 py-2.5 focus-within:ring-2 focus-within:ring-coral/40">
+              <input
+                type="number"
+                inputMode="decimal"
+                value={taxesMiles}
+                onChange={(e) => setTaxesMiles(e.target.value)}
+                placeholder="26"
+                className="w-full text-lg text-navy outline-none"
+              />
+              <span className="text-navy/30 text-sm ml-1">€</span>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs text-navy/50 mb-2">
+              {program.unitLabel === 'Avios' ? 'Avios demandés' : 'Miles demandés'}
+            </label>
+            <div className="flex items-center border border-navy/15 rounded-lg px-3 py-2.5 focus-within:ring-2 focus-within:ring-coral/40">
+              <input
+                type="number"
+                inputMode="decimal"
+                value={nombreMiles}
+                onChange={(e) => setNombreMiles(e.target.value)}
+                placeholder="30000"
+                className="w-full text-lg text-navy outline-none"
+              />
+              <span className="text-navy/30 text-sm ml-1">{program.shortLabel}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Carte de résultat */}
+      {result ? (
+        <div className={`rounded-2xl border border-navy/5 p-6 bg-cream-dark ${colors.text}`}>
+          <div className="flex items-start justify-between">
+            <div>
+              <div className="text-xs uppercase tracking-wide opacity-60 mb-1">Valeur obtenue</div>
+              <div className="text-4xl font-serif font-bold">
+                {result.valueCts.toFixed(2)} <span className="text-xl font-sans font-normal">ct/mile</span>
+              </div>
+            </div>
+            <div className={`w-10 h-10 rounded-full ${colors.dot} bg-opacity-15 flex items-center justify-center`}>
+              <span className={`w-2.5 h-2.5 rounded-full ${colors.dot}`} />
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <div className="font-medium">{result.verdict.label}</div>
+            <div className="text-sm opacity-70 mt-0.5">{result.verdict.detail}</div>
+          </div>
+
+          <Gauge valueCts={result.valueCts} program={program} />
+        </div>
+      ) : (
+        <div className="bg-navy/5 rounded-2xl p-6 text-center text-sm text-navy/40 italic">
+          Remplissez les trois champs pour voir la valeur de vos {program.unitLabel} et le verdict.
+        </div>
+      )}
     </div>
+  )
+}
+
+export default function MilesVsEuros() {
+  const { user, allowed } = usePlanAccess('free')
+  const { favoriLieuxEtPlats, toggleFavoriGeneric } = useFavoriLieuxEtPlats(user)
+  const [pricingOpen, setPricingOpen] = useState(false)
+  const [favoritesOpen, setFavoritesOpen] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
+  const [toolboxOpen, setToolboxOpen] = useState(false)
+  const [toolboxTab, setToolboxTab] = useState('currency')
+
+  if (!user || allowed === null) return null
+
+  if (!allowed) {
+    return (
+      <PlanLockedScreen
+        title="Miles vs Euros"
+        requiredPlan="free"
+        pricingOpen={pricingOpen}
+        onPricingOpen={() => setPricingOpen(true)}
+        onPricingClose={() => setPricingOpen(false)}
+        onToolboxClick={(tab) => { setToolboxTab(tab); setToolboxOpen(true) }}
+      />
+    )
+  }
+
+  return (
+    <>
+      <div className="min-h-screen bg-cream flex flex-col">
+        <Sidebar
+          onLockedClick={() => setPricingOpen(true)}
+          onToolboxClick={(tab) => { setToolboxTab(tab); setToolboxOpen(true) }}
+        />
+
+        <div className="flex-1 ml-0 sm:ml-16 px-4 sm:px-6 pt-20 sm:pt-10 pb-10">
+          <div className="max-w-6xl mx-auto">
+            <PageHeader
+              onFavoritesClick={() => setFavoritesOpen(true)}
+              onUpgradeClick={() => setPricingOpen(true)}
+              onProfileClick={() => setProfileOpen(true)}
+            />
+
+            <MilesComparator />
+          </div>
+        </div>
+
+        <div className="ml-0 sm:ml-16">
+          <Footer />
+        </div>
+      </div>
+
+      {pricingOpen && <PricingModal onClose={() => setPricingOpen(false)} />}
+      {favoritesOpen && (
+        <FavoritesModal
+          onClose={() => setFavoritesOpen(false)}
+          favoriteDeals={favoriLieuxEtPlats}
+          userId={user.id}
+          favoriteIds={new Set(favoriLieuxEtPlats.map((d) => `${d.type}:${d.id}`))}
+          onToggleFavorite={toggleFavoriGeneric}
+        />
+      )}
+      {toolboxOpen && <ToolboxModal onClose={() => setToolboxOpen(false)} initialTab={toolboxTab} />}
+      {profileOpen && <EditProfileModal userId={user.id} onClose={() => setProfileOpen(false)} />}
+    </>
   )
 }
