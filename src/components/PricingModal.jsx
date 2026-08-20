@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { supabase } from '../supabaseClient' // adapte ce chemin au vrai fichier de ton client Supabase
+import { supabase } from './supabaseClient' // adapte ce chemin au vrai fichier de ton client Supabase
 
 const MONTHLY = 'monthly'
 const YEARLY = 'yearly'
