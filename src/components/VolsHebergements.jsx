@@ -373,27 +373,51 @@ const COMMUNITY_NOTES = [
 ]
 
 function ExpediaWidget() {
+  const containerRef = React.useRef(null)
+
   useEffect(() => {
-    if (document.querySelector('script.eg-widgets-script')) return
-    const script = document.createElement('script')
-    script.className = 'eg-widgets-script'
-    script.src = 'https://creator.expediagroup.com/products/widgets/assets/eg-widgets.js'
-    script.async = true
-    document.body.appendChild(script)
+    if (!containerRef.current || containerRef.current.querySelector('iframe')) return
+
+    // Feuille de style du widget (chargée une seule fois)
+    if (!document.querySelector('link.eg-widgets-style')) {
+      const link = document.createElement('link')
+      link.className = 'eg-widgets-style'
+      link.rel = 'stylesheet'
+      link.href = 'https://creator.expediagroup.com/products/widgets/assets/eg-widgets.css'
+      document.head.appendChild(link)
+    }
+
+    const instance = Date.now().toString(36) + Math.random().toString(36).slice(2)
+    const params = new URLSearchParams({
+      program: 'fr-expedia',
+      lobs: 'stays,flights',
+      network: 'pz',
+      camref: '1101l3w86h',
+      instance,
+    })
+
+    const iframe = document.createElement('iframe')
+    iframe.src = `https://creator.expediagroup.com/products/widgets/search-widget?${params.toString()}`
+    iframe.style.border = 'none'
+    iframe.style.width = '100%'
+    iframe.style.minHeight = '0'
+    iframe.className = 'eg-widget-frame eg-search-widget-frame'
+    containerRef.current.appendChild(iframe)
+
+    function handleMessage(event) {
+      if (event.origin !== 'https://creator.expediagroup.com') return
+      if (event.data?.type !== 'eg-widget/resize') return
+      iframe.style.width = event.data.payload.frame.style.width
+      iframe.style.height = event.data.payload.frame.style.height
+    }
+    window.addEventListener('message', handleMessage)
+    return () => window.removeEventListener('message', handleMessage)
   }, [])
 
   return (
     <div className="rounded-xl bg-white border border-navy/10 p-5 mb-5">
       <p className="font-serif text-base text-navy mb-3">Réserver directement</p>
-      <div
-        className="eg-widget"
-        data-widget="search"
-        data-program="fr-expedia"
-        data-lobs="stays,flights"
-        data-network="pz"
-        data-camref="1101l3w86h"
-        data-pubref=""
-      />
+      <div ref={containerRef} className="eg-widget eg-search-widget" />
     </div>
   )
 }
