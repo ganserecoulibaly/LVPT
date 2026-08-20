@@ -14,11 +14,14 @@ import { supabase } from './supabaseClient'
 export default function PageHeader({ onFavoritesClick, onUpgradeClick, onProfileClick }) {
   const navigate = useNavigate()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false)
   const menuRef = useRef(null)
+  const accountMenuRef = useRef(null)
 
   useEffect(() => {
     function handleClickOutside(e) {
       if (menuRef.current && !menuRef.current.contains(e.target)) setMobileMenuOpen(false)
+      if (accountMenuRef.current && !accountMenuRef.current.contains(e.target)) setAccountMenuOpen(false)
     }
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
@@ -45,15 +48,33 @@ export default function PageHeader({ onFavoritesClick, onUpgradeClick, onProfile
         <button onClick={onUpgradeClick} className="btn-primary text-sm py-2.5 px-5">
           Upgrade plan
         </button>
-        <button onClick={onProfileClick} className="btn-primary text-sm py-2.5 px-5">
-          Modifier le profil
-        </button>
-        <button
-          onClick={() => supabase.auth.signOut()}
-          className="text-sm text-navy/60 hover:text-coral transition-colors"
-        >
-          Se déconnecter
-        </button>
+        <div className="relative" ref={accountMenuRef}>
+          <button
+            onClick={() => setAccountMenuOpen((o) => !o)}
+            className="btn-primary text-sm py-2.5 px-5 flex items-center gap-1.5"
+          >
+            Mon compte
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
+          {accountMenuOpen && (
+            <div className="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-lg border border-navy/10 py-1.5 overflow-hidden z-10">
+              <button
+                onClick={() => { setAccountMenuOpen(false); onProfileClick?.() }}
+                className="w-full text-left px-4 py-2.5 text-sm text-navy hover:bg-navy/5 transition-colors"
+              >
+                Modifier le profil
+              </button>
+              <button
+                onClick={() => { setAccountMenuOpen(false); supabase.auth.signOut() }}
+                className="w-full text-left px-4 py-2.5 text-sm text-[#993C1D] hover:bg-navy/5 transition-colors"
+              >
+                Se déconnecter
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Mobile : icône fixe, alignée avec le hamburger de Sidebar (même
