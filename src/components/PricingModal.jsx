@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { supabase } from '../supabaseClient' // adapte ce chemin au vrai fichier de ton client Supabase
 
 const MONTHLY = 'monthly'
 const YEARLY = 'yearly'
@@ -57,13 +58,6 @@ const PLANS = [
   },
 ]
 
-// TODO : remplacer par les vrais Price ID Stripe une fois le compte créé
-// (Dashboard Stripe → Products → chaque Price a un id du type "price_1AbC...").
-const STRIPE_PRODUCTS = {
-  occasionnel: { monthly: '', yearly: '' },
-  grand: { monthly: '', yearly: '' },
-}
-
 function formatPrice(plan, billing) {
   if (plan.id === 'free') return { price: '0€', period: '' }
 
@@ -79,31 +73,48 @@ function formatPrice(plan, billing) {
   }
 }
 
-function startCheckout(planId, billing) {
-  const product = STRIPE_PRODUCTS[planId]
+async function startCheckout(planId, billing, setLoadingPlan) {
+  try {
+    setLoadingPlan(planId)
 
-  // TODO : remplacer par l'appel réel une fois les Edge Functions Stripe prêtes
-  // const { data } = await supabase.functions.invoke('create-checkout-session', { body: { priceId } })
-  // window.location.href = data.url
-  console.log('Stripe Checkout', {
-    plan: planId,
-    billing,
-    priceId: billing === MONTHLY ? product?.monthly : product?.yearly,
-  })
+    const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+      body: { plan: planId, billing },
+    })
+
+    if (error || !data?.url) {
+      throw error ?? new Error('URL de paiement manquante')
+    }
+
+    window.location.href = data.url
+  } catch (err) {
+    console.error('Erreur lors du lancement du paiement Stripe :', err)
+    alert("Impossible de lancer le paiement pour le moment. Réessaie dans un instant.")
+    setLoadingPlan(null)
+  }
 }
 
-function startCancelSubscription() {
-  // TODO : rediriger vers le Stripe Billing Portal plutôt que de coder la
-  // résiliation à la main — Stripe gère alors lui-même la confirmation,
-  // la date de fin de période, et prévient via webhook (customer.subscription.deleted)
-  // pour repasser lvpt.abonnement à 'free' côté serveur.
-  // const { data } = await supabase.functions.invoke('create-portal-session')
-  // window.location.href = data.url
-  console.log('Résiliation demandée — à connecter au Stripe Billing Portal')
+async function startCancelSubscription(setCanceling) {
+  try {
+    setCanceling(true)
+
+    const { data, error } = await supabase.functions.invoke('create-portal-session')
+
+    if (error || !data?.url) {
+      throw error ?? new Error('URL du portail manquante')
+    }
+
+    window.location.href = data.url
+  } catch (err) {
+    console.error('Erreur lors de l\'ouverture du portail Stripe :', err)
+    alert("Impossible d'ouvrir la gestion de l'abonnement pour le moment. Réessaie dans un instant.")
+    setCanceling(false)
+  }
 }
 
 export default function PricingModal({ onClose, onSelectPlan, currentPlan = 'free' }) {
   const [billing, setBilling] = useState(MONTHLY)
+  const [loadingPlan, setLoadingPlan] = useState(null)
+  const [canceling, setCanceling] = useState(false)
 
   useEffect(() => {
     document.body.style.overflow = 'hidden'
@@ -218,10 +229,11 @@ export default function PricingModal({ onClose, onSelectPlan, currentPlan = 'fre
               ) : (
                 <>
                   <button
-                    onClick={() => { startCheckout(plan.id, billing); onSelectPlan?.(plan.id) }}
-                    className="btn-primary w-full text-sm py-2.5"
+                    onClick={() => startCheckout(plan.id, billing, setLoadingPlan)}
+                    disabled={loadingPlan === plan.id}
+                    className="btn-primary w-full text-sm py-2.5 disabled:opacity-60"
                   >
-                    {plan.cta}
+                    {loadingPlan === plan.id ? 'Redirection…' : plan.cta}
                   </button>
                   <p className="text-center text-[11px] text-navy/40 mt-2">Paiement sécurisé avec Stripe</p>
                 </>
@@ -235,12 +247,13 @@ export default function PricingModal({ onClose, onSelectPlan, currentPlan = 'fre
             <button
               onClick={() => {
                 if (window.confirm('Résilier ton abonnement ? Tu garderas l\'accès jusqu\'à la fin de la période en cours, puis ton compte repassera en Gratuit.')) {
-                  startCancelSubscription()
+                  startCancelSubscription(setCanceling)
                 }
               }}
-              className="text-xs text-navy/45 hover:text-red-500 transition-colors"
+              disabled={canceling}
+              className="text-xs text-navy/45 hover:text-red-500 transition-colors disabled:opacity-60"
             >
-              Résilier mon abonnement
+              {canceling ? 'Ouverture du portail…' : 'Résilier mon abonnement'}
             </button>
           </div>
         )}
