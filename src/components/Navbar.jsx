@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from './supabaseClient'
 import AuthModal from './AuthModal'
 
@@ -9,6 +10,7 @@ const NAV_LINKS = [
 ]
 
 export default function Navbar({ forceOpaque = false }) {
+  const navigate = useNavigate()
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
@@ -113,20 +115,28 @@ export default function Navbar({ forceOpaque = false }) {
             {/* Bouton principal / menu déroulant */}
             <div className="relative" ref={menuRef}>
               {user ? (
-                <button
-                  onClick={() => setMenuOpen((open) => !open)}
-                  className="btn-primary text-sm py-2.5 px-5 flex items-center gap-2"
-                >
-                  <div className="w-6 h-6 rounded-full bg-white/25 flex items-center justify-center text-xs font-medium overflow-hidden">
-                    {user.user_metadata?.avatar_url ? (
-                      <img src={user.user_metadata.avatar_url} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      (isAdmin ? 'A' : (user.user_metadata?.full_name || user.email || '?').charAt(0).toUpperCase())
-                    )}
-                  </div>
-                  <span className="hidden sm:inline">{isAdmin ? 'Admin' : (user.user_metadata?.full_name?.split(' ')[0] || 'Mon compte')}</span>
-                  <ChevronIcon />
-                </button>
+                <div className="flex items-center rounded-full bg-coral overflow-hidden">
+                  <button
+                    onClick={() => navigate('/dashboard')}
+                    className="text-sm py-2.5 pl-5 pr-2 flex items-center gap-2 text-white hover:bg-white/10 transition-colors"
+                  >
+                    <div className="w-6 h-6 rounded-full bg-white/25 flex items-center justify-center text-xs font-medium overflow-hidden">
+                      {user.user_metadata?.avatar_url ? (
+                        <img src={user.user_metadata.avatar_url} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        (isAdmin ? 'A' : (user.user_metadata?.full_name || user.email || '?').charAt(0).toUpperCase())
+                      )}
+                    </div>
+                    <span className="hidden sm:inline">{isAdmin ? 'Admin' : (user.user_metadata?.full_name?.split(' ')[0] || 'Mon compte')}</span>
+                  </button>
+                  <button
+                    onClick={() => setMenuOpen((open) => !open)}
+                    className="py-2.5 pl-1.5 pr-4 text-white hover:bg-white/10 transition-colors"
+                    aria-label="Menu du compte"
+                  >
+                    <ChevronIcon />
+                  </button>
+                </div>
               ) : (
                 <button
                   onClick={() => setMenuOpen((open) => !open)}
@@ -145,6 +155,12 @@ export default function Navbar({ forceOpaque = false }) {
                       <div className="px-4 py-2 text-sm text-navy/60 truncate border-b border-navy/10 mb-1">
                         {user.email}
                       </div>
+                      <button
+                        onClick={() => { setMenuOpen(false); navigate('/dashboard') }}
+                        className="w-full text-left px-4 py-2 text-sm text-navy hover:bg-navy/5 transition-colors"
+                      >
+                        Vers le dashboard
+                      </button>
                       <button
                         onClick={handleSignOut}
                         className="w-full text-left px-4 py-2 text-sm text-navy hover:bg-navy/5 transition-colors"
