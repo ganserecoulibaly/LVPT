@@ -58,6 +58,29 @@ function CommentairePill({ categorie }) {
   )
 }
 
+function GetYourGuideCityWidget() {
+  useEffect(() => {
+    if (document.querySelector('script[data-gyg-loader]')) return
+    const script = document.createElement('script')
+    script.async = true
+    script.src = 'https://widget.getyourguide.com/dist/pa.umd.production.min.js'
+    script.setAttribute('data-gyg-loader', 'true')
+    document.body.appendChild(script)
+  }, [])
+
+  return (
+    <div className="mb-6 rounded-xl overflow-hidden">
+      <div
+        data-gyg-href="https://widget.getyourguide.com/default/city.frame"
+        data-gyg-location-id="16"
+        data-gyg-locale-code="fr-FR"
+        data-gyg-widget="city"
+        data-gyg-partner-id="0MUBYBR"
+      />
+    </div>
+  )
+}
+
 function LieuCard({ lieu, index, isSelected, onSelect, isFavori, onToggleFavori }) {
   return (
     <div
@@ -440,7 +463,8 @@ export default function Activites() {
               </button>
             </div>
             <p className="text-navy/70 mb-5">Coups de cœur, tips et arnaques à éviter — uniquement sur les lieux à visiter.</p>
-
+            <GetYourGuideCityWidget />
+                  
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-6">
               <select value={filtrePays} onChange={(e) => { setFiltrePays(e.target.value); setFiltreVille(''); setFiltreQuartier('') }} className="px-3 py-2 border border-navy/15 rounded-lg text-sm bg-white focus:outline-none focus:border-coral">
                 <option value="">Tous les pays</option>
