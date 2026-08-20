@@ -118,7 +118,7 @@ export default function MilesVsEuros() {
   const colors = result ? verdictColors[result.verdict.level] : null
 
   return (
-    <div className="min-h-screen bg-white pt-24 pb-16 px-4 sm:pl-72">
+    <div className="min-h-screen bg-cream pt-24 pb-16 px-4 sm:pl-72">
       <div className="max-w-xl mx-auto">
         {/* Fil d'ariane */}
         <div className="flex items-center gap-2 text-sm text-navy/40 mb-6">
