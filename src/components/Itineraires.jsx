@@ -230,6 +230,7 @@ function ItineraireCard({ itineraire, authorName, locked, onOpen, onLockedClick,
 export default function Itineraires() {
   const navigate = useNavigate()
   const [user, setUser] = useState(null)
+  const { favoriLieuxEtPlats, refetchFavoriLieuxEtPlats } = useFavoriLieuxEtPlats(user)
   const [profile, setProfile] = useState(null)
   const [pricingOpen, setPricingOpen] = useState(false)
   const [favoritesOpen, setFavoritesOpen] = useState(false)
@@ -376,7 +377,6 @@ export default function Itineraires() {
   })
 
   const ALL_DEALS = [...flightDeals, ...hotelDeals, ...activityDeals, ...transformItineraires(itineraires)]
-  const { favoriLieuxEtPlats, refetchFavoriLieuxEtPlats } = useFavoriLieuxEtPlats(user)
   const favoriteDeals = ALL_DEALS.filter((deal) => favoriteIds.has(`${deal.type}:${deal.id}`)).concat(favoriLieuxEtPlats)
 
   return (
