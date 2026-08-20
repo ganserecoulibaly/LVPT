@@ -109,6 +109,16 @@ const icons = {
       <path d="M9 14.5 7 22l5-3 5 3-2-7.5"/>
     </svg>
   ),
+  // Icône dédiée à "Défis de la communauté" — un trophée, pour la distinguer
+  // visuellement des autres modules.
+  trophy: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8 21h8"/><path d="M12 17v4"/>
+      <path d="M7 4h10v5a5 5 0 0 1-10 0V4Z"/>
+      <path d="M17 5h2a2 2 0 0 1 2 2 4 4 0 0 1-4 4"/>
+      <path d="M7 5H5a2 2 0 0 0-2 2 4 4 0 0 0 4 4"/>
+    </svg>
+  ),
   lock: (
     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
       <rect x="3" y="11" width="18" height="11" rx="2"/>
@@ -320,6 +330,43 @@ function ToolboxNavItem({ onToolboxClick, forceLabelVisible }) {
   )
 }
 
+// Verrouillé pour tout le monde sauf l'admin (indépendant des plans payants) —
+// contrairement à NavItem, pas d'onLockedClick vers PricingModal ici : il n'y a
+// pas d'upgrade possible pour débloquer, donc un clic ne fait rien tant que
+// ce n'est pas ouvert à tous.
+function AdminOnlyNavItem({ path, name, icon, isAdminUser, forceLabelVisible, onNavigate }) {
+  const navigate = useNavigate()
+
+  const handleClick = () => {
+    if (!isAdminUser) return
+    navigate(path)
+    onNavigate?.()
+  }
+
+  return (
+    <button
+      onClick={handleClick}
+      className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-navy/5 transition-colors"
+    >
+      <span className={`shrink-0 ${isAdminUser ? 'text-navy/70' : 'text-navy/30'}`}>
+        {icons[icon]}
+      </span>
+      <span className={`text-sm whitespace-nowrap transition-opacity duration-200 ${
+        forceLabelVisible ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+      } ${isAdminUser ? 'text-navy' : 'text-navy/40'}`}>
+        {name}
+      </span>
+      {!isAdminUser && (
+        <span className={`ml-auto shrink-0 w-4 h-4 rounded-full bg-navy flex items-center justify-center transition-opacity duration-200 ${
+          forceLabelVisible ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+        }`}>
+          {icons.lock}
+        </span>
+      )}
+    </button>
+  )
+}
+
 export default function Sidebar({ onLockedClick, onToolboxClick }) {
   const [user, setUser] = useState(null)
   const [currentPlan, setCurrentPlan] = useState('free')
@@ -428,6 +475,15 @@ export default function Sidebar({ onLockedClick, onToolboxClick }) {
         />
 
         <ToolboxNavItem onToolboxClick={onToolboxClick} forceLabelVisible={forceLabelVisible} />
+
+        <AdminOnlyNavItem
+          path="/defis-communaute"
+          name="Défis de la communauté"
+          icon="trophy"
+          isAdminUser={isAdminUser}
+          forceLabelVisible={forceLabelVisible}
+          onNavigate={() => setMobileOpen(false)}
+        />
 
         <div className="h-px bg-navy/10 mx-4 my-2" />
         <Link
