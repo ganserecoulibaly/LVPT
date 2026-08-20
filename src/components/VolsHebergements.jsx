@@ -372,6 +372,32 @@ const COMMUNITY_NOTES = [
   { initials: 'YK', color: 'bg-[#4A6FA5]', name: 'Yanis', text: "recommande d'éviter les vols avec escale à Doha en été.", time: 'il y a 2 semaines' },
 ]
 
+function ExpediaWidget() {
+  useEffect(() => {
+    if (document.querySelector('script.eg-widgets-script')) return
+    const script = document.createElement('script')
+    script.className = 'eg-widgets-script'
+    script.src = 'https://creator.expediagroup.com/products/widgets/assets/eg-widgets.js'
+    script.async = true
+    document.body.appendChild(script)
+  }, [])
+
+  return (
+    <div className="rounded-xl bg-white border border-navy/10 p-5 mb-5">
+      <p className="font-serif text-base text-navy mb-3">Réserver directement</p>
+      <div
+        className="eg-widget"
+        data-widget="search"
+        data-program="fr-expedia"
+        data-lobs="stays,flights"
+        data-network="pz"
+        data-camref="1101l3w86h"
+        data-pubref=""
+      />
+    </div>
+  )
+}
+
 function CommunityNotes() {
   return (
     <div className="rounded-xl bg-white border border-navy/10 p-5 mb-5">
@@ -619,6 +645,7 @@ export default function VolsHebergements() {
 
               <div className="lg:col-span-1">
                 <CommunityNotes />
+                <ExpediaWidget />
                 <BudgetSummary vols={vols} stays={stays} nights={nights} />
               </div>
             </div>
