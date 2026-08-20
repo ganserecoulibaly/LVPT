@@ -35,6 +35,29 @@ export function formatDuree(itineraire) {
   return null
 }
 
+function GetYourGuideCityWidget() {
+  useEffect(() => {
+    if (document.querySelector('script[data-gyg-loader]')) return
+    const script = document.createElement('script')
+    script.async = true
+    script.src = 'https://widget.getyourguide.com/dist/pa.umd.production.min.js'
+    script.setAttribute('data-gyg-loader', 'true')
+    document.body.appendChild(script)
+  }, [])
+
+  return (
+    <div className="mb-6 rounded-xl overflow-hidden">
+      <div
+        data-gyg-href="https://widget.getyourguide.com/default/city.frame"
+        data-gyg-location-id="16"
+        data-gyg-locale-code="fr-FR"
+        data-gyg-widget="city"
+        data-gyg-partner-id="0MUBYBR"
+      />
+    </div>
+  )
+}
+
 function transformVolsDeals(rows) {
   return rows.map((r, i) => ({
     id: r.id_vol, type: 'vol',
@@ -411,6 +434,7 @@ export default function Itineraires() {
             </div>
 
             <TipBanner nomPage="itineraires" />
+            <GetYourGuideCityWidget />
 
             {isFree && (
               <div className="mb-6 px-4 py-3 rounded-xl bg-coral/5 border border-coral/20 text-sm text-navy/70">
