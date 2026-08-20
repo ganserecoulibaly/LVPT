@@ -31,6 +31,7 @@ import Gastronomie from './components/Gastronomie'
 import PlatDetail from './components/PlatDetail'
 import AtelierDetail from './components/atelier/AtelierDetail'
 import AtelierConfirmation from './components/atelier/AtelierConfirmation'
+import MilesVsEuros from './components/MilesVsEuros'
 import ProtectedRoute from './components/ProtectedRoute'
 // Au fur et à mesure, importe ici les futures pages privées :
 // import Carnet from './components/Carnet'
@@ -198,6 +199,17 @@ export default function App() {
           element={
             <ProtectedRoute>
               <AtelierDetail />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Encart "Miles" de la sidebar — accessible dès le plan Gratuit,
+            donc juste ProtectedRoute (connexion requise) sans verrou de plan. */}
+        <Route
+          path="/miles-vs-euros"
+          element={
+            <ProtectedRoute>
+              <MilesVsEuros />
             </ProtectedRoute>
           }
         />
