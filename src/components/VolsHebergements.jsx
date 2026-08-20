@@ -396,13 +396,14 @@ function ExpediaWidget() {
       instance,
     })
 
-    const iframe = document.createElement('iframe')
-    iframe.src = `https://creator.expediagroup.com/products/widgets/search-widget?${params.toString()}`
-    iframe.style.border = 'none'
-    iframe.style.width = '100%'
-    iframe.style.minHeight = '0'
-    iframe.className = 'eg-widget-frame eg-search-widget-frame'
-    containerRef.current.appendChild(iframe)
+  const iframe = document.createElement('iframe')
+  iframe.src = `https://creator.expediagroup.com/products/widgets/search-widget?${params.toString()}`
+  iframe.style.border = 'none'
+  iframe.style.width = '100%'
+  iframe.style.height = '260px'      // hauteur de secours, visible même sans le message resize
+  iframe.style.minHeight = '260px'
+  iframe.className = 'eg-widget-frame eg-search-widget-frame'
+  containerRef.current.appendChild(iframe)
 
     function handleMessage(event) {
       if (event.origin !== 'https://creator.expediagroup.com') return
