@@ -40,9 +40,8 @@ Deno.serve(async (req) => {
             abonnement: plan,
             stripe_customer_id: session.customer,
             stripe_subscription_id: session.subscription,
-            abonnement_statut: "active",
           })
-          .eq("id", pid); 
+          .eq("id", pid);
 
         if (error) console.error("Erreur mise à jour lvpt (checkout.session.completed) :", error);
       }
@@ -50,14 +49,20 @@ Deno.serve(async (req) => {
     }
 
     // Renouvellement, changement de statut (ex: retard de paiement résolu)
+    // Sans colonne de statut détaillé : si l'abonnement n'est plus actif
+    // ou en période d'essai, on repasse directement au plan Gratuit.
     case "customer.subscription.updated": {
       const subscription = event.data.object as any;
-      const { error } = await supabase
-        .from("lvpt")
-        .update({ abonnement_statut: subscription.status })
-        .eq("stripe_subscription_id", subscription.id);
+      const isActive = ["active", "trialing"].includes(subscription.status);
 
-      if (error) console.error("Erreur mise à jour lvpt (subscription.updated) :", error);
+      if (!isActive) {
+        const { error } = await supabase
+          .from("lvpt")
+          .update({ abonnement: "free" })
+          .eq("stripe_subscription_id", subscription.id);
+
+        if (error) console.error("Erreur mise à jour lvpt (subscription.updated) :", error);
+      }
       break;
     }
 
@@ -66,27 +71,18 @@ Deno.serve(async (req) => {
       const subscription = event.data.object as any;
       const { error } = await supabase
         .from("lvpt")
-        .update({
-          abonnement: "free",
-          abonnement_statut: "canceled",
-        })
+        .update({ abonnement: "free" })
         .eq("stripe_subscription_id", subscription.id);
 
       if (error) console.error("Erreur mise à jour lvpt (subscription.deleted) :", error);
       break;
     }
 
-    // Échec de paiement d'un renouvellement
+    // Échec de paiement d'un renouvellement — pas de colonne de statut,
+    // on se contente de logger pour visibilité.
     case "invoice.payment_failed": {
       const invoice = event.data.object as any;
-      if (invoice.subscription) {
-        const { error } = await supabase
-          .from("lvpt")
-          .update({ abonnement_statut: "past_due" })
-          .eq("stripe_subscription_id", invoice.subscription);
-
-        if (error) console.error("Erreur mise à jour lvpt (payment_failed) :", error);
-      }
+      console.warn("Échec de paiement pour l'abonnement :", invoice.subscription);
       break;
     }
 

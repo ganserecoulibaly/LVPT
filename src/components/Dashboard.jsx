@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase } from './supabaseClient'
 import { formatDate } from './dateUtils'
 import { DEFAULT_ITINERAIRE_COVER, formatDuree } from './Itineraires'
@@ -18,6 +18,7 @@ import CreateVoyageCommunModal from './CreateVoyageCommunModal'
 import QuickAddMenu from './QuickAddMenu'
 import TipBanner from './TipBanner'
 import DealsRow from './DealsRow'
+import PaymentSuccessModal from './PaymentSuccessModal'
 
 const GRADIENTS = [
   'from-[#D85A30]/30 to-[#8B2F1A]/20',
@@ -324,6 +325,7 @@ function ItineraireRow({ itineraires, userId, favoriteIds, onToggleFavorite, ref
 
 export default function Dashboard() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [user, setUser] = useState(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [paysDepartFav, setPaysDepartFav] = useState(null)
@@ -611,6 +613,10 @@ export default function Dashboard() {
           <Footer />
         </div>
       </div>
+
+      {searchParams.get('paiement') === 'succes' && (
+        <PaymentSuccessModal />
+      )}
 
       {pricingOpen && (
         <PricingModal onClose={() => setPricingOpen(false)} />
