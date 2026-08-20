@@ -170,6 +170,7 @@ export default function VoyageCommunDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [user, setUser] = useState(null)
+  const { favoriLieuxEtPlats, refetchFavoriLieuxEtPlats } = useFavoriLieuxEtPlats(user)
   const [isAdmin, setIsAdmin] = useState(false)
   const [pricingOpen, setPricingOpen] = useState(false)
   const [favoritesOpen, setFavoritesOpen] = useState(false)
@@ -392,7 +393,6 @@ export default function VoyageCommunDetail() {
   const color = getColor(categorie?.couleur)
   const lieu = post.ville ? `${post.ville} — ${post.pays}` : post.pays
   const ALL_DEALS = [...flightDeals, ...hotelDeals, ...activityDeals, ...itineraireDeals, ...voyageCommunDeals]
-  const { favoriLieuxEtPlats, refetchFavoriLieuxEtPlats } = useFavoriLieuxEtPlats(user)
   const favoriteDeals = ALL_DEALS.filter((deal) => favoriteIds.has(`${deal.type}:${deal.id}`)).concat(favoriLieuxEtPlats)
   const isFavorite = favoriteIds.has(`voyage_commun:${post.id_post}`)
   const canManagePost = post.pid === user.id || isAdmin
