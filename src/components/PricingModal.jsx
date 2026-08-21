@@ -58,6 +58,16 @@ const PLANS = [
   },
 ]
 
+// PLANS[].id reste en français (aligné sur PRICE_IDS côté Stripe), mais
+// lvpt.abonnement stocke les valeurs anglaises attendues par
+// usePlanAccess.js / Sidebar.jsx (voir PLAN_MAP dans stripe-webhook).
+// On fait le pont ici pour savoir quelle carte correspond au plan actuel.
+const PLAN_ID_TO_ABONNEMENT = {
+  free: 'free',
+  occasionnel: 'occasional',
+  grand: 'frequent',
+}
+
 function formatPrice(plan, billing) {
   if (plan.id === 'free') return { price: '0€', period: '' }
 
@@ -186,60 +196,79 @@ export default function PricingModal({ onClose, onSelectPlan, currentPlan = 'fre
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {plans.map((plan) => (
-            <div
-              key={plan.id}
-              className={`relative flex flex-col rounded-2xl p-5 ${
-                plan.badge ? 'border-2 border-coral bg-coral/5' : 'border border-navy/10'
-              }`}
-            >
-              {plan.badge && (
-                <span className="self-start text-xs font-medium text-coral bg-coral/15 px-2.5 py-1 rounded-full mb-3">
-                  {plan.badge}
-                </span>
-              )}
+          {plans.map((plan) => {
+            const isCurrent = PLAN_ID_TO_ABONNEMENT[plan.id] === currentPlan
 
-              <p className="font-serif text-lg text-navy mb-1">{plan.name}</p>
-              <p className="text-xs text-navy/55 mb-4 min-h-[32px]">{plan.description}</p>
+            return (
+              <div
+                key={plan.id}
+                className={`relative flex flex-col rounded-2xl p-5 ${
+                  isCurrent
+                    ? 'border-2 border-navy/30 bg-navy/[0.03]'
+                    : plan.badge
+                      ? 'border-2 border-coral bg-coral/5'
+                      : 'border border-navy/10'
+                }`}
+              >
+                {isCurrent ? (
+                  <span className="self-start text-xs font-medium text-navy bg-navy/10 px-2.5 py-1 rounded-full mb-3">
+                    Ton plan actuel
+                  </span>
+                ) : plan.badge && (
+                  <span className="self-start text-xs font-medium text-coral bg-coral/15 px-2.5 py-1 rounded-full mb-3">
+                    {plan.badge}
+                  </span>
+                )}
 
-              <div className="mb-1">
-                <span className="text-2xl font-medium text-navy">{plan.price}</span>
-                <span className="text-sm text-navy/50">{plan.period}</span>
-              </div>
-              <p className="text-[11px] text-green-700 mb-4 h-4">{plan.annualNote || ''}</p>
+                <p className="font-serif text-lg text-navy mb-1">{plan.name}</p>
+                <p className="text-xs text-navy/55 mb-4 min-h-[32px]">{plan.description}</p>
 
-              <ul className="flex-1 flex flex-col gap-2 mb-5">
-                {plan.features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-2 text-xs text-navy/70">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D85A30" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0">
-                      <path d="M20 6L9 17l-5-5" />
-                    </svg>
-                    {feature}
-                  </li>
-                ))}
-              </ul>
+                <div className="mb-1">
+                  <span className="text-2xl font-medium text-navy">{plan.price}</span>
+                  <span className="text-sm text-navy/50">{plan.period}</span>
+                </div>
+                <p className="text-[11px] text-green-700 mb-4 h-4">{plan.annualNote || ''}</p>
 
-              {plan.id === 'free' ? (
-                <button
-                  onClick={() => { onSelectPlan?.('free'); onClose() }}
-                  className="w-full text-sm py-2.5 rounded-full border border-navy/15 text-navy hover:bg-navy/5 transition-colors"
-                >
-                  {plan.cta}
-                </button>
-              ) : (
-                <>
+                <ul className="flex-1 flex flex-col gap-2 mb-5">
+                  {plan.features.map((feature) => (
+                    <li key={feature} className="flex items-start gap-2 text-xs text-navy/70">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D85A30" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0">
+                        <path d="M20 6L9 17l-5-5" />
+                      </svg>
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+
+                {isCurrent ? (
                   <button
-                    onClick={() => startCheckout(plan.id, billing, setLoadingPlan)}
-                    disabled={loadingPlan === plan.id}
-                    className="btn-primary w-full text-sm py-2.5 disabled:opacity-60"
+                    disabled
+                    className="w-full text-sm py-2.5 rounded-full border border-navy/15 text-navy/40 cursor-default"
                   >
-                    {loadingPlan === plan.id ? 'Redirection…' : plan.cta}
+                    Ton plan actuel
                   </button>
-                  <p className="text-center text-[11px] text-navy/40 mt-2">Paiement sécurisé avec Stripe</p>
-                </>
-              )}
-            </div>
-          ))}
+                ) : plan.id === 'free' ? (
+                  <button
+                    onClick={() => { onSelectPlan?.('free'); onClose() }}
+                    className="w-full text-sm py-2.5 rounded-full border border-navy/15 text-navy hover:bg-navy/5 transition-colors"
+                  >
+                    {plan.cta}
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => startCheckout(plan.id, billing, setLoadingPlan)}
+                      disabled={loadingPlan === plan.id}
+                      className="btn-primary w-full text-sm py-2.5 disabled:opacity-60"
+                    >
+                      {loadingPlan === plan.id ? 'Redirection…' : plan.cta}
+                    </button>
+                    <p className="text-center text-[11px] text-navy/40 mt-2">Paiement sécurisé avec Stripe</p>
+                  </>
+                )}
+              </div>
+            )
+          })}
         </div>
 
         {currentPlan !== 'free' && (
