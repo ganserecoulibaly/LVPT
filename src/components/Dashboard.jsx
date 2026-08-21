@@ -19,6 +19,7 @@ import QuickAddMenu from './QuickAddMenu'
 import TipBanner from './TipBanner'
 import DealsRow from './DealsRow'
 import PaymentSuccessModal from './PaymentSuccessModal'
+import CancellationConfirmedModal from './CancellationConfirmedModal'
 
 const GRADIENTS = [
   'from-[#D85A30]/30 to-[#8B2F1A]/20',
@@ -619,6 +620,10 @@ export default function Dashboard() {
 
       {searchParams.get('paiement') === 'succes' && (
         <PaymentSuccessModal />
+      )}
+
+      {searchParams.get('resiliation') === 'succes' && (
+        <CancellationConfirmedModal />
       )}
 
       {pricingOpen && (
