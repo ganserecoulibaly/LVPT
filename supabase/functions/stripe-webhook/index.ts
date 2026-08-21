@@ -16,6 +16,16 @@ const PLAN_MAP: Record<string, string> = {
   grand: "frequent",
 };
 
+// Mapping inverse price_id → plan (valeurs anglaises), pour retrouver le
+// plan quand on ne dispose que du price_id (ex: changement fait depuis le
+// Billing Portal, où aucune metadata.plan n'est disponible côté webhook).
+const PRICE_ID_TO_PLAN: Record<string, string> = {
+  [Deno.env.get("STRIPE_PRICE_VOYAGEUR_MENSUEL")!]: "occasional",
+  [Deno.env.get("STRIPE_PRICE_VOYAGEUR_ANNUEL")!]: "occasional",
+  [Deno.env.get("STRIPE_PRICE_GRAND_MENSUEL")!]: "frequent",
+  [Deno.env.get("STRIPE_PRICE_GRAND_ANNUEL")!]: "frequent",
+};
+
 Deno.serve(async (req) => {
   const signature = req.headers.get("stripe-signature");
   const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET")!;
@@ -60,10 +70,12 @@ Deno.serve(async (req) => {
       break;
     }
 
-    // Renouvellement, changement de statut (ex: retard de paiement résolu)
-    // Sans colonne de statut détaillé : si l'abonnement n'est plus actif
-    // ou en période d'essai, on repasse directement au plan Gratuit. Si
-    // l'abonnement redevient actif après un échec, on lève le flag.
+    // Renouvellement, changement de statut, OU changement de plan fait
+    // depuis le Billing Portal (Stripe envoie ce même événement dans les
+    // trois cas). Si l'abonnement n'est plus actif → retour au Gratuit.
+    // Si actif → on relit le price_id courant pour détecter un éventuel
+    // changement de plan (upgrade/downgrade fait hors de change-subscription-plan)
+    // et on met lvpt.abonnement à jour en conséquence.
     case "customer.subscription.updated": {
       const subscription = event.data.object as any;
       const isActive = ["active", "trialing"].includes(subscription.status);
@@ -74,15 +86,26 @@ Deno.serve(async (req) => {
           .update({ abonnement: "free" })
           .eq("stripe_subscription_id", subscription.id);
 
-        if (error) console.error("Erreur mise à jour lvpt (subscription.updated) :", error);
-      } else {
-        const { error } = await supabase
-          .from("lvpt")
-          .update({ paiement_en_echec: false })
-          .eq("stripe_subscription_id", subscription.id);
-
-        if (error) console.error("Erreur mise à jour lvpt (subscription.updated, actif) :", error);
+        if (error) console.error("Erreur mise à jour lvpt (subscription.updated, inactif) :", error);
+        break;
       }
+
+      const currentPriceId = subscription.items.data[0]?.price?.id;
+      const planFromPrice = currentPriceId ? PRICE_ID_TO_PLAN[currentPriceId] : undefined;
+
+      const updatePayload: Record<string, unknown> = { paiement_en_echec: false };
+      if (planFromPrice) {
+        updatePayload.abonnement = planFromPrice;
+      } else {
+        console.warn("price_id inconnu dans subscription.updated :", currentPriceId);
+      }
+
+      const { error } = await supabase
+        .from("lvpt")
+        .update(updatePayload)
+        .eq("stripe_subscription_id", subscription.id);
+
+      if (error) console.error("Erreur mise à jour lvpt (subscription.updated, actif) :", error);
       break;
     }
 
