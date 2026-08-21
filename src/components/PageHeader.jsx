@@ -17,10 +17,11 @@ async function openBillingPortal(setOpeningPortal) {
       throw error ?? new Error('URL du portail manquante')
     }
 
-    window.location.href = data.url
+    window.open(data.url, '_blank')
   } catch (err) {
     console.error('Erreur lors de l\'ouverture du portail de facturation :', err)
     alert("Impossible d'ouvrir la facturation pour le moment. Réessaie dans un instant.")
+  } finally {
     setOpeningPortal(false)
   }
 }
