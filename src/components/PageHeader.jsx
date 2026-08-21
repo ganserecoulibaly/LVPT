@@ -8,10 +8,28 @@ const PLAN_LABELS = {
   frequent: 'Grand Voyageur',
 }
 
+async function openBillingPortal(setOpeningPortal) {
+  try {
+    setOpeningPortal(true)
+    const { data, error } = await supabase.functions.invoke('create-portal-session')
+
+    if (error || !data?.url) {
+      throw error ?? new Error('URL du portail manquante')
+    }
+
+    window.location.href = data.url
+  } catch (err) {
+    console.error('Erreur lors de l\'ouverture du portail de facturation :', err)
+    alert("Impossible d'ouvrir la facturation pour le moment. Réessaie dans un instant.")
+    setOpeningPortal(false)
+  }
+}
+
 export default function PageHeader({ onFavoritesClick, onUpgradeClick, onProfileClick, currentPlan }) {
   const navigate = useNavigate()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [accountMenuOpen, setAccountMenuOpen] = useState(false)
+  const [openingPortal, setOpeningPortal] = useState(false)
   const menuRef = useRef(null)
   const accountMenuRef = useRef(null)
 
@@ -25,11 +43,13 @@ export default function PageHeader({ onFavoritesClick, onUpgradeClick, onProfile
   }, [])
 
   const planLabel = PLAN_LABELS[currentPlan] ?? PLAN_LABELS.free
+  const hasPaidPlan = currentPlan && currentPlan !== 'free'
 
   const items = [
     { label: 'Mes favoris', onClick: onFavoritesClick },
     { label: 'Nos ateliers', onClick: () => navigate('/ateliers') },
     { label: 'Upgrade plan', onClick: onUpgradeClick },
+    ...(hasPaidPlan ? [{ label: openingPortal ? 'Ouverture…' : 'Facturation', onClick: () => openBillingPortal(setOpeningPortal) }] : []),
     { label: 'Modifier le profil', onClick: onProfileClick },
     { label: 'Se déconnecter', onClick: () => supabase.auth.signOut(), danger: true },
   ]
@@ -62,6 +82,15 @@ export default function PageHeader({ onFavoritesClick, onUpgradeClick, onProfile
               <div className="px-4 py-2 text-xs text-navy/50 border-b border-navy/10 mb-1">
                 Abonnement {planLabel}
               </div>
+              {hasPaidPlan && (
+                <button
+                  onClick={() => { setAccountMenuOpen(false); openBillingPortal(setOpeningPortal) }}
+                  disabled={openingPortal}
+                  className="w-full text-left px-4 py-2.5 text-sm text-navy hover:bg-navy/5 transition-colors disabled:opacity-60"
+                >
+                  {openingPortal ? 'Ouverture…' : 'Facturation'}
+                </button>
+              )}
               <button
                 onClick={() => { setAccountMenuOpen(false); onProfileClick?.() }}
                 className="w-full text-left px-4 py-2.5 text-sm text-navy hover:bg-navy/5 transition-colors"
