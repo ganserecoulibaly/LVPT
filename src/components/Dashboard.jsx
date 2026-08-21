@@ -20,6 +20,7 @@ import TipBanner from './TipBanner'
 import DealsRow from './DealsRow'
 import PaymentSuccessModal from './PaymentSuccessModal'
 import CancellationConfirmedModal from './CancellationConfirmedModal'
+import PaymentFailedBanner from './PaymentFailedBanner'
 
 const GRADIENTS = [
   'from-[#D85A30]/30 to-[#8B2F1A]/20',
@@ -330,6 +331,7 @@ export default function Dashboard() {
   const [user, setUser] = useState(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [currentPlan, setCurrentPlan] = useState('free')
+  const [paiementEnEchec, setPaiementEnEchec] = useState(false)
   const [paysDepartFav, setPaysDepartFav] = useState(null)
   const [villeDepartFav, setVilleDepartFav] = useState(null)
   const [miles, setMiles] = useState({ starAlliance: null, skyteam: null, oneworld: null })
@@ -359,10 +361,11 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!user) return
-    supabase.from('lvpt').select('is_admin, abonnement, pays_depart_fav, ville_depart_fav, miles_star_alliance, miles_skyteam, miles_oneworld').eq('id', user.id).single()
+    supabase.from('lvpt').select('is_admin, abonnement, paiement_en_echec, pays_depart_fav, ville_depart_fav, miles_star_alliance, miles_skyteam, miles_oneworld').eq('id', user.id).single()
       .then(({ data }) => {
         setIsAdmin(Boolean(data?.is_admin))
         setCurrentPlan(data?.abonnement || 'free')
+        setPaiementEnEchec(Boolean(data?.paiement_en_echec))
         setPaysDepartFav(data?.pays_depart_fav || null)
         setVilleDepartFav(data?.ville_depart_fav || null)
         setMiles({
@@ -572,6 +575,8 @@ export default function Dashboard() {
             </p>
 
             <TipBanner nomPage="dashboard" />
+
+            {paiementEnEchec && <PaymentFailedBanner supabase={supabase} />}
 
             <NextTripCard />
 
