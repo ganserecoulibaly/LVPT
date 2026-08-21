@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from './supabaseClient' // adapte ce chemin au vrai fichier de ton client Supabase
 
 const MONTHLY = 'monthly'
@@ -103,25 +104,30 @@ async function startCheckout(planId, billing, setLoadingPlan) {
   }
 }
 
-async function startCancelSubscription(setCanceling) {
+// Résiliation directe (cancel_at_period_end), sans passer par le Portail
+// Stripe. Redirige vers le Dashboard avec la date de fin d'accès en
+// paramètre, pour que CancellationConfirmedModal affiche le bon message.
+async function startImmediateCancel(setCanceling, navigate, onClose) {
   try {
     setCanceling(true)
 
-    const { data, error } = await supabase.functions.invoke('create-portal-session')
+    const { data, error } = await supabase.functions.invoke('cancel-subscription')
 
-    if (error || !data?.url) {
-      throw error ?? new Error('URL du portail manquante')
+    if (error || !data?.success) {
+      throw error ?? new Error('Résiliation impossible')
     }
 
-    window.location.href = data.url
+    onClose()
+    navigate(`/dashboard?resiliation=succes&fin=${data.periodEnd}`)
   } catch (err) {
-    console.error('Erreur lors de l\'ouverture du portail Stripe :', err)
-    alert("Impossible d'ouvrir la gestion de l'abonnement pour le moment. Réessaie dans un instant.")
+    console.error('Erreur lors de la résiliation de l\'abonnement :', err)
+    alert("Impossible de résilier l'abonnement pour le moment. Réessaie dans un instant.")
     setCanceling(false)
   }
 }
 
 export default function PricingModal({ onClose, onSelectPlan, currentPlan = 'free' }) {
+  const navigate = useNavigate()
   const [billing, setBilling] = useState(MONTHLY)
   const [loadingPlan, setLoadingPlan] = useState(null)
   const [canceling, setCanceling] = useState(false)
@@ -251,12 +257,7 @@ export default function PricingModal({ onClose, onSelectPlan, currentPlan = 'fre
                   <button
                     onClick={() => {
                       if (currentPlan !== 'free') {
-                        // L'utilisateur a un abonnement payant actif : "Continuer
-                        // gratuitement" doit déclencher une vraie résiliation,
-                        // pas juste fermer le modal.
-                        if (window.confirm('Résilier ton abonnement ? Tu garderas l\'accès jusqu\'à la fin de la période en cours, puis ton compte repassera en Gratuit.')) {
-                          startCancelSubscription(setCanceling)
-                        }
+                        startImmediateCancel(setCanceling, navigate, onClose)
                       } else {
                         onSelectPlan?.('free')
                         onClose()
@@ -265,7 +266,7 @@ export default function PricingModal({ onClose, onSelectPlan, currentPlan = 'fre
                     disabled={canceling}
                     className="w-full text-sm py-2.5 rounded-full border border-navy/15 text-navy hover:bg-navy/5 transition-colors disabled:opacity-60"
                   >
-                    {canceling ? 'Ouverture du portail…' : plan.cta}
+                    {canceling ? 'Résiliation…' : plan.cta}
                   </button>
                 ) : (
                   <>
@@ -287,15 +288,11 @@ export default function PricingModal({ onClose, onSelectPlan, currentPlan = 'fre
         {currentPlan !== 'free' && (
           <div className="flex justify-center mt-6">
             <button
-              onClick={() => {
-                if (window.confirm('Résilier ton abonnement ? Tu garderas l\'accès jusqu\'à la fin de la période en cours, puis ton compte repassera en Gratuit.')) {
-                  startCancelSubscription(setCanceling)
-                }
-              }}
+              onClick={() => startImmediateCancel(setCanceling, navigate, onClose)}
               disabled={canceling}
               className="text-xs text-navy/45 hover:text-red-500 transition-colors disabled:opacity-60"
             >
-              {canceling ? 'Ouverture du portail…' : 'Résilier mon abonnement'}
+              {canceling ? 'Résiliation…' : 'Résilier mon abonnement'}
             </button>
           </div>
         )}
