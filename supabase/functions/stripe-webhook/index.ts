@@ -6,6 +6,16 @@ import { createAdminClient } from "../_shared/supabaseAdmin.ts";
 // utilisateur connecté. La sécurité est assurée par la vérification de
 // signature ci-dessous, pas par l'auth Supabase.
 
+// Les valeurs stockées dans lvpt.abonnement doivent correspondre à
+// PLAN_ORDER dans usePlanAccess.js et Sidebar.jsx ("free" | "occasional" |
+// "frequent"), alors que Stripe (metadata.plan, PRICE_IDS dans
+// _shared/stripe.ts) utilise "occasionnel" | "grand" côté checkout. Ce
+// mapping fait le pont entre les deux.
+const PLAN_MAP: Record<string, string> = {
+  occasionnel: "occasional",
+  grand: "frequent",
+};
+
 Deno.serve(async (req) => {
   const signature = req.headers.get("stripe-signature");
   const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET")!;
@@ -31,7 +41,8 @@ Deno.serve(async (req) => {
     case "checkout.session.completed": {
       const session = event.data.object as any;
       const pid = session.client_reference_id ?? session.metadata?.pid;
-      const plan = session.metadata?.plan; // "occasionnel" | "grand"
+      const rawPlan = session.metadata?.plan; // "occasionnel" | "grand"
+      const plan = PLAN_MAP[rawPlan] ?? rawPlan;
 
       if (pid && plan) {
         const { error } = await supabase
@@ -40,6 +51,7 @@ Deno.serve(async (req) => {
             abonnement: plan,
             stripe_customer_id: session.customer,
             stripe_subscription_id: session.subscription,
+            paiement_en_echec: false,
           })
           .eq("id", pid);
 
@@ -50,7 +62,8 @@ Deno.serve(async (req) => {
 
     // Renouvellement, changement de statut (ex: retard de paiement résolu)
     // Sans colonne de statut détaillé : si l'abonnement n'est plus actif
-    // ou en période d'essai, on repasse directement au plan Gratuit.
+    // ou en période d'essai, on repasse directement au plan Gratuit. Si
+    // l'abonnement redevient actif après un échec, on lève le flag.
     case "customer.subscription.updated": {
       const subscription = event.data.object as any;
       const isActive = ["active", "trialing"].includes(subscription.status);
@@ -62,6 +75,13 @@ Deno.serve(async (req) => {
           .eq("stripe_subscription_id", subscription.id);
 
         if (error) console.error("Erreur mise à jour lvpt (subscription.updated) :", error);
+      } else {
+        const { error } = await supabase
+          .from("lvpt")
+          .update({ paiement_en_echec: false })
+          .eq("stripe_subscription_id", subscription.id);
+
+        if (error) console.error("Erreur mise à jour lvpt (subscription.updated, actif) :", error);
       }
       break;
     }
@@ -71,18 +91,40 @@ Deno.serve(async (req) => {
       const subscription = event.data.object as any;
       const { error } = await supabase
         .from("lvpt")
-        .update({ abonnement: "free" })
+        .update({ abonnement: "free", paiement_en_echec: false })
         .eq("stripe_subscription_id", subscription.id);
 
       if (error) console.error("Erreur mise à jour lvpt (subscription.deleted) :", error);
       break;
     }
 
-    // Échec de paiement d'un renouvellement — pas de colonne de statut,
-    // on se contente de logger pour visibilité.
+    // Échec de paiement d'un renouvellement → on lève le flag pour
+    // afficher un bandeau d'alerte côté Dashboard.
     case "invoice.payment_failed": {
       const invoice = event.data.object as any;
-      console.warn("Échec de paiement pour l'abonnement :", invoice.subscription);
+      if (invoice.subscription) {
+        const { error } = await supabase
+          .from("lvpt")
+          .update({ paiement_en_echec: true })
+          .eq("stripe_subscription_id", invoice.subscription);
+
+        if (error) console.error("Erreur mise à jour lvpt (payment_failed) :", error);
+      }
+      break;
+    }
+
+    // Paiement de facture réussi (renouvellement classique) → on lève
+    // le flag au cas où un échec précédent avait été résolu.
+    case "invoice.payment_succeeded": {
+      const invoice = event.data.object as any;
+      if (invoice.subscription) {
+        const { error } = await supabase
+          .from("lvpt")
+          .update({ paiement_en_echec: false })
+          .eq("stripe_subscription_id", invoice.subscription);
+
+        if (error) console.error("Erreur mise à jour lvpt (payment_succeeded) :", error);
+      }
       break;
     }
 
