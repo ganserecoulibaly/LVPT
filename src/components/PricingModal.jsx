@@ -84,6 +84,8 @@ function formatPrice(plan, billing) {
   }
 }
 
+// Premier abonnement (l'utilisateur est sur Gratuit) : passe par
+// Stripe Checkout classique.
 async function startCheckout(planId, billing, setLoadingPlan) {
   try {
     setLoadingPlan(planId)
@@ -100,6 +102,30 @@ async function startCheckout(planId, billing, setLoadingPlan) {
   } catch (err) {
     console.error('Erreur lors du lancement du paiement Stripe :', err)
     alert("Impossible de lancer le paiement pour le moment. Réessaie dans un instant.")
+    setLoadingPlan(null)
+  }
+}
+
+// Changement de plan alors qu'un abonnement payant est déjà actif :
+// modifie l'abonnement Stripe existant en place (proration automatique),
+// pas de nouvelle session Checkout — évite le double abonnement.
+async function startChangePlan(planId, billing, setLoadingPlan, navigate, onClose) {
+  try {
+    setLoadingPlan(planId)
+
+    const { data, error } = await supabase.functions.invoke('change-subscription-plan', {
+      body: { plan: planId, billing },
+    })
+
+    if (error || !data?.success) {
+      throw error ?? new Error('Changement de plan impossible')
+    }
+
+    onClose()
+    navigate('/dashboard?paiement=succes')
+  } catch (err) {
+    console.error('Erreur lors du changement de plan :', err)
+    alert("Impossible de changer de plan pour le moment. Réessaie dans un instant.")
     setLoadingPlan(null)
   }
 }
@@ -271,13 +297,23 @@ export default function PricingModal({ onClose, onSelectPlan, currentPlan = 'fre
                 ) : (
                   <>
                     <button
-                      onClick={() => startCheckout(plan.id, billing, setLoadingPlan)}
+                      onClick={() => {
+                        if (currentPlan !== 'free') {
+                          startChangePlan(plan.id, billing, setLoadingPlan, navigate, onClose)
+                        } else {
+                          startCheckout(plan.id, billing, setLoadingPlan)
+                        }
+                      }}
                       disabled={loadingPlan === plan.id}
                       className="btn-primary w-full text-sm py-2.5 disabled:opacity-60"
                     >
-                      {loadingPlan === plan.id ? 'Redirection…' : plan.cta}
+                      {loadingPlan === plan.id
+                        ? (currentPlan !== 'free' ? 'Changement…' : 'Redirection…')
+                        : plan.cta}
                     </button>
-                    <p className="text-center text-[11px] text-navy/40 mt-2">Paiement sécurisé avec Stripe</p>
+                    <p className="text-center text-[11px] text-navy/40 mt-2">
+                      {currentPlan !== 'free' ? 'Changement pris en compte immédiatement' : 'Paiement sécurisé avec Stripe'}
+                    </p>
                   </>
                 )}
               </div>
