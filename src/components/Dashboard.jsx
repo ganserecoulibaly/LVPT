@@ -328,6 +328,7 @@ export default function Dashboard() {
   const [searchParams] = useSearchParams()
   const [user, setUser] = useState(null)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [currentPlan, setCurrentPlan] = useState('free')
   const [paysDepartFav, setPaysDepartFav] = useState(null)
   const [villeDepartFav, setVilleDepartFav] = useState(null)
   const [miles, setMiles] = useState({ starAlliance: null, skyteam: null, oneworld: null })
@@ -357,9 +358,10 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!user) return
-    supabase.from('lvpt').select('is_admin, pays_depart_fav, ville_depart_fav, miles_star_alliance, miles_skyteam, miles_oneworld').eq('id', user.id).single()
+    supabase.from('lvpt').select('is_admin, abonnement, pays_depart_fav, ville_depart_fav, miles_star_alliance, miles_skyteam, miles_oneworld').eq('id', user.id).single()
       .then(({ data }) => {
         setIsAdmin(Boolean(data?.is_admin))
+        setCurrentPlan(data?.abonnement || 'free')
         setPaysDepartFav(data?.pays_depart_fav || null)
         setVilleDepartFav(data?.ville_depart_fav || null)
         setMiles({
@@ -520,6 +522,7 @@ export default function Dashboard() {
               onFavoritesClick={() => setFavoritesOpen(true)}
               onUpgradeClick={() => setPricingOpen(true)}
               onProfileClick={() => setProfileOpen(true)}
+              currentPlan={currentPlan}
             />
 
             <div className="flex items-center justify-center sm:justify-start gap-3 mb-2">
@@ -619,7 +622,7 @@ export default function Dashboard() {
       )}
 
       {pricingOpen && (
-        <PricingModal onClose={() => setPricingOpen(false)} />
+        <PricingModal onClose={() => setPricingOpen(false)} currentPlan={currentPlan} />
       )}
 
       {favoritesOpen && (
