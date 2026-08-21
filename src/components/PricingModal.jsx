@@ -249,10 +249,23 @@ export default function PricingModal({ onClose, onSelectPlan, currentPlan = 'fre
                   </button>
                 ) : plan.id === 'free' ? (
                   <button
-                    onClick={() => { onSelectPlan?.('free'); onClose() }}
-                    className="w-full text-sm py-2.5 rounded-full border border-navy/15 text-navy hover:bg-navy/5 transition-colors"
+                    onClick={() => {
+                      if (currentPlan !== 'free') {
+                        // L'utilisateur a un abonnement payant actif : "Continuer
+                        // gratuitement" doit déclencher une vraie résiliation,
+                        // pas juste fermer le modal.
+                        if (window.confirm('Résilier ton abonnement ? Tu garderas l\'accès jusqu\'à la fin de la période en cours, puis ton compte repassera en Gratuit.')) {
+                          startCancelSubscription(setCanceling)
+                        }
+                      } else {
+                        onSelectPlan?.('free')
+                        onClose()
+                      }
+                    }}
+                    disabled={canceling}
+                    className="w-full text-sm py-2.5 rounded-full border border-navy/15 text-navy hover:bg-navy/5 transition-colors disabled:opacity-60"
                   >
-                    {plan.cta}
+                    {canceling ? 'Ouverture du portail…' : plan.cta}
                   </button>
                 ) : (
                   <>
