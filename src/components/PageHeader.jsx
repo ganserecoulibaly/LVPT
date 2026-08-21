@@ -4,15 +4,14 @@ import { supabase } from './supabaseClient'
 
 const PLAN_LABELS = {
   free: 'Gratuit',
-  occasionnel: 'Voyageur occasionnel',
-  grand: 'Grand Voyageur',
+  occasional: 'Voyageur occasionnel',
+  frequent: 'Grand Voyageur',
 }
 
-export default function PageHeader({ onFavoritesClick, onUpgradeClick, onProfileClick }) {
+export default function PageHeader({ onFavoritesClick, onUpgradeClick, onProfileClick, currentPlan }) {
   const navigate = useNavigate()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [accountMenuOpen, setAccountMenuOpen] = useState(false)
-  const [currentPlan, setCurrentPlan] = useState(null)
   const menuRef = useRef(null)
   const accountMenuRef = useRef(null)
 
@@ -23,25 +22,6 @@ export default function PageHeader({ onFavoritesClick, onUpgradeClick, onProfile
     }
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
-
-  // Récupère le plan actuel de l'utilisateur connecté
-  useEffect(() => {
-    async function fetchPlan() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-
-      const { data, error } = await supabase
-        .from('lvpt')
-        .select('abonnement')
-        .eq('id', user.id)
-        .single()
-
-      if (!error && data) {
-        setCurrentPlan(data.abonnement)
-      }
-    }
-    fetchPlan()
   }, [])
 
   const planLabel = PLAN_LABELS[currentPlan] ?? PLAN_LABELS.free
