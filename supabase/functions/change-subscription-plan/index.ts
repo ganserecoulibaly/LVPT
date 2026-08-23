@@ -1,10 +1,19 @@
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
 import Stripe from "npm:stripe@17.4.0";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+const ALLOWED_ORIGINS = [
+  "https://lvpt.gansere.com",
+  "https://levoyagepourtous.com",
+  "https://www.levoyagepourtous.com",
+];
+
+function getCorsHeaders(origin: string | null) {
+  const allowOrigin = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    "Access-Control-Allow-Origin": allowOrigin,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  };
+}
 
 const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!, {
   apiVersion: "2026-07-29.dahlia",
@@ -22,21 +31,14 @@ const PRICE_IDS: Record<string, Record<"monthly" | "yearly", string>> = {
   },
 };
 
-// Même mapping que PLAN_MAP dans stripe-webhook/index.ts — Stripe garde
-// les libellés français, lvpt.abonnement stocke les valeurs anglaises
-// attendues par usePlanAccess.js / Sidebar.jsx.
 const PLAN_MAP: Record<string, string> = {
   occasionnel: "occasional",
   grand: "frequent",
 };
 
-// Modifie l'abonnement Stripe EXISTANT (change juste le price sur le
-// même subscription item) au lieu d'en créer un nouveau via Checkout —
-// évite le double abonnement / double prélèvement. proration_behavior
-// laisse Stripe calculer automatiquement la différence à facturer
-// (upgrade) ou le crédit à appliquer (downgrade) sur la période en
-// cours.
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req.headers.get("origin"));
+
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -92,14 +94,11 @@ Deno.serve(async (req) => {
     await stripe.subscriptions.update(profile.stripe_subscription_id, {
       items: [{ id: currentItemId, price: newPriceId }],
       proration_behavior: "create_prorations",
-      // Si l'utilisateur avait programmé une résiliation puis change
-      // d'avis en changeant de plan, on annule cette résiliation.
       cancel_at_period_end: false,
     });
 
     const newAbonnement = PLAN_MAP[plan] ?? plan;
 
-    // Mise à jour immédiate en base pour un retour instantané côté UI.
     const { error: updateError } = await supabaseAdmin
       .from("lvpt")
       .update({ abonnement: newAbonnement })
@@ -117,7 +116,7 @@ Deno.serve(async (req) => {
     console.error("Erreur change-subscription-plan :", error);
     return new Response(JSON.stringify({ error: "Impossible de changer de plan pour le moment" }), {
       status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req.headers.get("origin")), "Content-Type": "application/json" },
     });
   }
 });

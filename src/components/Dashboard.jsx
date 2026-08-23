@@ -78,10 +78,6 @@ function transformItineraires(rows) {
   }))
 }
 
-// Lieux (Activités & musées) et plats (Carnet gastronomique) mis en
-// favoris — même modèle que transformItineraires, mais on ne récupère
-// que les entrées favorites (pas tout le catalogue), vu que cette
-// page n'a pas besoin du reste pour son propre usage.
 function transformLieuxFavoris(rows) {
   return rows.map((r, i) => ({
     id: r.id_lieu, type: 'lieu',
@@ -103,8 +99,6 @@ function transformPlatsFavoris(rows) {
     image: r.lien_photo || null,
   }))
 }
-
-// ---------- Vote + favoris, même logique et même charte que DealCard.jsx ----------
 
 const NAVY = [27, 42, 65]
 const CORAL = [216, 90, 48]
@@ -130,9 +124,6 @@ function HeartIcon({ filled }) {
   )
 }
 
-// Carte itinéraire avec vote (+1/-1) et favori (♥), même comportement que
-// les cartes "Bons plans" (DealCard.jsx) : vote et favori auto-gérés par
-// carte, sans dépendre d'un fetch agrégé côté parent.
 function ItineraireVoteCard({ itineraire, userId, isFavorite, onToggleFavorite, onOpen, refreshKey }) {
   const duree = formatDuree(itineraire)
   const [aggregateScore, setAggregateScore] = useState(0)
@@ -235,11 +226,6 @@ function ItineraireVoteCard({ itineraire, userId, isFavorite, onToggleFavorite, 
   )
 }
 
-// Reprend exactement le pattern de DealsRow (flèches de scroll, largeur de
-// carte w-64) pour que les itinéraires s'affichent avec le même nombre
-// d'items visibles à l'écran que les autres rangées du Dashboard.
-// Le tri (plus récent d'abord) vient de la requête Supabase côté Dashboard
-// (`order('created_at', { ascending: false })`), pas de ce composant.
 function ItineraireRow({ itineraires, userId, favoriteIds, onToggleFavorite, refreshKey }) {
   const navigate = useNavigate()
   const scrollRef = React.useRef(null)
@@ -322,9 +308,6 @@ function ItineraireRow({ itineraires, userId, favoriteIds, onToggleFavorite, ref
   )
 }
 
-// Menu "+" — voir QuickAddMenu.jsx, extrait en composant partagé pour
-// être réutilisé sur Itineraires.jsx, VolsHebergements.jsx et VoyageCommun.jsx.
-
 export default function Dashboard() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -359,6 +342,12 @@ export default function Dashboard() {
     })
   }, [])
 
+  // Ajout de searchParams aux dépendances : après une redirection Stripe
+  // (?paiement=succes suite à un changement de plan ou une souscription),
+  // Dashboard.jsx reste monté (le modal était ouvert par-dessus), donc
+  // seul un changement de dépendance ici déclenche le refetch — sans ça,
+  // le badge/Sidebar restaient sur l'ancienne valeur tant qu'aucun hard
+  // refresh manuel n'avait lieu.
   useEffect(() => {
     if (!user) return
     supabase.from('lvpt').select('is_admin, abonnement, paiement_en_echec, pays_depart_fav, ville_depart_fav, miles_star_alliance, miles_skyteam, miles_oneworld').eq('id', user.id).single()
@@ -374,12 +363,8 @@ export default function Dashboard() {
           oneworld: data?.miles_oneworld ?? null,
         })
       })
-  }, [user])
+  }, [user, searchParams])
 
-  // Popup "Compléter mon profil" : ne s'affiche qu'une seule fois dans la
-  // vie d'un compte (profil_a_completer_vu), jamais réévaluée sur la base
-  // des champs remplis — le téléphone est facultatif, son absence ne doit
-  // pas rouvrir la popup indéfiniment.
   useEffect(() => {
     if (!user) return
     supabase.from('lvpt').select('profil_a_completer_vu').eq('id', user.id).single()
@@ -403,9 +388,6 @@ export default function Dashboard() {
       setFlightDeals(transformVols(vols || []))
       setHotelDeals(transformHebergements(hebergements || []))
 
-      // Priorité d'affichage : ville du départ favori d'abord, puis pays,
-      // puis le reste du catalogue — jamais d'exclusion, juste un tri, pour
-      // que la rangée reste toujours complète comme les autres.
       const allActivites = activites || []
       const scored = allActivites.map((a) => {
         const matchVille = villeDepartFav && a.ville?.trim().toLowerCase() === villeDepartFav.trim().toLowerCase()
@@ -418,10 +400,6 @@ export default function Dashboard() {
       setActivityDeals(transformActivites(scored))
       setItineraires(itinerairesData || [])
 
-      // Un favori "vol" ou "hébergement" dont la date de fin est dépassée
-      // est retiré automatiquement, sans action de l'utilisateur.
-      // Les favoris "itineraire" n'ont pas de date de fin : ils ne sont
-      // jamais expirés automatiquement ici, ils passent directement en validKeys.
       const now = new Date()
       const endDateByKey = {}
       ;(vols || []).forEach((v) => { endDateByKey[`vol:${v.id_vol}`] = v.date_arrivee })
@@ -450,9 +428,6 @@ export default function Dashboard() {
         )
       }
 
-      // Lieux/plats favoris : pas dans ALL_DEALS (cette page ne charge
-      // pas tout le catalogue Activités/Gastronomie), donc récupérés à
-      // part, seulement les entrées effectivement favorites.
       const idsLieux = (favoris || []).filter((f) => f.nom === 'lieu').map((f) => f.id_entite)
       const idsPlats = (favoris || []).filter((f) => f.nom === 'plat').map((f) => f.id_entite)
       const [{ data: lieuxFav }, { data: platsFav }] = await Promise.all([
@@ -471,7 +446,6 @@ export default function Dashboard() {
     const key = `${deal.type}:${deal.id}`
     const isCurrentlyFavorite = favoriteIds.has(key)
 
-    // Mise à jour optimiste de l'affichage
     setFavoriteIds((current) => {
       const next = new Set(current)
       if (isCurrentlyFavorite) next.delete(key)
@@ -484,9 +458,6 @@ export default function Dashboard() {
       { onConflict: 'pid,id_entite,nom' }
     )
     if (error) {
-      // L'écriture a échoué (ex: contrainte CHECK sur favoris.nom qui
-      // n'accepte pas encore 'itineraire') : on annule la mise à jour
-      // optimiste pour ne pas laisser l'UI mentir sur l'état réel.
       console.error('Erreur toggleFavorite:', error.message)
       setFavoriteIds((current) => {
         const next = new Set(current)
@@ -503,7 +474,7 @@ export default function Dashboard() {
     ...favoriLieuxEtPlats,
   ]
 
-  if (!user) return null // évite un flash sans nom le temps que le user se charge
+  if (!user) return null
 
   const firstName = isAdmin
     ? 'Admin'

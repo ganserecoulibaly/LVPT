@@ -1,21 +1,28 @@
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
 import Stripe from "npm:stripe@17.4.0";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+const ALLOWED_ORIGINS = [
+  "https://lvpt.gansere.com",
+  "https://levoyagepourtous.com",
+  "https://www.levoyagepourtous.com",
+];
+
+function getCorsHeaders(origin: string | null) {
+  const allowOrigin = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    "Access-Control-Allow-Origin": allowOrigin,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  };
+}
 
 const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!, {
   apiVersion: "2026-07-29.dahlia",
   httpClient: Stripe.createFetchHttpClient(),
 });
 
-// Ouvre le Billing Portal Stripe pour l'utilisateur connecté — factures
-// passées, moyen de paiement. La résiliation programmée se fait via
-// cancel-subscription (pas ce portail), donc ce portail sert
-// uniquement à la consultation/gestion du paiement.
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req.headers.get("origin"));
+
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -70,7 +77,7 @@ Deno.serve(async (req) => {
     console.error("Erreur create-portal-session :", error);
     return new Response(JSON.stringify({ error: "Impossible d'ouvrir le portail pour le moment" }), {
       status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req.headers.get("origin")), "Content-Type": "application/json" },
     });
   }
 });

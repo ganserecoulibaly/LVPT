@@ -26,6 +26,31 @@ const PRICE_ID_TO_PLAN: Record<string, string> = {
   [Deno.env.get("STRIPE_PRICE_GRAND_ANNUEL")!]: "frequent",
 };
 
+// Alerte email immédiate en cas d'erreur dans le traitement d'un
+// événement Stripe — sans ça, un webhook cassé passerait inaperçu
+// jusqu'à ce qu'un utilisateur (ou toi) remarque un abonnement pas à
+// jour en base. Best-effort : si l'envoi de l'alerte échoue, on logue
+// seulement, on ne bloque jamais le traitement du webhook pour ça.
+async function sendAdminAlert(subject: string, details: string) {
+  try {
+    await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${Deno.env.get("RESEND_API_KEY")}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: "LVPT Alertes <alertes@levoyagepourtous.com>",
+        to: "levoyagepourtous@gmail.com",
+        subject: `[LVPT] ${subject}`,
+        text: details,
+      }),
+    });
+  } catch (alertErr) {
+    console.error("Échec de l'envoi de l'alerte admin :", alertErr);
+  }
+}
+
 Deno.serve(async (req) => {
   const signature = req.headers.get("stripe-signature");
   const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET")!;
@@ -47,11 +72,10 @@ Deno.serve(async (req) => {
   const supabase = createAdminClient();
 
   switch (event.type) {
-    // Paiement initial validé → on active le plan choisi
     case "checkout.session.completed": {
       const session = event.data.object as any;
       const pid = session.client_reference_id ?? session.metadata?.pid;
-      const rawPlan = session.metadata?.plan; // "occasionnel" | "grand"
+      const rawPlan = session.metadata?.plan;
       const plan = PLAN_MAP[rawPlan] ?? rawPlan;
 
       if (pid && plan) {
@@ -65,17 +89,17 @@ Deno.serve(async (req) => {
           })
           .eq("id", pid);
 
-        if (error) console.error("Erreur mise à jour lvpt (checkout.session.completed) :", error);
+        if (error) {
+          console.error("Erreur mise à jour lvpt (checkout.session.completed) :", error);
+          await sendAdminAlert(
+            "Erreur webhook — checkout.session.completed",
+            `Impossible de mettre à jour lvpt pour l'utilisateur ${pid} (plan ${plan}).\n\nErreur : ${error.message}`
+          );
+        }
       }
       break;
     }
 
-    // Renouvellement, changement de statut, OU changement de plan fait
-    // depuis le Billing Portal (Stripe envoie ce même événement dans les
-    // trois cas). Si l'abonnement n'est plus actif → retour au Gratuit.
-    // Si actif → on relit le price_id courant pour détecter un éventuel
-    // changement de plan (upgrade/downgrade fait hors de change-subscription-plan)
-    // et on met lvpt.abonnement à jour en conséquence.
     case "customer.subscription.updated": {
       const subscription = event.data.object as any;
       const isActive = ["active", "trialing"].includes(subscription.status);
@@ -86,7 +110,13 @@ Deno.serve(async (req) => {
           .update({ abonnement: "free" })
           .eq("stripe_subscription_id", subscription.id);
 
-        if (error) console.error("Erreur mise à jour lvpt (subscription.updated, inactif) :", error);
+        if (error) {
+          console.error("Erreur mise à jour lvpt (subscription.updated, inactif) :", error);
+          await sendAdminAlert(
+            "Erreur webhook — subscription.updated (inactif)",
+            `Impossible de repasser l'abonnement ${subscription.id} à free.\n\nErreur : ${error.message}`
+          );
+        }
         break;
       }
 
@@ -98,6 +128,10 @@ Deno.serve(async (req) => {
         updatePayload.abonnement = planFromPrice;
       } else {
         console.warn("price_id inconnu dans subscription.updated :", currentPriceId);
+        await sendAdminAlert(
+          "price_id inconnu — subscription.updated",
+          `L'abonnement ${subscription.id} a un price_id (${currentPriceId}) qui ne correspond à aucun plan connu dans PRICE_ID_TO_PLAN. Vérifie si un nouveau tarif a été créé côté Stripe sans mettre à jour le mapping.`
+        );
       }
 
       const { error } = await supabase
@@ -105,11 +139,16 @@ Deno.serve(async (req) => {
         .update(updatePayload)
         .eq("stripe_subscription_id", subscription.id);
 
-      if (error) console.error("Erreur mise à jour lvpt (subscription.updated, actif) :", error);
+      if (error) {
+        console.error("Erreur mise à jour lvpt (subscription.updated, actif) :", error);
+        await sendAdminAlert(
+          "Erreur webhook — subscription.updated (actif)",
+          `Impossible de mettre à jour lvpt pour l'abonnement ${subscription.id}.\n\nErreur : ${error.message}`
+        );
+      }
       break;
     }
 
-    // Abonnement résilié (fin de période) → retour au plan Gratuit
     case "customer.subscription.deleted": {
       const subscription = event.data.object as any;
       const { error } = await supabase
@@ -117,12 +156,16 @@ Deno.serve(async (req) => {
         .update({ abonnement: "free", paiement_en_echec: false })
         .eq("stripe_subscription_id", subscription.id);
 
-      if (error) console.error("Erreur mise à jour lvpt (subscription.deleted) :", error);
+      if (error) {
+        console.error("Erreur mise à jour lvpt (subscription.deleted) :", error);
+        await sendAdminAlert(
+          "Erreur webhook — subscription.deleted",
+          `Impossible de repasser l'abonnement ${subscription.id} à free après résiliation.\n\nErreur : ${error.message}`
+        );
+      }
       break;
     }
 
-    // Échec de paiement d'un renouvellement → on lève le flag pour
-    // afficher un bandeau d'alerte côté Dashboard.
     case "invoice.payment_failed": {
       const invoice = event.data.object as any;
       if (invoice.subscription) {
@@ -131,13 +174,17 @@ Deno.serve(async (req) => {
           .update({ paiement_en_echec: true })
           .eq("stripe_subscription_id", invoice.subscription);
 
-        if (error) console.error("Erreur mise à jour lvpt (payment_failed) :", error);
+        if (error) {
+          console.error("Erreur mise à jour lvpt (payment_failed) :", error);
+          await sendAdminAlert(
+            "Erreur webhook — invoice.payment_failed",
+            `Impossible de signaler l'échec de paiement pour l'abonnement ${invoice.subscription}.\n\nErreur : ${error.message}`
+          );
+        }
       }
       break;
     }
 
-    // Paiement de facture réussi (renouvellement classique) → on lève
-    // le flag au cas où un échec précédent avait été résolu.
     case "invoice.payment_succeeded": {
       const invoice = event.data.object as any;
       if (invoice.subscription) {
@@ -146,13 +193,18 @@ Deno.serve(async (req) => {
           .update({ paiement_en_echec: false })
           .eq("stripe_subscription_id", invoice.subscription);
 
-        if (error) console.error("Erreur mise à jour lvpt (payment_succeeded) :", error);
+        if (error) {
+          console.error("Erreur mise à jour lvpt (payment_succeeded) :", error);
+          await sendAdminAlert(
+            "Erreur webhook — invoice.payment_succeeded",
+            `Impossible de lever le flag paiement_en_echec pour l'abonnement ${invoice.subscription}.\n\nErreur : ${error.message}`
+          );
+        }
       }
       break;
     }
 
     default:
-      // Événement non traité explicitement, on l'ignore
       break;
   }
 

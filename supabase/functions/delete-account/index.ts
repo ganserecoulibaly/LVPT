@@ -51,30 +51,53 @@ Deno.serve(async (req) => {
 
     const { data: profile, error: profileError } = await supabaseAdmin
       .from("lvpt")
-      .select("stripe_subscription_id")
+      .select("stripe_subscription_id, abonnement")
       .eq("id", user.id)
       .single();
 
-    if (profileError || !profile?.stripe_subscription_id) {
-      return new Response(JSON.stringify({ error: "Aucun abonnement actif trouvé" }), {
+    if (profileError) {
+      return new Response(JSON.stringify({ error: "Profil introuvable" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const subscription = await stripe.subscriptions.update(profile.stripe_subscription_id, {
-      cancel_at_period_end: true,
-    });
+    if (profile?.stripe_subscription_id && profile.abonnement !== "free") {
+      try {
+        await stripe.subscriptions.cancel(profile.stripe_subscription_id);
+      } catch (stripeErr) {
+        console.warn("Résiliation Stripe échouée ou déjà résilié :", stripeErr);
+      }
+    }
 
-    const periodEnd = subscription.items.data[0]?.current_period_end;
+    const { error: updateError } = await supabaseAdmin
+      .from("lvpt")
+      .update({
+        prenom: null,
+        nom: null,
+        telephone: null,
+        email: null,
+        ville_depart_fav: null,
+        pays_depart_fav: null,
+        compte_supprime: true,
+        abonnement: "free",
+      })
+      .eq("id", user.id);
+
+    if (updateError) {
+      return new Response(JSON.stringify({ error: "Impossible d'anonymiser le compte" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     return new Response(
-      JSON.stringify({ success: true, periodEnd }),
+      JSON.stringify({ success: true }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("Erreur cancel-subscription :", error);
-    return new Response(JSON.stringify({ error: "Impossible de résilier l'abonnement pour le moment" }), {
+    console.error("Erreur delete-account :", error);
+    return new Response(JSON.stringify({ error: "Impossible de supprimer le compte pour le moment" }), {
       status: 500,
       headers: { ...getCorsHeaders(req.headers.get("origin")), "Content-Type": "application/json" },
     });
