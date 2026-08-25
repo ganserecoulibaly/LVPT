@@ -140,27 +140,29 @@ export default function FlightHotelSearch({ hideIntro = false }) {
                   placeholder="Paris (CDG)"
                   value={form.origine}
                   onChange={(val) => update('origine', val)}
+                  required
                 />
                 <AirportAutocomplete
                   label="Je vais à"
-                  placeholder="Hanoï (HAN)"
+                  placeholder="New York (JFK)"
                   value={form.destination}
                   onChange={(val) => update('destination', val)}
+                  required
                 />
-                <Field label="Aller">
-                  <input type="date" className="search-input"
+                <Field label="Aller" required>
+                  <input type="date" required className="search-input"
                     value={form.aller} onChange={(e) => update('aller', e.target.value)} />
                 </Field>
-                <Field label="Retour">
-                  <input type="date" className="search-input"
+                <Field label="Retour" required>
+                  <input type="date" required className="search-input"
                     value={form.retour} onChange={(e) => update('retour', e.target.value)} />
                 </Field>
-                <Field label="Adultes">
-                  <input type="number" min="1" className="search-input"
+                <Field label="Adultes" required>
+                  <input type="number" min="1" required className="search-input"
                     value={form.adultes} onChange={(e) => update('adultes', e.target.value)} />
                 </Field>
-                <Field label="Enfants">
-                  <input type="number" min="0" className="search-input"
+                <Field label="Enfants" required>
+                  <input type="number" min="0" required className="search-input"
                     value={form.enfants} onChange={(e) => update('enfants', e.target.value)} />
                 </Field>
                 <Field label="Prénom" required>
@@ -182,26 +184,29 @@ export default function FlightHotelSearch({ hideIntro = false }) {
               </div>
             ) : (
               <div className="grid md:grid-cols-2 gap-4">
-                <Field label="Destination">
-                  <input type="text" placeholder="Hanoï, Vietnam" className="search-input"
+                <Field label="Destination" required>
+                  <input type="text" placeholder="Hanoï, Vietnam" required className="search-input"
                     value={form.destination} onChange={(e) => update('destination', e.target.value)} />
                 </Field>
-                <div className="hidden md:block" aria-hidden="true" />
-                <Field label="Arrivée">
-                  <input type="date" className="search-input"
-                    value={form.aller} onChange={(e) => update('aller', e.target.value)} />
+                <Field label="Budget max / nuit (€)" required>
+                  <input type="number" min="0" placeholder="ex : 80" required className="search-input"
+                    value={form.budget} onChange={(e) => update('budget', e.target.value)} />
                 </Field>
-                <Field label="Départ">
-                  <input type="date" className="search-input"
-                    value={form.retour} onChange={(e) => update('retour', e.target.value)} />
-                </Field>
-                <Field label="Adultes">
-                  <input type="number" min="1" className="search-input"
+                <Field label="Adultes" required>
+                  <input type="number" min="1" required className="search-input"
                     value={form.adultes} onChange={(e) => update('adultes', e.target.value)} />
                 </Field>
-                <Field label="Enfants">
-                  <input type="number" min="0" className="search-input"
+                <Field label="Enfants" required>
+                  <input type="number" min="0" required className="search-input"
                     value={form.enfants} onChange={(e) => update('enfants', e.target.value)} />
+                </Field>
+                <Field label="Arrivée" required>
+                  <input type="date" required className="search-input"
+                    value={form.aller} onChange={(e) => update('aller', e.target.value)} />
+                </Field>
+                <Field label="Départ" required>
+                  <input type="date" required className="search-input"
+                    value={form.retour} onChange={(e) => update('retour', e.target.value)} />
                 </Field>
                 <Field label="Prénom" required>
                   <input type="text" placeholder="Léa" required className="search-input"
@@ -219,25 +224,23 @@ export default function FlightHotelSearch({ hideIntro = false }) {
                   <input type="tel" placeholder="06 12 34 56 78" className="search-input"
                     value={form.telephone} onChange={(e) => update('telephone', e.target.value)} />
                 </Field>
-                <Field label="Budget max / nuit (€)">
-                   <input type="number" min="0" placeholder="ex : 80" className="search-input"
-                    value={form.budget} onChange={(e) => update('budget', e.target.value)} />
-                </Field>
-                <Field label="Type d'hébergement">
-                  <select className="search-input" value={form.typeHebergement} onChange={(e) => update('typeHebergement', e.target.value)}>
-                    <option value="">Pas de préférence</option>
-                    <option value="hotel">Hôtel</option>
-                    <option value="auberge">Auberge de jeunesse</option>
-                    <option value="airbnb">Airbnb / Location entre particuliers</option>
-                    <option value="camping">Camping</option>
-                    <option value="guesthouse">Guesthouse / Chambre d'hôtes</option>
-                    <option value="glamping">Glamping</option>
-                    <option value="resort">Resort / Club</option>
-                    <option value="apart-hotel">Apart'hôtel</option>
-                    <option value="bateau">Bateau / Péniche</option>
-                    <option value="insolite">Hébergement insolite (cabane, igloo…)</option>
-                  </select>
-                </Field>
+                <div className="md:col-span-2">
+                  <Field label="Type d'hébergement">
+                    <select className="search-input" value={form.typeHebergement} onChange={(e) => update('typeHebergement', e.target.value)}>
+                      <option value="">Pas de préférence</option>
+                      <option value="hotel">Hôtel</option>
+                      <option value="auberge">Auberge de jeunesse</option>
+                      <option value="airbnb">Airbnb / Location entre particuliers</option>
+                      <option value="camping">Camping</option>
+                      <option value="guesthouse">Guesthouse / Chambre d'hôtes</option>
+                      <option value="glamping">Glamping</option>
+                      <option value="resort">Resort / Club</option>
+                      <option value="apart-hotel">Apart'hôtel</option>
+                      <option value="bateau">Bateau / Péniche</option>
+                      <option value="insolite">Hébergement insolite (cabane, igloo…)</option>
+                    </select>
+                  </Field>
+                </div>
               </div>
             )}
 
