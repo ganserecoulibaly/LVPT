@@ -1,5 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import AirportAutocomplete from './AirportAutocomplete'
+import { supabase } from './supabaseClient'
 
 // Clé Web3Forms définie dans le fichier .env (VITE_WEB3FORMS_KEY)
 const WEB3FORMS_KEY = import.meta.env.VITE_WEB3FORMS_KEY
@@ -36,12 +37,41 @@ const emptyForm = {
 
 // hideIntro : true quand le formulaire est affiché à un utilisateur déjà
 // connecté (ex: depuis "Vols & hébergements") — masque tout l'habillage
-// marketing destiné aux visiteurs de la landing page publique.
+// marketing destiné aux visiteurs de la landing page publique, ET masque
+// les champs identité (prénom/nom/email/téléphone) puisqu'on les récupère
+// directement depuis son profil lvpt plutôt que de les lui redemander.
 export default function FlightHotelSearch({ hideIntro = false }) {
   const [mode, setMode] = useState('vols')
   const [form, setForm] = useState(emptyForm)
   const [status, setStatus] = useState('idle') // idle | sending | success | error
   const [showModal, setShowModal] = useState(false)
+
+  // Pré-remplit prénom/nom/email/téléphone depuis le profil connecté quand
+  // le formulaire est affiché à un utilisateur déjà loggé — évite de lui
+  // redemander des infos que l'app connaît déjà.
+  useEffect(() => {
+    if (!hideIntro) return
+
+    async function loadProfile() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { data: profile } = await supabase
+        .from('lvpt')
+        .select('prenom, nom, telephone')
+        .eq('id', user.id)
+        .single()
+
+      setForm((prev) => ({
+        ...prev,
+        prenom: profile?.prenom || '',
+        nom: profile?.nom || '',
+        telephone: profile?.telephone || '',
+        email: user.email || '',
+      }))
+    }
+    loadProfile()
+  }, [hideIntro])
 
   function update(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -165,27 +195,31 @@ export default function FlightHotelSearch({ hideIntro = false }) {
                   <input type="number" min="0" required className="search-input"
                     value={form.enfants} onChange={(e) => update('enfants', e.target.value)} />
                 </Field>
-                <Field label="Prénom" required>
-                  <input type="text" placeholder="Léa" required className="search-input"
-                    value={form.prenom} onChange={(e) => update('prenom', e.target.value)} />
-                </Field>
-                <Field label="Nom" required>
-                  <input type="text" placeholder="Martin" required className="search-input"
-                    value={form.nom} onChange={(e) => update('nom', e.target.value)} />
-                </Field>
-                <Field label="Email" required>
-                  <input type="email" placeholder="lea.martin@email.com" required className="search-input"
-                    value={form.email} onChange={(e) => update('email', e.target.value)} />
-                </Field>
-                <Field label="Téléphone">
-                  <input type="tel" placeholder="06 12 34 56 78" className="search-input"
-                    value={form.telephone} onChange={(e) => update('telephone', e.target.value)} />
-                </Field>
+                {!hideIntro && (
+                  <>
+                    <Field label="Prénom" required>
+                      <input type="text" placeholder="Léa" required className="search-input"
+                        value={form.prenom} onChange={(e) => update('prenom', e.target.value)} />
+                    </Field>
+                    <Field label="Nom" required>
+                      <input type="text" placeholder="Martin" required className="search-input"
+                        value={form.nom} onChange={(e) => update('nom', e.target.value)} />
+                    </Field>
+                    <Field label="Email" required>
+                      <input type="email" placeholder="lea.martin@email.com" required className="search-input"
+                        value={form.email} onChange={(e) => update('email', e.target.value)} />
+                    </Field>
+                    <Field label="Téléphone">
+                      <input type="tel" placeholder="06 12 34 56 78" className="search-input"
+                        value={form.telephone} onChange={(e) => update('telephone', e.target.value)} />
+                    </Field>
+                  </>
+                )}
               </div>
             ) : (
               <div className="grid md:grid-cols-2 gap-4">
                 <Field label="Destination" required>
-                  <input type="text" placeholder="Hanoï, Vietnam" required className="search-input"
+                  <input type="text" placeholder="New York, États-Unis" required className="search-input"
                     value={form.destination} onChange={(e) => update('destination', e.target.value)} />
                 </Field>
                 <Field label="Budget max / nuit (€)" required>
@@ -208,22 +242,26 @@ export default function FlightHotelSearch({ hideIntro = false }) {
                   <input type="date" required className="search-input"
                     value={form.retour} onChange={(e) => update('retour', e.target.value)} />
                 </Field>
-                <Field label="Prénom" required>
-                  <input type="text" placeholder="Léa" required className="search-input"
-                    value={form.prenom} onChange={(e) => update('prenom', e.target.value)} />
-                </Field>
-                <Field label="Nom" required>
-                  <input type="text" placeholder="Martin" required className="search-input"
-                    value={form.nom} onChange={(e) => update('nom', e.target.value)} />
-                </Field>
-                <Field label="Email" required>
-                  <input type="email" placeholder="lea.martin@email.com" required className="search-input"
-                    value={form.email} onChange={(e) => update('email', e.target.value)} />
-                </Field>
-                <Field label="Téléphone">
-                  <input type="tel" placeholder="06 12 34 56 78" className="search-input"
-                    value={form.telephone} onChange={(e) => update('telephone', e.target.value)} />
-                </Field>
+                {!hideIntro && (
+                  <>
+                    <Field label="Prénom" required>
+                      <input type="text" placeholder="Léa" required className="search-input"
+                        value={form.prenom} onChange={(e) => update('prenom', e.target.value)} />
+                    </Field>
+                    <Field label="Nom" required>
+                      <input type="text" placeholder="Martin" required className="search-input"
+                        value={form.nom} onChange={(e) => update('nom', e.target.value)} />
+                    </Field>
+                    <Field label="Email" required>
+                      <input type="email" placeholder="lea.martin@email.com" required className="search-input"
+                        value={form.email} onChange={(e) => update('email', e.target.value)} />
+                    </Field>
+                    <Field label="Téléphone">
+                      <input type="tel" placeholder="06 12 34 56 78" className="search-input"
+                        value={form.telephone} onChange={(e) => update('telephone', e.target.value)} />
+                    </Field>
+                  </>
+                )}
                 <div className="md:col-span-2">
                   <Field label="Type d'hébergement">
                     <select className="search-input" value={form.typeHebergement} onChange={(e) => update('typeHebergement', e.target.value)}>
