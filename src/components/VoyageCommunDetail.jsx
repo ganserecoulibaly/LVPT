@@ -12,6 +12,7 @@ import FavoritesModal from './FavoritesModal'
 import ToolboxModal from './ToolboxModal'
 import CreateVoyageCommunModal from './CreateVoyageCommunModal'
 import { DEFAULT_ITINERAIRE_COVER, formatDuree } from './Itineraires'
+import ShareButton from './ShareButton'
 
 const GRADIENTS = [
   'from-[#D85A30]/30 to-[#8B2F1A]/20',
