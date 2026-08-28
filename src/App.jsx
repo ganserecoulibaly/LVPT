@@ -35,6 +35,7 @@ import MilesVsEuros from './components/MilesVsEuros'
 import DefisCommunaute from './components/DefisCommunaute'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminOffres from './components/AdminOffres'
+import EspacePro from './components/EspacePro'
 
 // Au fur et à mesure, importe ici les futures pages privées :
 // import Carnet from './components/Carnet'
@@ -238,6 +239,16 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+
+
+        <Route
+  path="/espace-pro"
+  element={
+    <ProtectedRoute>
+      <EspacePro />
+    </ProtectedRoute>
+  }
+/>
 
         {/*
           Pour chaque nouvelle page privée, même schéma :
