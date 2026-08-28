@@ -147,7 +147,7 @@ function PostCard({ post, categorie, authorName, score, isFavorite, onToggleFavo
         </span>
         <p className="text-sm font-medium text-navy mt-2 mb-1 line-clamp-2">{post.titre}</p>
         <p className="text-xs text-navy/50 mb-2">{lieu}</p>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-1.5">
           <span className="text-xs text-navy/40">{authorName}</span>
           {/* Coral pour le score positif, cohérent avec le reste de l'app
               (DealCard/ItineraireCard) — le vert était réservé à la
@@ -155,6 +155,13 @@ function PostCard({ post, categorie, authorName, score, isFavorite, onToggleFavo
           <span className={`text-xs font-medium ${score > 0 ? 'text-coral' : score < 0 ? 'text-blue-600' : 'text-navy/40'}`}>
             {score > 0 ? `+${score}` : score}
           </span>
+        </div>
+        <div onClick={(e) => e.stopPropagation()}>
+          <ShareButton
+            titre={post.titre}
+            url={`${window.location.origin}/voyage-commun/${post.id_post}`}
+            small
+          />
         </div>
       </div>
     </button>
