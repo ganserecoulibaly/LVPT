@@ -180,3 +180,94 @@ export default function EspacePro() {
           {/* ---------- ÉCHANGE ---------- */}
           <div className="mb-16">
             <div className="bg-white rounded-2xl overflow-hidden">
+              <div className="grid sm:grid-cols-2">
+                <div className="p-7 sm:p-9 border-b sm:border-b-0 sm:border-r border-navy/10">
+                  <p className="text-[10px] font-mono tracking-[0.2em] text-navy/40 mb-4">TU APPORTES</p>
+                  <ul className="flex flex-col gap-3.5">
+                    {APPORTS.map((item) => (
+                      <li key={item} className="flex items-start gap-3">
+                        <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-navy/30 shrink-0" />
+                        <span className="text-sm text-navy/75 leading-relaxed">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="p-7 sm:p-9 bg-coral/5">
+                  <p className="text-[10px] font-mono tracking-[0.2em] text-coral mb-4">TU REÇOIS</p>
+                  <ul className="flex flex-col gap-3.5">
+                    {RETOURS.map((item) => (
+                      <li key={item} className="flex items-start gap-3">
+                        <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-coral shrink-0" />
+                        <span className="text-sm text-navy leading-relaxed">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ---------- FORMULAIRE ---------- */}
+          <div id="dossier" className="max-w-xl mx-auto pb-6">
+            <p className="text-[11px] tracking-[0.2em] text-coral uppercase mb-2 text-center">Dernier appel</p>
+            <h2 className="font-serif text-2xl text-navy mb-6 text-center">Dépose ton dossier d'embarquement</h2>
+
+            {status === 'success' ? (
+              <div className="bg-white rounded-2xl p-10 text-center">
+                <p className="font-serif text-xl text-navy mb-2">Dossier reçu.</p>
+                <p className="text-sm text-navy/60">On regarde ça et on revient vers toi sous quelques jours.</p>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-6 sm:p-8 flex flex-col gap-4">
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs text-navy/60 mb-1 block">Nom</label>
+                    <input
+                      required value={form.nom} onChange={(e) => update('nom', e.target.value)}
+                      placeholder="Léa Martin"
+                      className="w-full px-3 py-2.5 border border-navy/15 rounded-lg text-sm focus:outline-none focus:border-coral"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-navy/60 mb-1 block">Profession</label>
+                    <input
+                      required value={form.profession} onChange={(e) => update('profession', e.target.value)}
+                      placeholder="Journaliste, sportif, créateur…"
+                      className="w-full px-3 py-2.5 border border-navy/15 rounded-lg text-sm focus:outline-none focus:border-coral"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs text-navy/60 mb-1 block">Réseau principal + audience</label>
+                  <input
+                    required value={form.reseau} onChange={(e) => update('reseau', e.target.value)}
+                    placeholder="Instagram — 12 000 abonnés"
+                    className="w-full px-3 py-2.5 border border-navy/15 rounded-lg text-sm focus:outline-none focus:border-coral"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-navy/60 mb-1 block">Ton prochain déplacement</label>
+                  <textarea
+                    required rows={3} value={form.deplacement} onChange={(e) => update('deplacement', e.target.value)}
+                    placeholder="Où, quand, pourquoi."
+                    className="w-full px-3 py-2.5 border border-navy/15 rounded-lg text-sm focus:outline-none focus:border-coral resize-none"
+                  />
+                </div>
+                {status === 'error' && (
+                  <p className="text-sm text-red-600 text-center">Oups, l'envoi n'a pas fonctionné. Réessaie ?</p>
+                )}
+                <button type="submit" disabled={status === 'sending'} className="btn-primary justify-center text-sm py-3 mt-1 disabled:opacity-60">
+                  {status === 'sending' ? 'Envoi…' : 'Envoyer mon dossier'}
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="ml-0 sm:ml-16">
+        <Footer />
+      </div>
+    </div>
+  )
+}
