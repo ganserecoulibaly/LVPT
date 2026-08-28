@@ -12,6 +12,7 @@ import CreateVoyageCommunModal from './CreateVoyageCommunModal'
 import CreateItineraireModal from './CreateItineraireModal'
 import QuickAddMenu from './QuickAddMenu'
 import TipBanner from './TipBanner'
+import ShareButton from './ShareButton'
 
 const GRADIENTS = [
   'from-[#D85A30]/30 to-[#8B2F1A]/20',
