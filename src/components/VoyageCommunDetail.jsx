@@ -108,7 +108,6 @@ function TrashIcon() {
   )
 }
 
-
 export default function VoyageCommunDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
