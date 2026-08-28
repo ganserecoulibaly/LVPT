@@ -34,6 +34,7 @@ import AtelierConfirmation from './components/atelier/AtelierConfirmation'
 import MilesVsEuros from './components/MilesVsEuros'
 import DefisCommunaute from './components/DefisCommunaute'
 import ProtectedRoute from './components/ProtectedRoute'
+import AdminOffres from './components/AdminOffres'
 
 // Au fur et à mesure, importe ici les futures pages privées :
 // import Carnet from './components/Carnet'
@@ -221,6 +222,19 @@ export default function App() {
           element={
             <ProtectedRoute>
               <DefisCommunaute />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Page admin-only : le lien n'apparaît que pour is_admin dans la
+            Sidebar (AdminOnlyNavItem, même logique que /defis-communaute et
+            /feuille-de-route) — connexion requise, pas de vérification
+            is_admin supplémentaire au niveau de la route pour l'instant. */}
+        <Route
+          path="/admin-offres"
+          element={
+            <ProtectedRoute>
+              <AdminOffres />
             </ProtectedRoute>
           }
         />
