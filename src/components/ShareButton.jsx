@@ -94,7 +94,10 @@ export default function ShareButton({ titre, url: urlProp, small }) {
         >
           {networks.map((n) => (
             
-              key={n.name} href={n.href} target="_blank" rel="noopener noreferrer"
+              key={n.name}
+              href={n.href}
+              target="_blank"
+              rel="noopener noreferrer"
               onClick={() => setOpen(false)}
               className="flex items-center gap-2.5 px-3 py-2 text-sm text-navy hover:bg-navy/5 transition-colors"
             >
