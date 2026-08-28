@@ -6,6 +6,10 @@ import PageHeader from './PageHeader'
 const inputClass =
   'w-full px-3 py-2.5 border border-navy/15 rounded-lg text-sm focus:outline-none focus:border-coral'
 
+// Détecte si la chaîne saisie ressemble à un UUID (pid) plutôt qu'à un
+// email — évite une requête inutile si l'admin a collé directement le pid.
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 const emptyVol = {
   aeroport_depart: '',
   aeroport_arrivee: '',
@@ -19,7 +23,7 @@ const emptyVol = {
   nb_adulte: 1,
   nb_enfant: 0,
   type_trajet: 'aller-retour',
-  email_demandeur: '',
+  demandeur: '', // email OU pid, tapé par l'admin
 }
 
 const emptyHebergement = {
@@ -34,15 +38,16 @@ const emptyHebergement = {
   nb_adulte: 1,
   nb_enfant: 0,
   lien_resa: '',
-  email_demandeur: '',
+  demandeur: '',
 }
 
 // Page réservée à l'admin (voir garde is_admin dans App.jsx) — permet de
-// saisir l'offre trouvée après une demande reçue via FlightHotelSearch,
-// en identifiant la personne par son email (pas forcément un compte
-// LVPT) plutôt que par pid. Le fonctionnement existant pour les vraies
-// réservations d'utilisateurs connectés (pid rempli) reste inchangé
-// ailleurs dans l'app.
+// saisir l'offre trouvée après une demande reçue via FlightHotelSearch.
+// Le demandeur a toujours un compte LVPT : l'admin identifie la personne
+// soit par son email, soit directement par son pid — les deux formats
+// sont acceptés dans le même champ, résolus vers pid avant l'insertion.
+// Le fonctionnement existant pour les vraies réservations (pid déjà
+// rempli par l'utilisateur lui-même) reste inchangé ailleurs dans l'app.
 export default function AdminOffres() {
   const [mode, setMode] = useState('vol')
   const [volForm, setVolForm] = useState(emptyVol)
@@ -58,8 +63,8 @@ export default function AdminOffres() {
   async function loadOffres() {
     setLoadingList(true)
     const [{ data: volsData }, { data: hebergementsData }] = await Promise.all([
-      supabase.from('s_vol').select('*').not('email_demandeur', 'is', null).order('created_at', { ascending: false }),
-      supabase.from('s_hebergement').select('*').not('email_demandeur', 'is', null).order('created_at', { ascending: false }),
+      supabase.from('s_vol').select('*, lvpt(email, prenom, nom)').order('created_at', { ascending: false }).limit(30),
+      supabase.from('s_hebergement').select('*, lvpt(email, prenom, nom)').order('created_at', { ascending: false }).limit(30),
     ])
     setVols(volsData || [])
     setHebergements(hebergementsData || [])
@@ -77,12 +82,37 @@ export default function AdminOffres() {
     setHebergementForm((prev) => ({ ...prev, [field]: value }))
   }
 
+  // Résout le champ "demandeur" (email ou pid tapé) vers un vrai pid.
+  // Retourne null + message d'erreur si rien ne correspond.
+  async function resolvePid(demandeur) {
+    const trimmed = demandeur.trim()
+    if (!trimmed) return { pid: null, error: "Merci d'indiquer l'email ou le pid du demandeur." }
+
+    if (UUID_REGEX.test(trimmed)) {
+      const { data, error } = await supabase.from('lvpt').select('id').eq('id', trimmed).single()
+      if (error || !data) return { pid: null, error: "Aucun compte trouvé avec ce pid." }
+      return { pid: data.id, error: null }
+    }
+
+    const { data, error } = await supabase.from('lvpt').select('id').eq('email', trimmed).single()
+    if (error || !data) return { pid: null, error: "Aucun compte trouvé avec cet email." }
+    return { pid: data.id, error: null }
+  }
+
   async function handleSubmitVol(e) {
     e.preventDefault()
     setError(null)
     setSaving(true)
 
+    const { pid, error: resolveError } = await resolvePid(volForm.demandeur)
+    if (resolveError) {
+      setError(resolveError)
+      setSaving(false)
+      return
+    }
+
     const { error: insertError } = await supabase.from('s_vol').insert({
+      pid,
       aeroport_depart: volForm.aeroport_depart.trim(),
       aeroport_arrivee: volForm.aeroport_arrivee.trim(),
       date_depart: volForm.date_depart || null,
@@ -95,8 +125,6 @@ export default function AdminOffres() {
       nb_adulte: parseInt(volForm.nb_adulte, 10) || 1,
       nb_enfant: parseInt(volForm.nb_enfant, 10) || 0,
       type_trajet: volForm.type_trajet,
-      email_demandeur: volForm.email_demandeur.trim(),
-      pid: null,
     })
 
     if (insertError) {
@@ -117,7 +145,15 @@ export default function AdminOffres() {
     setError(null)
     setSaving(true)
 
+    const { pid, error: resolveError } = await resolvePid(hebergementForm.demandeur)
+    if (resolveError) {
+      setError(resolveError)
+      setSaving(false)
+      return
+    }
+
     const { error: insertError } = await supabase.from('s_hebergement').insert({
+      pid,
       ville: hebergementForm.ville.trim(),
       quartier: hebergementForm.quartier.trim() || null,
       type_hebergement: hebergementForm.type_hebergement.trim() || null,
@@ -129,8 +165,6 @@ export default function AdminOffres() {
       nb_adulte: parseInt(hebergementForm.nb_adulte, 10) || 1,
       nb_enfant: parseInt(hebergementForm.nb_enfant, 10) || 0,
       lien_resa: hebergementForm.lien_resa.trim() || null,
-      email_demandeur: hebergementForm.email_demandeur.trim(),
-      pid: null,
     })
 
     if (insertError) {
@@ -187,6 +221,11 @@ export default function AdminOffres() {
               <p className="font-serif text-lg text-navy mb-2">Ajouter une offre de vol</p>
 
               <div className="grid grid-cols-2 gap-3">
+                <div className="col-span-2">
+                  <label className="text-xs text-navy/70 mb-1 block">Email ou pid du demandeur</label>
+                  <input type="text" placeholder="demandeur@email.com ou uuid" required className={inputClass}
+                    value={volForm.demandeur} onChange={(e) => updateVol('demandeur', e.target.value)} />
+                </div>
                 <div>
                   <label className="text-xs text-navy/70 mb-1 block">Aéroport départ</label>
                   <input type="text" placeholder="Paris (CDG)" required className={inputClass}
@@ -249,11 +288,6 @@ export default function AdminOffres() {
                   <input type="url" placeholder="https://..." className={inputClass}
                     value={volForm.lien_resa} onChange={(e) => updateVol('lien_resa', e.target.value)} />
                 </div>
-                <div className="col-span-2">
-                  <label className="text-xs text-navy/70 mb-1 block">Email du demandeur</label>
-                  <input type="email" placeholder="demandeur@email.com" required className={inputClass}
-                    value={volForm.email_demandeur} onChange={(e) => updateVol('email_demandeur', e.target.value)} />
-                </div>
               </div>
 
               {error && <p className="text-sm text-red-600">{error}</p>}
@@ -268,6 +302,11 @@ export default function AdminOffres() {
               <p className="font-serif text-lg text-navy mb-2">Ajouter une offre d'hébergement</p>
 
               <div className="grid grid-cols-2 gap-3">
+                <div className="col-span-2">
+                  <label className="text-xs text-navy/70 mb-1 block">Email ou pid du demandeur</label>
+                  <input type="text" placeholder="demandeur@email.com ou uuid" required className={inputClass}
+                    value={hebergementForm.demandeur} onChange={(e) => updateHebergement('demandeur', e.target.value)} />
+                </div>
                 <div>
                   <label className="text-xs text-navy/70 mb-1 block">Ville</label>
                   <input type="text" placeholder="New York" required className={inputClass}
@@ -323,11 +362,6 @@ export default function AdminOffres() {
                   <input type="url" placeholder="https://..." className={inputClass}
                     value={hebergementForm.lien_resa} onChange={(e) => updateHebergement('lien_resa', e.target.value)} />
                 </div>
-                <div className="col-span-2">
-                  <label className="text-xs text-navy/70 mb-1 block">Email du demandeur</label>
-                  <input type="email" placeholder="demandeur@email.com" required className={inputClass}
-                    value={hebergementForm.email_demandeur} onChange={(e) => updateHebergement('email_demandeur', e.target.value)} />
-                </div>
               </div>
 
               {error && <p className="text-sm text-red-600">{error}</p>}
@@ -340,7 +374,7 @@ export default function AdminOffres() {
           )}
 
           <p className="font-serif text-lg text-navy mb-4">
-            Offres déjà envoyées ({mode === 'vol' ? vols.length : hebergements.length})
+            Dernières offres envoyées
           </p>
 
           {loadingList ? (
@@ -354,7 +388,9 @@ export default function AdminOffres() {
                   <div key={v.id_vol} className="bg-white rounded-xl p-4 flex items-center justify-between">
                     <div className="text-sm">
                       <p className="font-medium text-navy">{v.aeroport_depart} → {v.aeroport_arrivee}</p>
-                      <p className="text-navy/50 text-xs">{v.email_demandeur} · {v.prix}€</p>
+                      <p className="text-navy/50 text-xs">
+                        {v.lvpt ? `${v.lvpt.prenom || ''} ${v.lvpt.nom || ''} (${v.lvpt.email})` : v.pid} · {v.prix}€
+                      </p>
                     </div>
                     <button onClick={() => handleDelete('s_vol', 'id_vol', v.id_vol)} className="text-xs text-red-500 hover:text-red-700">
                       Supprimer
@@ -371,7 +407,9 @@ export default function AdminOffres() {
                 <div key={h.id_hebergement} className="bg-white rounded-xl p-4 flex items-center justify-between">
                   <div className="text-sm">
                     <p className="font-medium text-navy">{h.type_hebergement} à {h.ville}</p>
-                    <p className="text-navy/50 text-xs">{h.email_demandeur} · {h.prix_nuit}€/nuit</p>
+                    <p className="text-navy/50 text-xs">
+                      {h.lvpt ? `${h.lvpt.prenom || ''} ${h.lvpt.nom || ''} (${h.lvpt.email})` : h.pid} · {h.prix_nuit}€/nuit
+                    </p>
                   </div>
                   <button onClick={() => handleDelete('s_hebergement', 'id_hebergement', h.id_hebergement)} className="text-xs text-red-500 hover:text-red-700">
                     Supprimer
