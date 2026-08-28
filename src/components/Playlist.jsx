@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from './supabaseClient'
 import Sidebar from './Sidebar'
 import PageHeader from './PageHeader'
@@ -8,155 +9,128 @@ import FavoritesModal from './FavoritesModal'
 import ToolboxModal from './ToolboxModal'
 import Footer from './Footer'
 import { usePlanAccess } from './usePlanAccess'
-import { useFavoriLieuxEtPlats } from './useFavoriLieuxEtPlats'
 import PlanLockedScreen from './PlanLockedScreen'
+import { useFavoriLieuxEtPlats } from './useFavoriLieuxEtPlats'
+import AjouterPlatModal from './AjouterPlatModal'
 
-const GRADIENTS = [
-  'linear-gradient(135deg, #F0997B, #D85A30)',
-  'linear-gradient(135deg, #7F77DD, #534AB7)',
-  'linear-gradient(135deg, #5DCAA5, #0F6E56)',
-  'linear-gradient(135deg, #ED93B1, #993556)',
-]
-
-const PLATEFORMES = [
-  { key: 'lien_spotify', label: 'Spotify' },
-  { key: 'lien_youtube', label: 'YouTube' },
-  { key: 'lien_apple_music', label: 'Apple Music' },
-  { key: 'lien_deezer', label: 'Deezer' },
-]
-
-function MusiqueCard({ m, index }) {
-  const liensDisponibles = PLATEFORMES.filter((p) => m[p.key])
+function PlatCard({ plat, score, isFavori, onToggleFavori, onVote, myVote, onClick }) {
   return (
-    <div className="bg-white border border-navy/10 rounded-xl overflow-hidden">
-      <div
-        className="h-20 flex items-center justify-center"
-        style={{ background: GRADIENTS[index % GRADIENTS.length] }}
+    <div className="bg-white border border-navy/10 rounded-xl p-3 relative cursor-pointer hover:border-coral transition-colors" onClick={onClick}>
+      <button
+        onClick={(e) => { e.stopPropagation(); onToggleFavori() }}
+        className="absolute top-2.5 right-2.5 w-6 h-6 rounded-full bg-coral/10 flex items-center justify-center"
+        aria-label="Favori"
       >
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" />
+        <svg width="12" height="12" viewBox="0 0 24 24" fill={isFavori ? '#993556' : 'none'} stroke={isFavori ? '#993556' : '#712B13'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8Z" />
         </svg>
-      </div>
-      <div className="p-3.5">
-        <p className="text-sm font-medium text-navy mb-0.5 truncate">{m.titre}</p>
-        <p className="text-xs text-navy/50 mb-2.5 truncate">{m.artiste}{m.pays ? ` · ${m.pays}` : ''}</p>
-        {liensDisponibles.length > 0 ? (
-          <div className="flex flex-wrap gap-1.5">
-            {liensDisponibles.map((p) => (
-              <a
-                key={p.key}
-                href={m[p.key]}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[10px] px-2 py-1 rounded-full bg-coral/10 text-[#712B13] hover:bg-coral/20 transition-colors"
-              >
-                {p.label}
-              </a>
-            ))}
-          </div>
-        ) : (
-          <p className="text-[11px] text-navy/30">Aucun lien renseigné</p>
-        )}
+      </button>
+      <p className="text-sm font-medium text-navy mb-0.5 pr-7 truncate">{plat.nom_plat}</p>
+      <p className="text-[11px] text-navy/50 truncate">{plat.nom_restaurant} · {plat.ville}, {plat.pays}</p>
+      <p className="text-xs text-coral font-medium mt-1 mb-2.5">{plat.prix}</p>
+      <div className="flex items-center gap-1.5">
+        <button
+          onClick={(e) => { e.stopPropagation(); onVote(-1) }}
+          className={`w-5 h-5 rounded-full border flex items-center justify-center text-[11px] ${myVote === -1 ? 'border-coral text-coral' : 'border-navy/15 text-navy/40'}`}
+        >−</button>
+        <span className="text-xs text-navy">{score}</span>
+        <button
+          onClick={(e) => { e.stopPropagation(); onVote(1) }}
+          className={`w-5 h-5 rounded-full border flex items-center justify-center text-[11px] ${myVote === 1 ? 'border-coral text-coral' : 'border-navy/15 text-navy/40'}`}
+        >+</button>
       </div>
     </div>
   )
 }
 
-function AjouterMusiqueModal({ userId, onClose, onCreated }) {
-  const [titre, setTitre] = useState('')
-  const [artiste, setArtiste] = useState('')
-  const [pays, setPays] = useState('')
-  const [liens, setLiens] = useState({ lien_spotify: '', lien_youtube: '', lien_apple_music: '', lien_deezer: '' })
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState(null)
-
-  const handleSubmit = async () => {
-    if (!titre.trim() || !artiste.trim()) {
-      setError('Renseigne au moins un titre et un artiste.')
-      return
-    }
-    setSaving(true)
-    setError(null)
-    const { error: insertError } = await supabase.from('s_musique').insert({
-      pid: userId,
-      titre: titre.trim(),
-      artiste: artiste.trim(),
-      pays: pays.trim() || null,
-      lien_spotify: liens.lien_spotify.trim() || null,
-      lien_youtube: liens.lien_youtube.trim() || null,
-      lien_apple_music: liens.lien_apple_music.trim() || null,
-      lien_deezer: liens.lien_deezer.trim() || null,
-    })
-    setSaving(false)
-    if (insertError) {
-      setError("Impossible d'ajouter ce morceau pour le moment.")
-      return
-    }
-    onCreated()
-  }
-
-  return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 1000 }} className="flex justify-center overflow-y-auto bg-navy/45 px-4 py-8">
-      <div onClick={(e) => e.stopPropagation()} style={{ height: 'fit-content' }} className="bg-white rounded-2xl p-6 sm:p-8 w-full max-w-md relative m-auto">
-        <button onClick={onClose} className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center text-navy/40 hover:text-navy transition-colors" aria-label="Fermer">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-        </button>
-        <p className="font-serif text-lg text-navy mb-1">Ajouter une musique</p>
-        <p className="text-sm text-navy/55 mb-5">Fais découvrir un morceau aux autres voyageurs.</p>
-
-        <div className="flex flex-col gap-2.5 mb-4">
-          <input type="text" placeholder="Titre du morceau" value={titre} onChange={(e) => setTitre(e.target.value)} className="px-3 py-2.5 border border-navy/15 rounded-lg text-sm focus:outline-none focus:border-coral" />
-          <input type="text" placeholder="Artiste" value={artiste} onChange={(e) => setArtiste(e.target.value)} className="px-3 py-2.5 border border-navy/15 rounded-lg text-sm focus:outline-none focus:border-coral" />
-          <input type="text" placeholder="Pays (facultatif)" value={pays} onChange={(e) => setPays(e.target.value)} className="px-3 py-2.5 border border-navy/15 rounded-lg text-sm focus:outline-none focus:border-coral" />
-        </div>
-
-        <p className="text-xs text-navy/40 uppercase tracking-wide mb-2">Liens (facultatifs)</p>
-        <div className="flex flex-col gap-2.5 mb-5">
-          {PLATEFORMES.map((p) => (
-            <input
-              key={p.key}
-              type="url"
-              placeholder={`Lien ${p.label}`}
-              value={liens[p.key]}
-              onChange={(e) => setLiens((prev) => ({ ...prev, [p.key]: e.target.value }))}
-              className="px-3 py-2.5 border border-navy/15 rounded-lg text-sm focus:outline-none focus:border-coral"
-            />
-          ))}
-        </div>
-
-        {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
-        <button onClick={handleSubmit} disabled={saving} className="btn-primary w-full text-sm py-2.5 disabled:opacity-60">
-          {saving ? 'Ajout…' : 'Ajouter ce morceau'}
-        </button>
-      </div>
-    </div>
-  )
-}
-
-export default function Playlist() {
+export default function Gastronomie() {
   const { user, allowed } = usePlanAccess('occasional')
-  const { favoriLieuxEtPlats, toggleFavoriGeneric } = useFavoriLieuxEtPlats(user)
-  const [musiques, setMusiques] = useState([])
+  const navigate = useNavigate()
+  const [plats, setPlats] = useState([])
+  const [scores, setScores] = useState({})
+  const [myVotes, setMyVotes] = useState({})
+  const [favoriIds, setFavoriIds] = useState(new Set())
+  const [filtrePays, setFiltrePays] = useState('')
   const [addOpen, setAddOpen] = useState(false)
+
   const [pricingOpen, setPricingOpen] = useState(false)
   const [favoritesOpen, setFavoritesOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [toolboxOpen, setToolboxOpen] = useState(false)
   const [toolboxTab, setToolboxTab] = useState('currency')
 
-  const loadMusiques = () => {
-    supabase.from('s_musique').select('*').order('created_at', { ascending: false })
-      .then(({ data }) => setMusiques(data || []))
+  const loadPlats = () => {
+    supabase.from('d_plat').select('*').order('created_at', { ascending: false })
+      .then(({ data }) => setPlats(data || []))
   }
 
-  useEffect(() => { loadMusiques() }, [])
+  const loadVotes = () => {
+    supabase.from('votes').select('pid, id_entite, score').eq('nom', 'gastronomie')
+      .then(({ data }) => {
+        const scoreMap = {}
+        const myVoteMap = {}
+        ;(data || []).forEach((v) => {
+          scoreMap[v.id_entite] = (scoreMap[v.id_entite] || 0) + v.score
+          if (v.pid === user?.id) myVoteMap[v.id_entite] = v.score
+        })
+        setScores(scoreMap)
+        setMyVotes(myVoteMap)
+      })
+  }
+
+  const loadFavoris = () => {
+    if (!user) return
+    supabase.from('favoris').select('id_entite').eq('pid', user.id).eq('nom', 'plat').eq('actif', true)
+      .then(({ data }) => setFavoriIds(new Set((data || []).map((f) => f.id_entite))))
+  }
+
+  useEffect(() => { loadPlats() }, [])
+  useEffect(() => { loadVotes(); loadFavoris() }, [user])
+
+  const paysConnus = useMemo(() => [...new Set(plats.map((p) => p.pays))].sort(), [plats])
+
+  const { favoriLieuxEtPlats: favoriteDeals, toggleFavoriGeneric } = useFavoriLieuxEtPlats(user)
+  const platsFiltres = useMemo(
+    () => filtrePays ? plats.filter((p) => p.pays === filtrePays) : plats,
+    [plats, filtrePays]
+  )
+
+  const handleVote = async (idPlat, value) => {
+    if (!user) return
+    if (myVotes[idPlat] !== undefined) {
+      await supabase.from('votes').delete().eq('pid', user.id).eq('id_entite', idPlat).eq('nom', 'gastronomie')
+    } else {
+      await supabase.from('votes').upsert(
+        { pid: user.id, id_entite: idPlat, nom: 'gastronomie', score: value },
+        { onConflict: 'pid,id_entite,nom' }
+      )
+    }
+    loadVotes()
+  }
+
+  const toggleFavori = async (idPlat) => {
+    let error
+    if (favoriIds.has(idPlat)) {
+      ;({ error } = await supabase.from('favoris').update({ actif: false }).eq('pid', user.id).eq('id_entite', idPlat).eq('nom', 'plat'))
+    } else {
+      ;({ error } = await supabase.from('favoris').upsert(
+        { pid: user.id, id_entite: idPlat, nom: 'plat', actif: true },
+        { onConflict: 'pid,id_entite,nom' }
+      ))
+    }
+    if (error) {
+      alert("Impossible de mettre à jour ce favori : " + error.message)
+      return
+    }
+    loadFavoris()
+  }
 
   if (!user || allowed === null) return null
 
   if (!allowed) {
     return (
       <PlanLockedScreen
-        title="Playlist du voyage"
+        title="Carnet gastronomique"
         requiredPlan="occasional"
         pricingOpen={pricingOpen}
         onPricingOpen={() => setPricingOpen(true)}
@@ -182,18 +156,35 @@ export default function Playlist() {
               onProfileClick={() => setProfileOpen(true)}
             />
 
-            <h1 className="font-serif text-3xl text-navy mb-2">Playlist du voyage</h1>
-            <p className="text-navy/70 mb-6">Une ambiance sonore pour chaque destination — découvre la musique des pays visités par la communauté.</p>
+            <div className="flex items-center justify-between gap-4 mb-2">
+              <h1 className="font-serif text-3xl text-navy">Carnet gastronomique</h1>
+              <button onClick={() => setAddOpen(true)} className="btn-primary text-sm py-2.5 px-5 shrink-0">
+                + Ajouter un plat
+              </button>
+            </div>
+            <p className="text-navy/70 mb-5">Les plats goûtés par la communauté — une idée de quoi manger avant d'y aller.</p>
 
-            <button onClick={() => setAddOpen(true)} className="btn-primary text-sm py-2.5 px-5 mb-6">
-              + Ajouter une musique
-            </button>
+            <select value={filtrePays} onChange={(e) => setFiltrePays(e.target.value)} className="w-56 px-3 py-2 border border-navy/15 rounded-lg text-sm bg-white mb-6 focus:outline-none focus:border-coral">
+              <option value="">Tous les pays</option>
+              {paysConnus.map((p) => <option key={p} value={p}>{p}</option>)}
+            </select>
 
-            {musiques.length === 0 ? (
-              <p className="text-sm text-navy/40 text-center py-16">Aucun morceau partagé pour l'instant.</p>
+            {platsFiltres.length === 0 ? (
+              <p className="text-sm text-navy/40 text-center py-16">Aucun plat ne correspond à ces critères.</p>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {musiques.map((m, i) => <MusiqueCard key={m.id_musique} m={m} index={i} />)}
+                {platsFiltres.map((plat) => (
+                  <PlatCard
+                    key={plat.id_plat}
+                    plat={plat}
+                    score={scores[plat.id_plat] || 0}
+                    myVote={myVotes[plat.id_plat]}
+                    isFavori={favoriIds.has(plat.id_plat)}
+                    onToggleFavori={() => toggleFavori(plat.id_plat)}
+                    onVote={(v) => handleVote(plat.id_plat, v)}
+                    onClick={() => navigate(`/carnet-gastronomique/${plat.id_plat}`)}
+                  />
+                ))}
               </div>
             )}
           </div>
@@ -205,15 +196,21 @@ export default function Playlist() {
       </div>
 
       {addOpen && (
-        <AjouterMusiqueModal
+        <AjouterPlatModal
           userId={user.id}
           onClose={() => setAddOpen(false)}
-          onCreated={() => { setAddOpen(false); loadMusiques() }}
+          onCreated={(idPlat) => { setAddOpen(false); navigate(`/carnet-gastronomique/${idPlat}`) }}
         />
       )}
       {pricingOpen && <PricingModal onClose={() => setPricingOpen(false)} />}
       {favoritesOpen && (
-        <FavoritesModal onClose={() => setFavoritesOpen(false)} favoriteDeals={favoriLieuxEtPlats} userId={user.id} favoriteIds={new Set(favoriLieuxEtPlats.map((d) => `${d.type}:${d.id}`))} onToggleFavorite={toggleFavoriGeneric} />
+        <FavoritesModal
+          onClose={() => setFavoritesOpen(false)}
+          favoriteDeals={favoriteDeals}
+          userId={user.id}
+          favoriteIds={new Set(favoriteDeals.map((d) => `${d.type}:${d.id}`))}
+          onToggleFavorite={toggleFavoriGeneric}
+        />
       )}
       {toolboxOpen && <ToolboxModal onClose={() => setToolboxOpen(false)} initialTab={toolboxTab} />}
       {profileOpen && <EditProfileModal userId={user.id} onClose={() => setProfileOpen(false)} />}
