@@ -485,6 +485,15 @@ export default function Sidebar({ onLockedClick, onToolboxClick }) {
           onNavigate={() => setMobileOpen(false)}
         />
 
+        <AdminOnlyNavItem
+  path="/admin-offres"
+  name="Offres demandées"
+  icon="clipboard"
+  isAdminUser={isAdminUser}
+  forceLabelVisible={forceLabelVisible}
+  onNavigate={() => setMobileOpen(false)}
+/>
+
         <div className="h-px bg-navy/10 mx-4 my-2" />
         <Link
           to="/feuille-de-route"
