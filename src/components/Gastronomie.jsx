@@ -189,7 +189,7 @@ export default function Gastronomie() {
 
   const paysConnus = useMemo(() => [...new Set(plats.map((p) => p.pays))].sort(), [plats])
 
-  const { favoriLieuxEtPlats: favoriteDeals, toggleFavoriGeneric } = useFavoriLieuxEtPlats(user)
+  const { favoriLieuxEtPlats: favoriteDeals, toggleFavoriGeneric } = useFavoriLieuxPlatsSpas(user)
   const platsFiltres = useMemo(
     () => filtrePays ? plats.filter((p) => p.pays === filtrePays) : plats,
     [plats, filtrePays]
