@@ -84,7 +84,7 @@ function SejourCard({ sejour, index }) {
 
 export default function Sejours() {
   const { user, allowed } = usePlanAccess('occasional')
-  const { favoriLieuxEtPlats, toggleFavoriGeneric } = useFavoriLieuxPlatsSpasÒ(user)
+  const { favoriLieuxEtPlats, toggleFavoriGeneric } = useFavoriLieuxPlatsSpas(user)
   const [sejours, setSejours] = useState([])
   const [destination, setDestination] = useState('')
   const [budgetMax, setBudgetMax] = useState('')

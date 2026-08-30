@@ -243,7 +243,7 @@ export default function Activites() {
 
   const paysConnus = useMemo(() => [...new Set(lieux.map((l) => l.pays))].sort(), [lieux])
 
-  const { favoriLieuxEtPlats: favoriteDeals, toggleFavoriGeneric } = useFavoriLieuxEtPlats(user)
+  const { favoriLieuxEtPlats: favoriteDeals, toggleFavoriGeneric } = useFavoriLieuxPlatsSpas(user)
   const villesFiltrees = useMemo(() => {
     const source = filtrePays ? lieux.filter((l) => l.pays === filtrePays) : lieux
     return [...new Set(source.map((l) => l.ville))].sort()
