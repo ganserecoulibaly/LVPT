@@ -100,6 +100,19 @@ function transformPlatsFavoris(rows) {
   }))
 }
 
+// Spas (Spa & bien être) mis en favoris — même modèle que lieux/plats
+// ci-dessus.
+function transformSpasFavoris(rows) {
+  return rows.map((r, i) => ({
+    id: r.id_spa, type: 'spa',
+    title: r.nom,
+    price: r.prix_indicatif || 'Spa & bien être',
+    date: `${r.ville}${r.quartier ? ` — ${r.quartier}` : ''}, ${r.pays}`,
+    emoji: '🧖', fallbackGradient: GRADIENTS[i % GRADIENTS.length],
+    image: r.lien_photo || null,
+  }))
+}
+
 const NAVY = [27, 42, 65]
 const CORAL = [216, 90, 48]
 const BLUE = [59, 130, 246]
@@ -428,15 +441,21 @@ export default function Dashboard() {
         )
       }
 
+      // Lieux/plats/spas favoris : pas dans ALL_DEALS (cette page ne
+      // charge pas ces catalogues complets pour son propre usage), donc
+      // récupérés à part, seulement les entrées effectivement favorites.
       const idsLieux = (favoris || []).filter((f) => f.nom === 'lieu').map((f) => f.id_entite)
       const idsPlats = (favoris || []).filter((f) => f.nom === 'plat').map((f) => f.id_entite)
-      const [{ data: lieuxFav }, { data: platsFav }] = await Promise.all([
+      const idsSpas = (favoris || []).filter((f) => f.nom === 'spa').map((f) => f.id_entite)
+      const [{ data: lieuxFav }, { data: platsFav }, { data: spasFav }] = await Promise.all([
         idsLieux.length ? supabase.from('d_lieu').select('*').in('id_lieu', idsLieux) : Promise.resolve({ data: [] }),
         idsPlats.length ? supabase.from('d_plat').select('*').in('id_plat', idsPlats) : Promise.resolve({ data: [] }),
+        idsSpas.length ? supabase.from('s_spa').select('*').in('id_spa', idsSpas) : Promise.resolve({ data: [] }),
       ])
       setFavoriLieuxEtPlats([
         ...transformLieuxFavoris(lieuxFav || []),
         ...transformPlatsFavoris(platsFav || []),
+        ...transformSpasFavoris(spasFav || []),
       ])
     }
     loadDeals()
