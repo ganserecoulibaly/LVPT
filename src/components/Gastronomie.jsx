@@ -10,7 +10,7 @@ import ToolboxModal from './ToolboxModal'
 import Footer from './Footer'
 import { usePlanAccess } from './usePlanAccess'
 import PlanLockedScreen from './PlanLockedScreen'
-import { useFavoriLieuxEtPlats } from './useFavoriLieuxPlatsSpas'
+import { useFavoriLieuxPlatsSpas } from './useFavoriLieuxPlatsSpas'
 
 function AjouterPlatModal({ userId, onClose, onCreated }) {
   const [nomPlat, setNomPlat] = useState('')
