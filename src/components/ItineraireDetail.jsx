@@ -137,7 +137,7 @@ export default function ItineraireDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [user, setUser] = useState(null)
-  const { favoriLieuxEtPlats, refetchFavoriLieuxEtPlats } = useFavoriLieuxEtPlats(user)
+  const { favoriLieuxEtPlats, refetchFavoriLieuxEtPlats } = useFavoriLieuxPlatsSpas(user)
   const [isAdmin, setIsAdmin] = useState(false)
   const [pricingOpen, setPricingOpen] = useState(false)
   const [favoritesOpen, setFavoritesOpen] = useState(false)

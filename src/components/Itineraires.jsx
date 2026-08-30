@@ -253,7 +253,7 @@ function ItineraireCard({ itineraire, authorName, locked, onOpen, onLockedClick,
 export default function Itineraires() {
   const navigate = useNavigate()
   const [user, setUser] = useState(null)
-  const { favoriLieuxEtPlats, refetchFavoriLieuxEtPlats } = useFavoriLieuxEtPlats(user)
+  const { favoriLieuxEtPlats, refetchFavoriLieuxEtPlats } = useFavoriLieuxPlatsSpas(user)
   const [profile, setProfile] = useState(null)
   const [pricingOpen, setPricingOpen] = useState(false)
   const [favoritesOpen, setFavoritesOpen] = useState(false)

@@ -100,7 +100,7 @@ function DepenseRow({ d, onDelete }) {
 
 export default function Depenses() {
   const { user, allowed } = usePlanAccess('occasional')
-  const { favoriLieuxEtPlats, toggleFavoriGeneric } = useFavoriLieuxEtPlats(user)
+  const { favoriLieuxEtPlats, toggleFavoriGeneric } = useFavoriLieuxPlatsSpas(user)
   const [voyages, setVoyages] = useState([])
   const [depenses, setDepenses] = useState([])
 

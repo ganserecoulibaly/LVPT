@@ -35,7 +35,7 @@ function AtelierCard({ atelier, onOpen }) {
 export default function Ateliers() {
   const navigate = useNavigate()
   const [user, setUser] = useState(null)
-  const { favoriLieuxEtPlats, toggleFavoriGeneric } = useFavoriLieuxEtPlats(user)
+  const { favoriLieuxEtPlats, toggleFavoriGeneric } = useFavoriLieuxPlatsSpas(user)
   const [ateliers, setAteliers] = useState([])
   const [pricingOpen, setPricingOpen] = useState(false)
   const [favoritesOpen, setFavoritesOpen] = useState(false)

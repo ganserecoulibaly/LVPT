@@ -75,7 +75,7 @@ function SpaCard({ spa, index, isFavori, onToggleFavori }) {
 
 export default function SpaBienEtre() {
   const { user, allowed } = usePlanAccess('free')
-  const { favoriLieuxEtPlats, toggleFavoriGeneric } = useFavoriLieuxEtPlats(user)
+  const { favoriLieuxEtPlats, toggleFavoriGeneric } = useFavoriLieuxPlatsSpas(user)
   const [spas, setSpas] = useState([])
   const [favoriIds, setFavoriIds] = useState(new Set())
   const [filtreType, setFiltreType] = useState('')

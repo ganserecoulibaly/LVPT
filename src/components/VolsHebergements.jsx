@@ -588,7 +588,7 @@ export default function VolsHebergements() {
   }
 
   const ALL_DEALS = [...flightDeals, ...hotelDeals, ...activityDeals]
-  const { favoriLieuxEtPlats, refetchFavoriLieuxEtPlats } = useFavoriLieuxEtPlats(user)
+  const { favoriLieuxEtPlats, refetchFavoriLieuxEtPlats } = useFavoriLieuxPlatsSpas(user)
   const favoriteDeals = ALL_DEALS.filter((deal) => favoriteIds.has(`${deal.type}:${deal.id}`)).concat(favoriLieuxEtPlats)
 
   if (!user) return null
