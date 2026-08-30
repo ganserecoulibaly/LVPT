@@ -9,7 +9,7 @@ import ToolboxModal from './ToolboxModal'
 import Footer from './Footer'
 import { usePlanAccess } from './usePlanAccess'
 import PlanLockedScreen from './PlanLockedScreen'
-import { useFavoriLieuxEtPlats } from './useFavoriLieuxEtPlats'
+import { useFavoriLieuxEtPlats } from './useFavoriLieuxPlatsSpas'
 import AjouterLieuModal from './AjouterLieuModal'
 
 function formatRelativeDate(dateStr) {

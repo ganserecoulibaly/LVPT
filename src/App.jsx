@@ -36,6 +36,7 @@ import DefisCommunaute from './components/DefisCommunaute'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminOffres from './components/AdminOffres'
 import EspacePro from './components/EspacePro'
+import SpaBienEtre from './components/SpaBienEtre'
 
 // Au fur et à mesure, importe ici les futures pages privées :
 // import Carnet from './components/Carnet'
@@ -98,6 +99,18 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* Ajoutée juste après Itinéraires — plan Gratuit, aucun verrou de
+            plan côté route (la Sidebar l'affiche déjà sans cadenas). */}
+        <Route
+          path="/spa-bien-etre"
+          element={
+            <ProtectedRoute>
+              <SpaBienEtre />
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="/voyage-commun"
           element={
@@ -242,13 +255,13 @@ export default function App() {
 
 
         <Route
-  path="/espace-pro"
-  element={
-    <ProtectedRoute>
-      <EspacePro />
-    </ProtectedRoute>
-  }
-/>
+          path="/espace-pro"
+          element={
+            <ProtectedRoute>
+              <EspacePro />
+            </ProtectedRoute>
+          }
+        />
 
         {/*
           Pour chaque nouvelle page privée, même schéma :

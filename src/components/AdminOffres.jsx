@@ -56,6 +56,7 @@ const SECTIONS = [
   { key: 'playlist', label: 'Playlist' },
   { key: 'gastronomie', label: 'Carnet gastronomique' },
   { key: 'activites', label: 'Activités' },
+  { key: 'spa', label: 'Spa & bien-être' },
 ]
 
 const emptyVol = {

@@ -8,7 +8,7 @@ import FavoritesModal from './FavoritesModal'
 import ToolboxModal from './ToolboxModal'
 import Footer from './Footer'
 import { usePlanAccess } from './usePlanAccess'
-import { useFavoriLieuxEtPlats } from './useFavoriLieuxEtPlats'
+import { useFavoriLieuxEtPlats } from './useFavoriLieuxPlatsSpas'
 import PlanLockedScreen from './PlanLockedScreen'
 
 const GRADIENTS = [

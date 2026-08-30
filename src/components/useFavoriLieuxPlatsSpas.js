@@ -29,16 +29,28 @@ function transformPlatsFavoris(rows) {
   }))
 }
 
-// Récupère les lieux (Activités & musées) et plats (Carnet
-// gastronomique) mis en favoris par l'utilisateur, prêts à fusionner
-// dans le favoriteDeals de n'importe quelle page ayant une modale
-// "Mes favoris". Ne charge que les entrées favorites, jamais tout le
-// catalogue — léger même sur une page qui n'a rien à voir avec ces
-// deux sections. Retourne aussi un toggle générique (basé sur
-// deal.type, marche pour 'lieu' ET 'plat') et une fonction refetch,
-// utiles pour les pages où la modale "Mes favoris" affiche
-// exclusivement ces deux types (Activites.jsx, Gastronomie.jsx).
-export function useFavoriLieuxEtPlats(user) {
+function transformSpasFavoris(rows) {
+  return rows.map((r, i) => ({
+    id: r.id_spa, type: 'spa',
+    title: r.nom,
+    price: r.prix_indicatif || 'Spa & bien être',
+    date: `${r.ville}${r.quartier ? ` — ${r.quartier}` : ''}, ${r.pays}`,
+    emoji: '🧖', fallbackGradient: GRADIENTS[i % GRADIENTS.length],
+    image: r.lien_photo || null,
+  }))
+}
+
+// Récupère les lieux (Activités & musées), plats (Carnet
+// gastronomique) et spas (Spa & bien être) mis en favoris par
+// l'utilisateur, prêts à fusionner dans le favoriteDeals de n'importe
+// quelle page ayant une modale "Mes favoris". Ne charge que les
+// entrées favorites, jamais tout le catalogue — léger même sur une
+// page qui n'a rien à voir avec ces trois sections. Retourne aussi un
+// toggle générique (basé sur deal.type, marche pour 'lieu', 'plat' ET
+// 'spa') et une fonction refetch, utiles pour les pages où la modale
+// "Mes favoris" affiche exclusivement ces types (Activites.jsx,
+// Gastronomie.jsx, SpaBienEtre.jsx).
+export function useFavoriLieuxPlatsSpas(user) {
   const [favoriLieuxEtPlats, setFavoriLieuxEtPlats] = useState([])
 
   const refetch = async () => {
@@ -48,19 +60,22 @@ export function useFavoriLieuxEtPlats(user) {
       .select('id_entite, nom')
       .eq('pid', user.id)
       .eq('actif', true)
-      .in('nom', ['lieu', 'plat'])
+      .in('nom', ['lieu', 'plat', 'spa'])
 
     const idsLieux = (favoris || []).filter((f) => f.nom === 'lieu').map((f) => f.id_entite)
     const idsPlats = (favoris || []).filter((f) => f.nom === 'plat').map((f) => f.id_entite)
+    const idsSpas = (favoris || []).filter((f) => f.nom === 'spa').map((f) => f.id_entite)
 
-    const [{ data: lieuxFav }, { data: platsFav }] = await Promise.all([
+    const [{ data: lieuxFav }, { data: platsFav }, { data: spasFav }] = await Promise.all([
       idsLieux.length ? supabase.from('d_lieu').select('*').in('id_lieu', idsLieux) : Promise.resolve({ data: [] }),
       idsPlats.length ? supabase.from('d_plat').select('*').in('id_plat', idsPlats) : Promise.resolve({ data: [] }),
+      idsSpas.length ? supabase.from('s_spa').select('*').in('id_spa', idsSpas) : Promise.resolve({ data: [] }),
     ])
 
     setFavoriLieuxEtPlats([
       ...transformLieuxFavoris(lieuxFav || []),
       ...transformPlatsFavoris(platsFav || []),
+      ...transformSpasFavoris(spasFav || []),
     ])
   }
 

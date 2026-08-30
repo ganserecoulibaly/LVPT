@@ -36,6 +36,39 @@ const PLAN_MAP: Record<string, string> = {
   grand: "frequent",
 };
 
+const PLAN_LABELS: Record<string, string> = {
+  occasional: "Voyageur occasionnel",
+  frequent: "Grand Voyageur",
+};
+
+// Best-effort : un échec d'envoi n'empêche jamais le changement de plan,
+// juste loggé.
+async function sendWelcomeToPlanEmail(toEmail: string, planLabel: string) {
+  try {
+    await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${Deno.env.get("RESEND_API_KEY")}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: "Le Voyage Pour Tous <noreply@levoyagepourtous.com>",
+        to: toEmail,
+        subject: `Bienvenue sur ${planLabel} !`,
+        text: `Bonjour,\n\nTon abonnement ${planLabel} est maintenant actif. Tu as désormais accès à toutes les fonctionnalités de ce plan sur Le Voyage Pour Tous.\n\nBon voyage !\nL'équipe Le Voyage Pour Tous`,
+      }),
+    });
+  } catch (emailErr) {
+    console.error("Échec de l'envoi de l'email de bienvenue :", emailErr);
+  }
+}
+
+// Modifie l'abonnement Stripe EXISTANT (change juste le price sur le
+// même subscription item) au lieu d'en créer un nouveau via Checkout —
+// évite le double abonnement / double prélèvement. proration_behavior
+// laisse Stripe calculer automatiquement la différence à facturer
+// (upgrade) ou le crédit à appliquer (downgrade) sur la période en
+// cours.
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req.headers.get("origin"));
 
@@ -106,6 +139,8 @@ Deno.serve(async (req) => {
 
     if (updateError) {
       console.error("Erreur mise à jour lvpt (change-subscription-plan) :", updateError);
+    } else if (user.email && PLAN_LABELS[newAbonnement]) {
+      await sendWelcomeToPlanEmail(user.email, PLAN_LABELS[newAbonnement]);
     }
 
     return new Response(

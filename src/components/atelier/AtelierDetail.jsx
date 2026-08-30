@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
-import { useFavoriLieuxEtPlats } from '../useFavoriLieuxEtPlats'
+import { useFavoriLieuxEtPlats } from '../useFavoriLieuxPlatsSpas'
 import Sidebar from '../Sidebar'
 import PageHeader from '../PageHeader'
 import EditProfileModal from '../EditProfileModal'

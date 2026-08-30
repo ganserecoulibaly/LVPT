@@ -24,6 +24,15 @@ const icons = {
       <path d="M8 19h7a4 4 0 0 0 4-4 4 4 0 0 0-4-4H9a4 4 0 0 1-4-4 4 4 0 0 1 4-4h7"/>
     </svg>
   ),
+  // Icône dédiée à "Spa & bien être" : une feuille/goutte évoquant la
+  // détente, distincte des autres pictogrammes déjà utilisés.
+  spa: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2c-1 3-3 4-3 7a3 3 0 0 0 6 0c0-3-2-4-3-7Z"/>
+      <path d="M5 14c1.5 0 2 1 3.5 1s2-1 3.5-1 2 1 3.5 1 2-1 3.5-1"/>
+      <path d="M4 19c1.5 0 2 1 3.5 1s2-1 3.5-1 2 1 3.5 1 2-1 3.5-1"/>
+    </svg>
+  ),
   suitcase: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <rect x="2" y="7" width="20" height="14" rx="2"/>
@@ -142,6 +151,12 @@ const icons = {
       <path d="M9 12h6" /><path d="M9 16h6" />
     </svg>
   ),
+  briefcase: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="7" width="20" height="14" rx="2" />
+      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+    </svg>
+  ),
 }
 
 // À remplacer plus tard par le vrai plan de l'utilisateur (récupéré depuis Supabase)
@@ -166,6 +181,7 @@ const MODULES = [
   { id: 'group', name: 'Voyage commun', icon: 'users', requiredPlan: 'free', path: '/voyage-commun' },
   { id: 'sejours', name: 'Séjours', icon: 'suitcase', requiredPlan: 'occasional', path: '/sejours' },
   { id: 'itineraries', name: 'Itinéraires de vacances', icon: 'route', requiredPlan: 'free', path: '/itineraires' },
+  { id: 'spa', name: 'Spa & bien être', icon: 'spa', requiredPlan: 'free', path: '/spa-bien-etre' },
   { id: 'expenses', name: 'Journal de dépenses', icon: 'wallet', requiredPlan: 'occasional', path: '/depenses' },
   { id: 'playlist', name: 'Playlist du voyage', icon: 'music', requiredPlan: 'occasional', path: '/playlist' },
   { id: 'food', name: 'Carnet gastronomique', icon: 'kitchen', requiredPlan: 'occasional', path: '/carnet-gastronomique' },
@@ -486,22 +502,22 @@ export default function Sidebar({ onLockedClick, onToolboxClick }) {
         />
 
         <AdminOnlyNavItem
-  path="/admin-offres"
-  name="Offres demandées"
-  icon="clipboard"
-  isAdminUser={isAdminUser}
-  forceLabelVisible={forceLabelVisible}
-  onNavigate={() => setMobileOpen(false)}
-/>
+          path="/admin-offres"
+          name="Offres demandées"
+          icon="clipboard"
+          isAdminUser={isAdminUser}
+          forceLabelVisible={forceLabelVisible}
+          onNavigate={() => setMobileOpen(false)}
+        />
 
         <AdminOnlyNavItem
-  path="/espace-pro"
-  name="Espace Pro"
-  icon="briefcase"
-  isAdminUser={isAdminUser}
-  forceLabelVisible={forceLabelVisible}
-  onNavigate={() => setMobileOpen(false)}
-/>
+          path="/espace-pro"
+          name="Espace Pro"
+          icon="briefcase"
+          isAdminUser={isAdminUser}
+          forceLabelVisible={forceLabelVisible}
+          onNavigate={() => setMobileOpen(false)}
+        />
 
         <div className="h-px bg-navy/10 mx-4 my-2" />
         <Link

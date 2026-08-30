@@ -26,6 +26,11 @@ const PRICE_ID_TO_PLAN: Record<string, string> = {
   [Deno.env.get("STRIPE_PRICE_GRAND_ANNUEL")!]: "frequent",
 };
 
+const PLAN_LABELS: Record<string, string> = {
+  occasional: "Voyageur occasionnel",
+  frequent: "Grand Voyageur",
+};
+
 // Alerte email immédiate en cas d'erreur dans le traitement d'un
 // événement Stripe — sans ça, un webhook cassé passerait inaperçu
 // jusqu'à ce qu'un utilisateur (ou toi) remarque un abonnement pas à
@@ -51,6 +56,30 @@ async function sendAdminAlert(subject: string, details: string) {
   }
 }
 
+// Email de bienvenue au client, envoyé à chaque première souscription
+// (ce fichier) ET à chaque changement de plan payant↔payant (voir
+// change-subscription-plan). Best-effort : un échec d'envoi n'empêche
+// jamais la mise à jour du plan, juste loggé.
+async function sendWelcomeToPlanEmail(toEmail: string, planLabel: string) {
+  try {
+    await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${Deno.env.get("RESEND_API_KEY")}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: "Le Voyage Pour Tous <noreply@levoyagepourtous.com>",
+        to: toEmail,
+        subject: `Bienvenue sur ${planLabel} !`,
+        text: `Bonjour,\n\nTon abonnement ${planLabel} est maintenant actif. Tu as désormais accès à toutes les fonctionnalités de ce plan sur Le Voyage Pour Tous.\n\nBon voyage !\nL'équipe Le Voyage Pour Tous`,
+      }),
+    });
+  } catch (emailErr) {
+    console.error("Échec de l'envoi de l'email de bienvenue :", emailErr);
+  }
+}
+
 Deno.serve(async (req) => {
   const signature = req.headers.get("stripe-signature");
   const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET")!;
@@ -72,10 +101,11 @@ Deno.serve(async (req) => {
   const supabase = createAdminClient();
 
   switch (event.type) {
+    // Paiement initial validé → on active le plan choisi
     case "checkout.session.completed": {
       const session = event.data.object as any;
       const pid = session.client_reference_id ?? session.metadata?.pid;
-      const rawPlan = session.metadata?.plan;
+      const rawPlan = session.metadata?.plan; // "occasionnel" | "grand"
       const plan = PLAN_MAP[rawPlan] ?? rawPlan;
 
       if (pid && plan) {
@@ -95,11 +125,19 @@ Deno.serve(async (req) => {
             "Erreur webhook — checkout.session.completed",
             `Impossible de mettre à jour lvpt pour l'utilisateur ${pid} (plan ${plan}).\n\nErreur : ${error.message}`
           );
+        } else if (session.customer_details?.email && PLAN_LABELS[plan]) {
+          await sendWelcomeToPlanEmail(session.customer_details.email, PLAN_LABELS[plan]);
         }
       }
       break;
     }
 
+    // Renouvellement, changement de statut, OU changement de plan fait
+    // depuis le Billing Portal (Stripe envoie ce même événement dans les
+    // trois cas). Si l'abonnement n'est plus actif → retour au Gratuit.
+    // Si actif → on relit le price_id courant pour détecter un éventuel
+    // changement de plan (upgrade/downgrade fait hors de change-subscription-plan)
+    // et on met lvpt.abonnement à jour en conséquence.
     case "customer.subscription.updated": {
       const subscription = event.data.object as any;
       const isActive = ["active", "trialing"].includes(subscription.status);
@@ -149,6 +187,7 @@ Deno.serve(async (req) => {
       break;
     }
 
+    // Abonnement résilié (fin de période) → retour au plan Gratuit
     case "customer.subscription.deleted": {
       const subscription = event.data.object as any;
       const { error } = await supabase
@@ -166,6 +205,8 @@ Deno.serve(async (req) => {
       break;
     }
 
+    // Échec de paiement d'un renouvellement → on lève le flag pour
+    // afficher un bandeau d'alerte côté Dashboard.
     case "invoice.payment_failed": {
       const invoice = event.data.object as any;
       if (invoice.subscription) {
@@ -185,6 +226,8 @@ Deno.serve(async (req) => {
       break;
     }
 
+    // Paiement de facture réussi (renouvellement classique) → on lève
+    // le flag au cas où un échec précédent avait été résolu.
     case "invoice.payment_succeeded": {
       const invoice = event.data.object as any;
       if (invoice.subscription) {
@@ -205,6 +248,7 @@ Deno.serve(async (req) => {
     }
 
     default:
+      // Événement non traité explicitement, on l'ignore
       break;
   }
 
