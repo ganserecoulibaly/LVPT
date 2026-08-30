@@ -8,7 +8,7 @@ import FavoritesModal from './FavoritesModal'
 import ToolboxModal from './ToolboxModal'
 import Footer from './Footer'
 import { usePlanAccess } from './usePlanAccess'
-import { useFavoriLieuxEtPlats } from './useFavoriLieuxPlatsSpas'
+import { useFavoriLieuxPlatsSpas } from './useFavoriLieuxPlatsSpas'
 
 const GRADIENTS = [
   'linear-gradient(135deg, #F0997B, #D85A30)',
