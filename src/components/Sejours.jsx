@@ -74,7 +74,7 @@ function SejourCard({ sejour, index }) {
               Voir l'offre ↗
             </a>
           ) : (
-            <span className="text-[11px] text-navy/30">Offre indisponible</span>
+            <span className="text-[11px] text-navy/30">OffreÒ indisponible</span>
           )}
         </div>
       </div>
@@ -84,7 +84,7 @@ function SejourCard({ sejour, index }) {
 
 export default function Sejours() {
   const { user, allowed } = usePlanAccess('occasional')
-  const { favoriLieuxEtPlats, toggleFavoriGeneric } = useFavoriLieuxEtPlats(user)
+  const { favoriLieuxEtPlats, toggleFavoriGeneric } = useFavoriLieuxPlatsSpasÒ(user)
   const [sejours, setSejours] = useState([])
   const [destination, setDestination] = useState('')
   const [budgetMax, setBudgetMax] = useState('')
