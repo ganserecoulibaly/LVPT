@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 // Icônes en ligne, mêmes tracés que ceux déjà utilisés ailleurs dans
@@ -74,21 +74,24 @@ const ITEMS = [
   { id: 'depenses', label: 'Ajouter une dépense', icon: 'wallet', requiredPlan: 'occasional', action: 'depenses' },
   { id: 'playlist', label: 'Ajouter une musique', icon: 'music', requiredPlan: 'occasional', action: 'playlist' },
   { id: 'gastronomie', label: 'Ajouter un plat', icon: 'kitchen', requiredPlan: 'occasional', action: 'gastronomie' },
-  { id: 'activites', label: 'Ajouter une activité', icon: 'mapPin', requiredPlan: 'frequent', action: 'activites' },
+  { id: 'activites', label: 'Ajouter un lieu', icon: 'mapPin', requiredPlan: 'frequent', action: 'activites' },
 ]
 
 // Menu "+" partagé entre Dashboard, Itineraires, VolsHebergements et
 // VoyageCommun — pas de dépendance externe, fermeture au clic extérieur
 // (même pattern que le menu de compte dans Navbar.jsx).
 //
+// Le popup est positionné en `fixed` et centré horizontalement par
+// rapport à l'ÉCRAN entier (pas relatif au bouton) sur mobile — un
+// positionnement relatif au bouton (absolute left-0/right-0) débordait
+// systématiquement du viewport selon l'endroit où le bouton "+" est
+// affiché sur la page. Sur desktop (sm:), on repasse à un positionnement
+// classique ancré sous le bouton, où il y a assez de place.
+//
 // currentPlan / isAdmin : contrôlent le verrouillage des options, comme
 // dans Sidebar.jsx — un admin voit toujours tout débloqué. onLockedClick
 // est appelé quand une option verrouillée est cliquée (ouvre PricingModal
 // côté page appelante, même pattern que Sidebar).
-//
-// Callbacks optionnels par action : onCreateItineraire, onCreateVoyageCommun,
-// onSearchFlights (déjà existants), onAddDepense, onAddMusique, onAddPlat,
-// onAddLieu (nouveaux) — chacun ouvre sa modale ou navigue selon le cas.
 export default function QuickAddMenu({
   open,
   onToggle,
@@ -105,30 +108,18 @@ export default function QuickAddMenu({
   onLockedClick,
 }) {
   const ref = useRef(null)
+  const menuRef = useRef(null)
   const navigate = useNavigate()
-  // Position du menu déroulant, calculée dynamiquement pour rester
-  // centré/visible sur mobile plutôt que collé au bord gauche du bouton
-  // (qui pouvait déborder de l'écran selon l'endroit où le bouton "+" est
-  // affiché).
-  const [alignRight, setAlignRight] = useState(false)
 
   useEffect(() => {
     function handleClickOutside(e) {
-      if (ref.current && !ref.current.contains(e.target)) onClose()
+      const clickedButton = ref.current && ref.current.contains(e.target)
+      const clickedMenu = menuRef.current && menuRef.current.contains(e.target)
+      if (!clickedButton && !clickedMenu) onClose()
     }
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [onClose])
-
-  useEffect(() => {
-    if (!open || !ref.current) return
-    // Si le bouton est dans la moitié droite de l'écran, on ouvre le menu
-    // vers la gauche plutôt que vers la droite, pour ne jamais déborder du
-    // viewport sur mobile (où le popup fait presque toute la largeur).
-    const rect = ref.current.getBoundingClientRect()
-    const viewportWidth = window.innerWidth
-    setAlignRight(rect.left > viewportWidth / 2)
-  }, [open])
 
   function resolveAction(item) {
     const unlocked = isAdmin || isUnlocked(item.requiredPlan, currentPlan)
@@ -168,6 +159,31 @@ export default function QuickAddMenu({
     }
   }
 
+  function renderItems() {
+    return ITEMS.map((item) => {
+      const unlocked = isAdmin || isUnlocked(item.requiredPlan, currentPlan)
+      return (
+        <button
+          key={item.id}
+          onClick={() => resolveAction(item)}
+          className="w-full flex items-center gap-3 text-left px-4 py-2.5 text-sm hover:bg-navy/5 transition-colors"
+        >
+          <span className={unlocked ? 'text-navy/60 shrink-0' : 'text-navy/25 shrink-0'}>
+            {icons[item.icon]}
+          </span>
+          <span className={unlocked ? 'text-navy flex-1' : 'text-navy/40 flex-1'}>
+            {item.label}
+          </span>
+          {!unlocked && (
+            <span className="shrink-0 w-4 h-4 rounded-full bg-navy flex items-center justify-center">
+              {icons.lock}
+            </span>
+          )}
+        </button>
+      )
+    })
+  }
+
   return (
     <div className="relative" ref={ref}>
       <button
@@ -183,35 +199,18 @@ export default function QuickAddMenu({
       </button>
 
       {open && (
-        <div
-          className={
-            'absolute mt-2 w-[calc(100vw-2rem)] max-w-72 bg-white rounded-xl shadow-lg border border-navy/10 py-1.5 z-20 ' +
-            (alignRight ? 'right-0' : 'left-0')
-          }
-        >
-          {ITEMS.map((item) => {
-            const unlocked = isAdmin || isUnlocked(item.requiredPlan, currentPlan)
-            return (
-              <button
-                key={item.id}
-                onClick={() => resolveAction(item)}
-                className="w-full flex items-center gap-3 text-left px-4 py-2.5 text-sm hover:bg-navy/5 transition-colors"
-              >
-                <span className={unlocked ? 'text-navy/60 shrink-0' : 'text-navy/25 shrink-0'}>
-                  {icons[item.icon]}
-                </span>
-                <span className={unlocked ? 'text-navy flex-1' : 'text-navy/40 flex-1'}>
-                  {item.label}
-                </span>
-                {!unlocked && (
-                  <span className="shrink-0 w-4 h-4 rounded-full bg-navy flex items-center justify-center">
-                    {icons.lock}
-                  </span>
-                )}
-              </button>
-            )
-          })}
-        </div>
+        <>
+          <div
+            ref={menuRef}
+            className="sm:hidden fixed left-1/2 -translate-x-1/2 top-24 w-[calc(100vw-2rem)] max-w-sm bg-white rounded-xl shadow-lg border border-navy/10 py-1.5 z-50"
+          >
+            {renderItems()}
+          </div>
+
+          <div className="hidden sm:block absolute left-0 mt-2 w-72 bg-white rounded-xl shadow-lg border border-navy/10 py-1.5 z-20">
+            {renderItems()}
+          </div>
+        </>
       )}
     </div>
   )
