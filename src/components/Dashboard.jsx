@@ -21,6 +21,9 @@ import DealsRow from './DealsRow'
 import PaymentSuccessModal from './PaymentSuccessModal'
 import CancellationConfirmedModal from './CancellationConfirmedModal'
 import PaymentFailedBanner from './PaymentFailedBanner'
+import AjouterMusiqueModal from './AjouterMusiqueModal'
+import AjouterPlatModal from './AjouterPlatModal'
+import AjouterLieuModal from './AjouterLieuModal'
 
 const GRADIENTS = [
   'from-[#D85A30]/30 to-[#8B2F1A]/20',
@@ -336,6 +339,9 @@ export default function Dashboard() {
   const [quickAddOpen, setQuickAddOpen] = useState(false)
   const [quickCreateItineraireOpen, setQuickCreateItineraireOpen] = useState(false)
   const [quickCreateVoyageCommunOpen, setQuickCreateVoyageCommunOpen] = useState(false)
+  const [quickAddMusiqueOpen, setQuickAddMusiqueOpen] = useState(false)
+  const [quickAddPlatOpen, setQuickAddPlatOpen] = useState(false)
+  const [quickAddLieuOpen, setQuickAddLieuOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [firstTimeProfileOpen, setFirstTimeProfileOpen] = useState(false)
   const [toolboxOpen, setToolboxOpen] = useState(false)
@@ -528,6 +534,12 @@ export default function Dashboard() {
                 onCreateItineraire={() => { setQuickAddOpen(false); setQuickCreateItineraireOpen(true) }}
                 onCreateVoyageCommun={() => { setQuickAddOpen(false); setQuickCreateVoyageCommunOpen(true) }}
                 onSearchFlights={() => { setQuickAddOpen(false); navigate('/vols-hebergements') }}
+                onAddMusique={() => { setQuickAddOpen(false); setQuickAddMusiqueOpen(true) }}
+                onAddPlat={() => { setQuickAddOpen(false); setQuickAddPlatOpen(true) }}
+                onAddLieu={() => { setQuickAddOpen(false); setQuickAddLieuOpen(true) }}
+                currentPlan={currentPlan}
+                isAdmin={isAdmin}
+                onLockedClick={() => setPricingOpen(true)}
               />
             </div>
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 mb-6">
@@ -660,6 +672,30 @@ export default function Dashboard() {
           userId={user.id}
           onClose={() => setQuickCreateVoyageCommunOpen(false)}
           onCreated={() => { setQuickCreateVoyageCommunOpen(false); navigate('/voyage-commun') }}
+        />
+      )}
+
+      {quickAddMusiqueOpen && (
+        <AjouterMusiqueModal
+          userId={user.id}
+          onClose={() => setQuickAddMusiqueOpen(false)}
+          onCreated={() => { setQuickAddMusiqueOpen(false); navigate('/playlist') }}
+        />
+      )}
+
+      {quickAddPlatOpen && (
+        <AjouterPlatModal
+          userId={user.id}
+          onClose={() => setQuickAddPlatOpen(false)}
+          onCreated={(idPlat) => { setQuickAddPlatOpen(false); navigate(`/carnet-gastronomique/${idPlat}`) }}
+        />
+      )}
+
+      {quickAddLieuOpen && (
+        <AjouterLieuModal
+          userId={user.id}
+          onClose={() => setQuickAddLieuOpen(false)}
+          onCreated={() => { setQuickAddLieuOpen(false); navigate('/activites') }}
         />
       )}
     </>
