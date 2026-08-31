@@ -1,10 +1,23 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from './supabaseClient'
 
 const NAVY = [27, 42, 65]
 const CORAL = [216, 90, 48]
 const BLUE = [59, 130, 246]
 const MAX_MAGNITUDE = 10
+
+// Types dont la carte doit ouvrir une vraie page de détail interne au clic
+// (itinéraire, post Voyage commun, plat du carnet gastro) plutôt que de
+// rester statique. Les autres types (vol, hébergement, activité, lieu,
+// spa) n'ont pas de fiche de détail dédiée — leur bouton "Voir l'offre"
+// (lien externe) reste le seul point d'action, la carte elle-même
+// n'est pas cliquable pour eux.
+const DETAIL_ROUTES = {
+  itineraire: (id) => `/itineraires/${id}`,
+  voyage_commun: (id) => `/voyage-commun/${id}`,
+  plat: (id) => `/carnet-gastronomique/${id}`,
+}
 
 function mix(colorA, colorB, t) {
   return colorA.map((c, i) => Math.round(c + (colorB[i] - c) * t))
@@ -25,11 +38,14 @@ function HeartIcon({ filled }) {
   )
 }
 
-// deal doit contenir : id, type ('vol' | 'hebergement' | 'activite'), title, price, date, emoji, fallbackGradient, image?, sharedBy?
+// deal doit contenir : id, type ('vol' | 'hebergement' | 'activite' | 'itineraire' | 'voyage_commun' | 'plat' | 'lieu' | 'spa'), title, price, date, emoji, fallbackGradient, image?, sharedBy?
 export default function DealCard({ deal, userId, isFavorite, onToggleFavorite }) {
+  const navigate = useNavigate()
   const [aggregateScore, setAggregateScore] = useState(0)
   const [myVote, setMyVote] = useState(null) // -1 | 1 | null
   const color = getCounterColor(aggregateScore)
+
+  const detailRoute = DETAIL_ROUTES[deal.type]?.(deal.id)
 
   useEffect(() => {
     async function loadVotes() {
@@ -72,8 +88,17 @@ export default function DealCard({ deal, userId, isFavorite, onToggleFavorite })
     setMyVote(value)
   }
 
+  const handleCardClick = () => {
+    if (detailRoute) navigate(detailRoute)
+  }
+
   return (
-    <div className="rounded-xl overflow-hidden bg-white border border-navy/10">
+    <div
+      onClick={handleCardClick}
+      className={`rounded-xl overflow-hidden bg-white border border-navy/10 ${
+        detailRoute ? 'cursor-pointer hover:border-navy/20 transition-colors' : ''
+      }`}
+    >
       <div className="relative">
         {deal.image ? (
           <img src={deal.image} alt={deal.title} className="w-full h-28 object-cover" />
@@ -84,7 +109,7 @@ export default function DealCard({ deal, userId, isFavorite, onToggleFavorite })
         )}
 
         <button
-          onClick={() => onToggleFavorite?.(deal)}
+          onClick={(e) => { e.stopPropagation(); onToggleFavorite?.(deal) }}
           className="absolute top-2 right-2 w-7 h-7 rounded-full bg-navy/30 backdrop-blur-sm flex items-center justify-center hover:bg-navy/45 transition-colors"
           aria-label={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
         >
@@ -101,10 +126,11 @@ export default function DealCard({ deal, userId, isFavorite, onToggleFavorite })
         <div className="flex items-baseline justify-between mb-2">
           <p className="text-lg font-serif text-coral">{deal.price}</p>
           {deal.link && (
-            <a
+            
               href={deal.link}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
               className="text-xs text-coral hover:underline shrink-0 ml-2"
             >
               Voir l'offre ↗
@@ -114,7 +140,7 @@ export default function DealCard({ deal, userId, isFavorite, onToggleFavorite })
 
         <div className="flex items-center gap-3">
           <button
-            onClick={() => castVote(-1)}
+            onClick={(e) => { e.stopPropagation(); castVote(-1) }}
             className={`w-7 h-7 rounded-full border flex items-center justify-center transition-colors shrink-0 ${
               myVote === -1 ? 'border-blue-400 bg-blue-50 text-blue-600' : 'border-navy/15 text-navy/60 hover:bg-navy/5'
             }`}
@@ -133,7 +159,7 @@ export default function DealCard({ deal, userId, isFavorite, onToggleFavorite })
           </span>
 
           <button
-            onClick={() => castVote(1)}
+            onClick={(e) => { e.stopPropagation(); castVote(1) }}
             className={`w-7 h-7 rounded-full border flex items-center justify-center transition-colors shrink-0 ${
               myVote === 1 ? 'border-coral bg-coral/10 text-coral' : 'border-navy/15 text-navy/60 hover:bg-navy/5'
             }`}
