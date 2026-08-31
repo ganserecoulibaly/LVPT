@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { supabase } from './supabaseClient'
+import PaysAutocomplete from './PaysAutocomplete'
 
 const PLATEFORMES = [
   { key: 'lien_spotify', label: 'Spotify' },
@@ -53,7 +54,12 @@ export default function AjouterMusiqueModal({ userId, onClose, onCreated }) {
         <div className="flex flex-col gap-2.5 mb-4">
           <input type="text" placeholder="Titre du morceau" value={titre} onChange={(e) => setTitre(e.target.value)} className="px-3 py-2.5 border border-navy/15 rounded-lg text-sm focus:outline-none focus:border-coral" />
           <input type="text" placeholder="Artiste" value={artiste} onChange={(e) => setArtiste(e.target.value)} className="px-3 py-2.5 border border-navy/15 rounded-lg text-sm focus:outline-none focus:border-coral" />
-          <input type="text" placeholder="Pays (facultatif)" value={pays} onChange={(e) => setPays(e.target.value)} className="px-3 py-2.5 border border-navy/15 rounded-lg text-sm focus:outline-none focus:border-coral" />
+          <PaysAutocomplete
+            label=""
+            placeholder="Pays (facultatif)"
+            value={pays}
+            onChange={setPays}
+          />
         </div>
 
         <p className="text-xs text-navy/40 uppercase tracking-wide mb-2">Liens (facultatifs)</p>
