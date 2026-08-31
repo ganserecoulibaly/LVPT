@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { supabase } from './supabaseClient'
+import PaysAutocomplete from './PaysAutocomplete'
 
 const CATEGORIE_ORDRE = ['Conseil', 'Bon plan', 'Tips', 'Vigilance', 'Arnaque']
 const CATEGORIE_STYLE = {
@@ -66,8 +67,13 @@ export default function AjouterLieuModal({ userId, onClose, onCreated }) {
         <div className="flex flex-col gap-2.5 mb-4">
           <input type="text" placeholder="Nom du lieu (ex : Le Louvre)" value={nom} onChange={(e) => setNom(e.target.value)} className="px-3 py-2.5 border border-navy/15 rounded-lg text-sm focus:outline-none focus:border-coral" />
           <div className="grid grid-cols-2 gap-2">
-            <input type="text" placeholder="Pays" value={pays} onChange={(e) => setPays(e.target.value)} className="px-3 py-2.5 border border-navy/15 rounded-lg text-sm focus:outline-none focus:border-coral" />
-            <input type="text" placeholder="Ville" value={ville} onChange={(e) => setVille(e.target.value)} className="px-3 py-2.5 border border-navy/15 rounded-lg text-sm focus:outline-none focus:border-coral" />
+            <PaysAutocomplete
+              label=""
+              placeholder="Pays"
+              value={pays}
+              onChange={setPays}
+            />
+            <input type="text" placeholder="Ville" value={ville} onChange={(e) => setVille(e.target.value)} className="px-3 py-2.5 border border-navy/15 rounded-lg text-sm focus:outline-none focus:border-coral self-end" />
           </div>
           <input type="text" placeholder="Quartier (facultatif)" value={quartier} onChange={(e) => setQuartier(e.target.value)} className="px-3 py-2.5 border border-navy/15 rounded-lg text-sm focus:outline-none focus:border-coral" />
         </div>
