@@ -10,6 +10,7 @@ import Footer from './Footer'
 import { usePlanAccess } from './usePlanAccess'
 import { useFavoriLieuxPlatsSpas } from './useFavoriLieuxPlatsSpas'
 import PlanLockedScreen from './PlanLockedScreen'
+import PaysAutocomplete from './PaysAutocomplete'
 
 // Même source que le convertisseur de devises de la Boîte à outils
 // (ToolboxModal.jsx) — cohérence sur toute l'app, un seul mécanisme
@@ -455,10 +456,11 @@ export default function Depenses() {
               <div className="bg-white border border-navy/10 rounded-xl p-4 mb-6">
                 <p className="text-xs text-navy/40 uppercase tracking-wide mb-3">Ton voyage</p>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-2">
-                  <input
-                    type="text" placeholder="Pays (ex : Maroc)" list="pays-connus"
-                    value={newPays} onChange={(e) => setNewPays(e.target.value)}
-                    className="px-3 py-2 border border-navy/15 rounded-lg text-sm focus:outline-none focus:border-coral"
+                  <PaysAutocomplete
+                    label=""
+                    placeholder="Pays (ex : Maroc)"
+                    value={newPays}
+                    onChange={setNewPays}
                   />
                   <input
                     type="text" placeholder="Ville (ex : Marrakech)" list="villes-nouveau-voyage"
