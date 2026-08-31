@@ -24,6 +24,7 @@ import PaymentFailedBanner from './PaymentFailedBanner'
 import AjouterMusiqueModal from './AjouterMusiqueModal'
 import AjouterPlatModal from './AjouterPlatModal'
 import AjouterLieuModal from './AjouterLieuModal'
+import FlightHotelSearch from './FlightHotelSearch'
 
 const GRADIENTS = [
   'from-[#D85A30]/30 to-[#8B2F1A]/20',
@@ -342,6 +343,7 @@ export default function Dashboard() {
   const [quickAddMusiqueOpen, setQuickAddMusiqueOpen] = useState(false)
   const [quickAddPlatOpen, setQuickAddPlatOpen] = useState(false)
   const [quickAddLieuOpen, setQuickAddLieuOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [firstTimeProfileOpen, setFirstTimeProfileOpen] = useState(false)
   const [toolboxOpen, setToolboxOpen] = useState(false)
@@ -533,7 +535,7 @@ export default function Dashboard() {
                 onClose={() => setQuickAddOpen(false)}
                 onCreateItineraire={() => { setQuickAddOpen(false); setQuickCreateItineraireOpen(true) }}
                 onCreateVoyageCommun={() => { setQuickAddOpen(false); setQuickCreateVoyageCommunOpen(true) }}
-                onSearchFlights={() => { setQuickAddOpen(false); navigate('/vols-hebergements') }}
+                onSearchFlights={() => { setQuickAddOpen(false); setSearchOpen(true) }}
                 onAddMusique={() => { setQuickAddOpen(false); setQuickAddMusiqueOpen(true) }}
                 onAddPlat={() => { setQuickAddOpen(false); setQuickAddPlatOpen(true) }}
                 onAddLieu={() => { setQuickAddOpen(false); setQuickAddLieuOpen(true) }}
@@ -697,6 +699,32 @@ export default function Dashboard() {
           onClose={() => setQuickAddLieuOpen(false)}
           onCreated={() => { setQuickAddLieuOpen(false); navigate('/activites') }}
         />
+      )}
+
+      {searchOpen && (
+        <div
+          onClick={() => setSearchOpen(false)}
+          style={{ position: 'fixed', inset: 0, zIndex: 1000 }}
+          className="flex justify-center overflow-y-auto bg-navy/45 px-4 py-8"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ height: 'fit-content' }}
+            className="bg-cream rounded-2xl p-6 sm:p-8 w-full max-w-3xl relative m-auto"
+          >
+            <button
+              onClick={() => setSearchOpen(false)}
+              className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center text-navy/40 hover:text-navy transition-colors z-10"
+              aria-label="Fermer"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+            <FlightHotelSearch hideIntro />
+          </div>
+        </div>
       )}
     </>
   )
