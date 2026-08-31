@@ -525,6 +525,7 @@ export default function Dashboard() {
               onUpgradeClick={() => setPricingOpen(true)}
               onProfileClick={() => setProfileOpen(true)}
               currentPlan={currentPlan}
+              isAdmin={isAdmin}
             />
 
             <div className="flex items-center justify-center sm:justify-start gap-3 mb-2">
