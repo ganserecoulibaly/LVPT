@@ -15,6 +15,9 @@ import PricingModal from './PricingModal'
 import FavoritesModal from './FavoritesModal'
 import ToolboxModal from './ToolboxModal'
 import FlightHotelSearch from './FlightHotelSearch'
+import AjouterMusiqueModal from './AjouterMusiqueModal'
+import AjouterPlatModal from './AjouterPlatModal'
+import AjouterLieuModal from './AjouterLieuModal'
 
 const GRADIENTS = [
   'from-[#D85A30]/30 to-[#8B2F1A]/20',
@@ -479,6 +482,8 @@ function BudgetSummary({ vols, stays, nights }) {
 export default function VolsHebergements() {
   const navigate = useNavigate()
   const [user, setUser] = useState(null)
+  const [currentPlan, setCurrentPlan] = useState('free')
+  const [isAdmin, setIsAdmin] = useState(false)
   const [pricingOpen, setPricingOpen] = useState(false)
   const [favoritesOpen, setFavoritesOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
@@ -488,6 +493,9 @@ export default function VolsHebergements() {
   const [quickAddOpen, setQuickAddOpen] = useState(false)
   const [quickCreateItineraireOpen, setQuickCreateItineraireOpen] = useState(false)
   const [quickCreateVoyageCommunOpen, setQuickCreateVoyageCommunOpen] = useState(false)
+  const [quickAddMusiqueOpen, setQuickAddMusiqueOpen] = useState(false)
+  const [quickAddPlatOpen, setQuickAddPlatOpen] = useState(false)
+  const [quickAddLieuOpen, setQuickAddLieuOpen] = useState(false)
 
   const [flightDeals, setFlightDeals] = useState([])
   const [hotelDeals, setHotelDeals] = useState([])
@@ -507,6 +515,18 @@ export default function VolsHebergements() {
       setUser(session?.user ?? null)
     })
   }, [])
+
+  // currentPlan/isAdmin manquaient ici — sans eux, QuickAddMenu retombait
+  // sur ses valeurs par défaut ('free', false) et verrouillait ses options
+  // même pour un compte admin. Même requête que Dashboard.jsx.
+  useEffect(() => {
+    if (!user) return
+    supabase.from('lvpt').select('abonnement, is_admin').eq('id', user.id).single()
+      .then(({ data }) => {
+        setCurrentPlan(data?.abonnement || 'free')
+        setIsAdmin(Boolean(data?.is_admin))
+      })
+  }, [user])
 
   useEffect(() => {
     if (!user) return
@@ -619,6 +639,12 @@ export default function VolsHebergements() {
                   onCreateItineraire={() => { setQuickAddOpen(false); setQuickCreateItineraireOpen(true) }}
                   onCreateVoyageCommun={() => { setQuickAddOpen(false); setQuickCreateVoyageCommunOpen(true) }}
                   onSearchFlights={() => { setQuickAddOpen(false); setSearchOpen(true) }}
+                  onAddMusique={() => { setQuickAddOpen(false); setQuickAddMusiqueOpen(true) }}
+                  onAddPlat={() => { setQuickAddOpen(false); setQuickAddPlatOpen(true) }}
+                  onAddLieu={() => { setQuickAddOpen(false); setQuickAddLieuOpen(true) }}
+                  currentPlan={currentPlan}
+                  isAdmin={isAdmin}
+                  onLockedClick={() => setPricingOpen(true)}
                 />
               </div>
               <p className="text-navy/70 text-center sm:text-left">
@@ -735,6 +761,30 @@ export default function VolsHebergements() {
           userId={user.id}
           onClose={() => setQuickCreateVoyageCommunOpen(false)}
           onCreated={() => { setQuickCreateVoyageCommunOpen(false); navigate('/voyage-commun') }}
+        />
+      )}
+
+      {quickAddMusiqueOpen && (
+        <AjouterMusiqueModal
+          userId={user.id}
+          onClose={() => setQuickAddMusiqueOpen(false)}
+          onCreated={() => { setQuickAddMusiqueOpen(false); navigate('/playlist') }}
+        />
+      )}
+
+      {quickAddPlatOpen && (
+        <AjouterPlatModal
+          userId={user.id}
+          onClose={() => setQuickAddPlatOpen(false)}
+          onCreated={(idPlat) => { setQuickAddPlatOpen(false); navigate(`/carnet-gastronomique/${idPlat}`) }}
+        />
+      )}
+
+      {quickAddLieuOpen && (
+        <AjouterLieuModal
+          userId={user.id}
+          onClose={() => setQuickAddLieuOpen(false)}
+          onCreated={() => { setQuickAddLieuOpen(false); navigate('/activites') }}
         />
       )}
 
