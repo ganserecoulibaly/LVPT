@@ -165,7 +165,7 @@ function MilesComparator() {
       <div className="bg-white border border-navy/10 rounded-2xl shadow-sm p-6 mb-6">
         <div className="grid grid-cols-3 gap-4">
           <div>
-            <label className="block text-xs text-navy/50 mb-2">Prix du billet en euros</label>
+            <label className="block text-xs text-navy/50 mb-2">Prix du billet en €</label>
             <div className="flex items-center border border-navy/15 rounded-lg px-3 py-2.5 focus-within:ring-2 focus-within:ring-coral/40">
               <input
                 type="number"
