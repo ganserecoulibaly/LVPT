@@ -74,7 +74,7 @@ const ITEMS = [
   { id: 'depenses', label: 'Ajouter une dépense', icon: 'wallet', requiredPlan: 'occasional', action: 'depenses' },
   { id: 'playlist', label: 'Ajouter une musique', icon: 'music', requiredPlan: 'occasional', action: 'playlist' },
   { id: 'gastronomie', label: 'Ajouter un plat', icon: 'kitchen', requiredPlan: 'occasional', action: 'gastronomie' },
-  { id: 'activites', label: 'Ajouter un lieu', icon: 'mapPin', requiredPlan: 'frequent', action: 'activites' },
+  { id: 'activites', label: 'Ajouter une activité', icon: 'mapPin', requiredPlan: 'frequent', action: 'activites' },
 ]
 
 // Menu "+" partagé entre Dashboard, Itineraires, VolsHebergements et
