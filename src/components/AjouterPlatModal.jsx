@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { supabase } from './supabaseClient'
+import PaysAutocomplete from './PaysAutocomplete'
 
 export default function AjouterPlatModal({ userId, onClose, onCreated }) {
   const [nomPlat, setNomPlat] = useState('')
@@ -70,10 +71,13 @@ export default function AjouterPlatModal({ userId, onClose, onCreated }) {
               <label className={labelClass}>Ville <span className="text-red-500">*</span></label>
               <input type="text" value={ville} onChange={(e) => setVille(e.target.value)} className={inputClass} />
             </div>
-            <div>
-              <label className={labelClass}>Pays <span className="text-red-500">*</span></label>
-              <input type="text" value={pays} onChange={(e) => setPays(e.target.value)} className={inputClass} />
-            </div>
+            <PaysAutocomplete
+              label="Pays"
+              placeholder="France"
+              value={pays}
+              onChange={setPays}
+              required
+            />
           </div>
           <div>
             <label className={labelClass}>Prix <span className="text-red-500">*</span></label>
