@@ -31,9 +31,9 @@
   .section-subtitle {
     @apply font-sans text-navy/70 text-base md:text-lg leading-relaxed;
   }
-  .btn-primary {
-    @apply bg-coral text-white font-sans font-medium px-7 py-3 rounded-full hover:bg-coral/90 transition-all duration-200 inline-flex items-center gap-2;
-  }
+ .btn-primary {
+  @apply bg-coral text-white font-sans font-medium px-7 py-3 rounded-full hover:bg-coral/90 transition-all duration-200 inline-flex items-center justify-center gap-2;
+  }  
   .btn-ghost {
     @apply text-navy font-sans font-medium underline underline-offset-4 hover:text-coral transition-colors duration-200;
   }
