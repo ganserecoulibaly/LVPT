@@ -15,7 +15,7 @@ export default function Hero() {
             <span className="font-sans text-navy/60 text-xs uppercase tracking-widest font-medium">Le compagnon des voyageurs curieux</span>
           </div>
 
-          <h1 className="font-serif text-5xl md:text-6xl text-navy font-medium leading-tight mb-6">
+          <h1 className="hidden md:block font-serif text-5xl md:text-6xl text-navy font-medium leading-tight mb-6">
             Chaque <em className="text-coral not-italic">détour</em><br />
             mérite d'être<br />
             raconté.
