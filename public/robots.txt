@@ -1,0 +1,25 @@
+User-agent: *
+Allow: /
+Allow: /mentions-legales
+Allow: /cgu
+Allow: /cgv
+Allow: /confidentialite
+
+Disallow: /dashboard
+Disallow: /vols-hebergements
+Disallow: /itineraires
+Disallow: /voyage-commun
+Disallow: /sejours
+Disallow: /depenses
+Disallow: /playlist
+Disallow: /activites
+Disallow: /carnet-gastronomique
+Disallow: /spa-bien-etre
+Disallow: /ateliers
+Disallow: /miles-vs-euros
+Disallow: /defis-communaute
+Disallow: /feuille-de-route
+Disallow: /admin-offres
+Disallow: /espace-pro
+
+Sitemap: https://levoyagepourtous.com/sitemap.xml
