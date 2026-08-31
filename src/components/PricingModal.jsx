@@ -9,6 +9,8 @@ const TRIAL_DAYS = 7
 
 // Fonctionnalités alignées sur les vrais modules de l'app (Sidebar.jsx),
 // pas des fonctionnalités inventées qui n'existent pas dans LVPT.
+// Spa & bien-être ajouté au plan Gratuit — module accessible à tous,
+// utilisable même sans partir en voyage.
 const PLANS = [
   {
     id: 'free',
@@ -23,6 +25,7 @@ const PLANS = [
       'Recherche de vols et hébergements',
       'Voyage commun',
       'Itinéraires (3 derniers publiés)',
+      'Spa & bien-être',
     ],
   },
   {
