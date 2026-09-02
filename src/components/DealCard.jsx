@@ -17,6 +17,12 @@ const DETAIL_ROUTES = {
   itineraire: function (id) { return '/itineraires/' + id },
   voyage_commun: function (id) { return '/voyage-commun/' + id },
   plat: function (id) { return '/carnet-gastronomique/' + id },
+  // lieu et spa n'ont pas de vraie page de détail séparée : leur contenu
+  // s'affiche directement dans la liste de leur module respectif. On
+  // redirige donc vers la page avec un paramètre, que le module lit pour
+  // sélectionner/scroller automatiquement vers l'élément visé.
+  lieu: function (id) { return '/activites?lieu=' + id },
+  spa: function (id) { return '/spa-bien-etre?spa=' + id },
 }
 
 function mix(colorA, colorB, t) {

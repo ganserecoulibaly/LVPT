@@ -40,16 +40,31 @@ function transformSpasFavoris(rows) {
   }))
 }
 
-// Récupère les lieux (Activités & musées), plats (Carnet
-// gastronomique) et spas (Spa & bien être) mis en favoris par
+// Voyage Commun favoris — rows viennent de s_voyage_commun avec jointure
+// sur voyage_commun_categorie pour afficher le nom de la catégorie
+// (même transformation que dans VoyageCommun.jsx/VoyageCommunDetail.jsx).
+function transformVoyageCommunFavoris(rows) {
+  return rows.map((r, i) => ({
+    id: r.id_post, type: 'voyage_commun',
+    title: r.titre,
+    price: r.voyage_commun_categorie?.nom || 'Post',
+    date: `${r.pays}${r.ville ? ` — ${r.ville}` : ''}`,
+    emoji: '💬', fallbackGradient: GRADIENTS[i % GRADIENTS.length],
+  }))
+}
+
+// Récupère les lieux (Activités & musées), plats (Carnet gastronomique),
+// spas (Spa & bien être) et posts Voyage Commun mis en favoris par
 // l'utilisateur, prêts à fusionner dans le favoriteDeals de n'importe
-// quelle page ayant une modale "Mes favoris". Ne charge que les
-// entrées favorites, jamais tout le catalogue — léger même sur une
-// page qui n'a rien à voir avec ces trois sections. Retourne aussi un
-// toggle générique (basé sur deal.type, marche pour 'lieu', 'plat' ET
-// 'spa') et une fonction refetch, utiles pour les pages où la modale
-// "Mes favoris" affiche exclusivement ces types (Activites.jsx,
-// Gastronomie.jsx, SpaBienEtre.jsx).
+// quelle page ayant une modale "Mes favoris". Ne charge que les entrées
+// favorites, jamais tout le catalogue — léger même sur une page qui n'a
+// rien à voir avec ces sections. Sans Voyage Commun ici, ses favoris
+// n'apparaissaient jamais dans "Mes favoris" en dehors de la page
+// /voyage-commun elle-même (seule page à les charger séparément).
+// Retourne aussi un toggle générique (basé sur deal.type) et une
+// fonction refetch, utiles pour les pages où la modale "Mes favoris"
+// affiche exclusivement ces types (Activites.jsx, Gastronomie.jsx,
+// SpaBienEtre.jsx).
 export function useFavoriLieuxPlatsSpas(user) {
   const [favoriLieuxEtPlats, setFavoriLieuxEtPlats] = useState([])
 
@@ -60,22 +75,27 @@ export function useFavoriLieuxPlatsSpas(user) {
       .select('id_entite, nom')
       .eq('pid', user.id)
       .eq('actif', true)
-      .in('nom', ['lieu', 'plat', 'spa'])
+      .in('nom', ['lieu', 'plat', 'spa', 'voyage_commun'])
 
     const idsLieux = (favoris || []).filter((f) => f.nom === 'lieu').map((f) => f.id_entite)
     const idsPlats = (favoris || []).filter((f) => f.nom === 'plat').map((f) => f.id_entite)
     const idsSpas = (favoris || []).filter((f) => f.nom === 'spa').map((f) => f.id_entite)
+    const idsVoyageCommun = (favoris || []).filter((f) => f.nom === 'voyage_commun').map((f) => f.id_entite)
 
-    const [{ data: lieuxFav }, { data: platsFav }, { data: spasFav }] = await Promise.all([
+    const [{ data: lieuxFav }, { data: platsFav }, { data: spasFav }, { data: voyageCommunFav }] = await Promise.all([
       idsLieux.length ? supabase.from('d_lieu').select('*').in('id_lieu', idsLieux) : Promise.resolve({ data: [] }),
       idsPlats.length ? supabase.from('d_plat').select('*').in('id_plat', idsPlats) : Promise.resolve({ data: [] }),
       idsSpas.length ? supabase.from('s_spa').select('*').in('id_spa', idsSpas) : Promise.resolve({ data: [] }),
+      idsVoyageCommun.length
+        ? supabase.from('s_voyage_commun').select('*, voyage_commun_categorie(id_categorie, nom, couleur, icone)').in('id_post', idsVoyageCommun)
+        : Promise.resolve({ data: [] }),
     ])
 
     setFavoriLieuxEtPlats([
       ...transformLieuxFavoris(lieuxFav || []),
       ...transformPlatsFavoris(platsFav || []),
       ...transformSpasFavoris(spasFav || []),
+      ...transformVoyageCommunFavoris(voyageCommunFav || []),
     ])
   }
 

@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { supabase } from './supabaseClient'
 import Sidebar from './Sidebar'
 import PageHeader from './PageHeader'
@@ -28,9 +29,19 @@ const TYPE_LABELS = {
   flottaison_cryo: 'Flottaison / Cryothérapie',
 }
 
-function SpaCard({ spa, index, isFavori, onToggleFavori }) {
+// isHighlighted : mis en évidence temporairement quand on arrive depuis
+// "Mes favoris" via ?spa=<id> — ce module n'a pas de vrai panneau de
+// détail (contrairement à Activités & musées avec ses tips), donc on se
+// contente de scroller jusqu'à la carte et de la faire ressortir
+// visuellement quelques secondes.
+function SpaCard({ spa, index, isFavori, onToggleFavori, isHighlighted, cardRef }) {
   return (
-    <div className="bg-white border border-navy/10 rounded-xl overflow-hidden">
+    <div
+      ref={cardRef}
+      className={`bg-white rounded-xl overflow-hidden transition-all ${
+        isHighlighted ? 'border-2 border-coral ring-2 ring-coral/30' : 'border border-navy/10'
+      }`}
+    >
       <div className="h-20 flex items-center justify-center relative" style={{ background: GRADIENTS[index % GRADIENTS.length] }}>
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M12 2c-1 3-3 4-3 7a3 3 0 0 0 6 0c0-3-2-4-3-7Z" />
@@ -75,12 +86,15 @@ function SpaCard({ spa, index, isFavori, onToggleFavori }) {
 
 export default function SpaBienEtre() {
   const { user, allowed } = usePlanAccess('free')
+  const [searchParams, setSearchParams] = useSearchParams()
   const { favoriLieuxEtPlats, toggleFavoriGeneric } = useFavoriLieuxPlatsSpas(user)
   const [spas, setSpas] = useState([])
   const [favoriIds, setFavoriIds] = useState(new Set())
   const [filtreType, setFiltreType] = useState('')
   const [filtrePays, setFiltrePays] = useState('')
   const [filtreVille, setFiltreVille] = useState('')
+  const [highlightedSpaId, setHighlightedSpaId] = useState(null)
+  const highlightedCardRef = useRef(null)
 
   const [pricingOpen, setPricingOpen] = useState(false)
   const [favoritesOpen, setFavoritesOpen] = useState(false)
@@ -101,6 +115,25 @@ export default function SpaBienEtre() {
 
   useEffect(() => { loadSpas() }, [])
   useEffect(() => { loadFavoris() }, [user])
+
+  useEffect(() => {
+    const spaId = searchParams.get('spa')
+    if (!spaId || spas.length === 0) return
+    const exists = spas.some((s) => s.id_spa === spaId)
+    if (exists) {
+      setHighlightedSpaId(spaId)
+      searchParams.delete('spa')
+      setSearchParams(searchParams, { replace: true })
+    }
+  }, [spas, searchParams, setSearchParams])
+
+  useEffect(() => {
+    if (highlightedSpaId && highlightedCardRef.current) {
+      highlightedCardRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      const timeout = setTimeout(() => setHighlightedSpaId(null), 3000)
+      return () => clearTimeout(timeout)
+    }
+  }, [highlightedSpaId])
 
   const paysConnus = useMemo(() => [...new Set(spas.map((s) => s.pays))].sort(), [spas])
   const villesFiltrees = useMemo(() => {
@@ -181,6 +214,8 @@ export default function SpaBienEtre() {
                     index={i}
                     isFavori={favoriIds.has(spa.id_spa)}
                     onToggleFavori={() => toggleFavori(spa.id_spa)}
+                    isHighlighted={highlightedSpaId === spa.id_spa}
+                    cardRef={highlightedSpaId === spa.id_spa ? highlightedCardRef : null}
                   />
                 ))}
               </div>

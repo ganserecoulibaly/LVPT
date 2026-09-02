@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { supabase } from './supabaseClient'
 import Sidebar from './Sidebar'
 import PageHeader from './PageHeader'
@@ -181,6 +182,7 @@ function CompleterLieuModal({ lieu, userId, onClose, onUpdated }) {
 
 export default function Activites() {
   const { user, allowed } = usePlanAccess('frequent')
+  const [searchParams, setSearchParams] = useSearchParams()
   const [lieux, setLieux] = useState([])
   const [commentaires, setCommentaires] = useState([])
   const [favoriIds, setFavoriIds] = useState(new Set())
@@ -221,6 +223,22 @@ export default function Activites() {
 
   useEffect(() => { loadLieux(); loadCommentaires() }, [])
   useEffect(() => { loadFavoris() }, [user])
+
+  // Ouverture automatique d'un lieu précis quand on arrive depuis "Mes
+  // favoris" via ?lieu=<id> (DealCard.jsx redirige ici, cette page
+  // n'ayant pas de vraie fiche de détail séparée). Ne se déclenche
+  // qu'une fois les lieux chargés, pour être sûr que l'id existe bien
+  // dans la liste avant de le sélectionner.
+  useEffect(() => {
+    const lieuId = searchParams.get('lieu')
+    if (!lieuId || lieux.length === 0) return
+    const exists = lieux.some((l) => l.id_lieu === lieuId)
+    if (exists) {
+      setSelectedLieuId(lieuId)
+      searchParams.delete('lieu')
+      setSearchParams(searchParams, { replace: true })
+    }
+  }, [lieux, searchParams, setSearchParams])
 
   useEffect(() => {
     if (!user) return
@@ -266,7 +284,9 @@ export default function Activites() {
 
   // Défile automatiquement vers l'encart de détail dès qu'un lieu est
   // sélectionné — l'encart étant maintenant juste après les filtres,
-  // ça évite de devoir chercher où il est apparu.
+  // ça évite de devoir chercher où il est apparu. Fonctionne aussi bien
+  // pour une sélection manuelle (clic sur une carte) que pour l'ouverture
+  // automatique depuis "Mes favoris" ci-dessus.
   useEffect(() => {
     if (selectedLieuId && detailRef.current) {
       detailRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
