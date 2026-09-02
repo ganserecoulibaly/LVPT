@@ -13,6 +13,7 @@ import CreateItineraireModal from './CreateItineraireModal'
 import QuickAddMenu from './QuickAddMenu'
 import TipBanner from './TipBanner'
 import ShareButton from './ShareButton'
+import { useFavoriLieuxPlatsSpas } from './useFavoriLieuxPlatsSpas'
 
 const GRADIENTS = [
   'from-[#D85A30]/30 to-[#8B2F1A]/20',
@@ -22,30 +23,10 @@ const GRADIENTS = [
 const PAGE_SIZE = 20
 
 // Lieux (Activités & musées) et plats (Carnet gastronomique) mis en
-// favoris — cette page ne charge pas ces catalogues pour son propre
-// usage, donc on récupère uniquement les entrées effectivement
-// favorites, pas tout le catalogue.
-function transformLieuxFavoris(rows) {
-  return rows.map((r, i) => ({
-    id: r.id_lieu, type: 'lieu',
-    title: r.nom,
-    price: 'Lieu à visiter',
-    date: `${r.ville}${r.quartier ? ` — ${r.quartier}` : ''}, ${r.pays}`,
-    emoji: '🏛️', fallbackGradient: GRADIENTS[i % GRADIENTS.length],
-    image: null,
-  }))
-}
-
-function transformPlatsFavoris(rows) {
-  return rows.map((r, i) => ({
-    id: r.id_plat, type: 'plat',
-    title: r.nom_plat,
-    price: r.prix,
-    date: `${r.nom_restaurant} · ${r.ville}, ${r.pays}`,
-    emoji: '🍽️', fallbackGradient: GRADIENTS[i % GRADIENTS.length],
-    image: r.lien_photo || null,
-  }))
-}
+// Lieux (Activités & musées) et plats (Carnet gastronomique) mis en
+// favoris — désormais gérés par le hook partagé useFavoriLieuxPlatsSpas
+// (qui inclut aussi les spas et voyage_commun), plus de duplication
+// locale ici.
 
 function transformVolsDeals(rows) {
   return rows.map((r, i) => ({
@@ -200,7 +181,7 @@ export default function VoyageCommun() {
   const searchDebounce = useRef(null)
 
   const [favoriteIds, setFavoriteIds] = useState(new Set())
-  const [favoriLieuxEtPlats, setFavoriLieuxEtPlats] = useState([])
+  const { favoriLieuxEtPlats, toggleFavoriGeneric: toggleFavoriHook, refetchFavoriLieuxEtPlats } = useFavoriLieuxPlatsSpas(user)
   const [authors, setAuthors] = useState({})
   const [flightDeals, setFlightDeals] = useState([])
   const [hotelDeals, setHotelDeals] = useState([])
@@ -227,17 +208,6 @@ export default function VoyageCommun() {
       setActivityDeals(transformActivitesDeals(a || []))
       setItineraireDeals(transformItineraireDeals(it || []))
       setFavoriteIds(new Set((f || []).map((x) => `${x.nom}:${x.id_entite}`)))
-
-      const idsLieux = (f || []).filter((x) => x.nom === 'lieu').map((x) => x.id_entite)
-      const idsPlats = (f || []).filter((x) => x.nom === 'plat').map((x) => x.id_entite)
-      const [{ data: lieuxFav }, { data: platsFav }] = await Promise.all([
-        idsLieux.length ? supabase.from('d_lieu').select('*').in('id_lieu', idsLieux) : Promise.resolve({ data: [] }),
-        idsPlats.length ? supabase.from('d_plat').select('*').in('id_plat', idsPlats) : Promise.resolve({ data: [] }),
-      ])
-      setFavoriLieuxEtPlats([
-        ...transformLieuxFavoris(lieuxFav || []),
-        ...transformPlatsFavoris(platsFav || []),
-      ])
     }
     loadFavoritesData()
   }, [user])
@@ -359,6 +329,13 @@ export default function VoyageCommun() {
         else next.delete(key)
         return next
       })
+      return
+    }
+    // lieu/plat/spa/voyage_commun viennent du hook, pas de ALL_DEALS —
+    // sans ce refetch, un favori retiré depuis "Mes favoris" resterait
+    // visible dans la modale jusqu'au prochain rechargement de page.
+    if (['lieu', 'plat', 'spa'].includes(deal.type)) {
+      refetchFavoriLieuxEtPlats()
     }
   }
 
@@ -388,9 +365,17 @@ export default function VoyageCommun() {
     : posts
 
   const ALL_DEALS = [...flightDeals, ...hotelDeals, ...activityDeals, ...itineraireDeals, ...transformVoyageCommunDeals(posts)]
+  // favoriLieuxEtPlats (hook) inclut aussi voyage_commun depuis
+  // aujourd'hui — mais cette page a déjà sa propre source pour ce type
+  // via transformVoyageCommunDeals(posts) ci-dessus (couvre TOUS les
+  // posts chargés sur cette page, pas seulement les favoris). On exclut
+  // donc les entrées voyage_commun du hook ici pour éviter un doublon
+  // dans "Mes favoris" — les autres pages (Dashboard, etc.) n'ont pas
+  // cette source locale et ont donc besoin de celles du hook.
+  const favoriLieuxPlatsSpasSansDoublon = favoriLieuxEtPlats.filter((d) => d.type !== 'voyage_commun')
   const favoriteDeals = [
     ...ALL_DEALS.filter((deal) => favoriteIds.has(`${deal.type}:${deal.id}`)),
-    ...favoriLieuxEtPlats,
+    ...favoriLieuxPlatsSpasSansDoublon,
   ]
 
   return (

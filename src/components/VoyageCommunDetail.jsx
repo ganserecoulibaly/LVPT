@@ -265,7 +265,7 @@ export default function VoyageCommunDetail() {
         return next
       })
     }
-    if (deal.type === 'lieu' || deal.type === 'plat') refetchFavoriLieuxEtPlats()
+    if (['lieu', 'plat', 'spa'].includes(deal.type)) refetchFavoriLieuxEtPlats()
   }
 
   const handleDeletePost = async () => {
@@ -335,7 +335,13 @@ export default function VoyageCommunDetail() {
   const color = getColor(categorie?.couleur)
   const lieu = post.ville ? `${post.ville} — ${post.pays}` : post.pays
   const ALL_DEALS = [...flightDeals, ...hotelDeals, ...activityDeals, ...itineraireDeals, ...voyageCommunDeals]
-  const favoriteDeals = ALL_DEALS.filter((deal) => favoriteIds.has(`${deal.type}:${deal.id}`)).concat(favoriLieuxEtPlats)
+  // favoriLieuxEtPlats (hook) inclut aussi voyage_commun — cette page a
+  // déjà sa propre source locale (voyageCommunDeals) qui couvre tous
+  // les posts chargés, pas seulement les favoris. On exclut donc les
+  // entrées voyage_commun du hook ici pour éviter un doublon dans
+  // "Mes favoris".
+  const favoriLieuxPlatsSpasSansDoublon = favoriLieuxEtPlats.filter((d) => d.type !== 'voyage_commun')
+  const favoriteDeals = ALL_DEALS.filter((deal) => favoriteIds.has(`${deal.type}:${deal.id}`)).concat(favoriLieuxPlatsSpasSansDoublon)
   const isFavorite = favoriteIds.has(`voyage_commun:${post.id_post}`)
   const canManagePost = post.pid === user.id || isAdmin
 
