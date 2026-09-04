@@ -8,6 +8,15 @@ const PLAN_LABELS = {
   frequent: 'Grand Voyageur',
 }
 
+function LockIcon() {
+  return (
+    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="11" width="18" height="11" rx="2" />
+      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    </svg>
+  )
+}
+
 async function openBillingPortal(setOpeningPortal) {
   try {
     setOpeningPortal(true)
@@ -26,7 +35,14 @@ async function openBillingPortal(setOpeningPortal) {
   }
 }
 
-export default function PageHeader({ onFavoritesClick, onUpgradeClick, onProfileClick, currentPlan }) {
+// isAdmin : "Nos ateliers" mène vers une fonctionnalité encore
+// inachevée (Ateliers.jsx). Le bouton reste visible pour tout le monde
+// (pour que la fonctionnalité à venir soit connue), mais affiche un
+// cadenas et ne navigue pas au clic tant que ce n'est pas prêt — seul
+// l'admin peut y accéder normalement. Défaut à false pour ne rien
+// casser sur les pages qui n'auraient pas encore été mises à jour pour
+// passer cette prop.
+export default function PageHeader({ onFavoritesClick, onUpgradeClick, onProfileClick, currentPlan, isAdmin = false }) {
   const navigate = useNavigate()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [accountMenuOpen, setAccountMenuOpen] = useState(false)
@@ -46,9 +62,17 @@ export default function PageHeader({ onFavoritesClick, onUpgradeClick, onProfile
   const planLabel = PLAN_LABELS[currentPlan] ?? PLAN_LABELS.free
   const hasPaidPlan = currentPlan && currentPlan !== 'free'
 
+  const handleAteliersClick = () => {
+    if (isAdmin) {
+      navigate('/ateliers')
+    } else {
+      alert('Cette section arrive bientôt !')
+    }
+  }
+
   const items = [
     { label: 'Mes favoris', onClick: onFavoritesClick },
-    { label: 'Nos ateliers', onClick: () => navigate('/ateliers') },
+    { label: 'Nos ateliers', onClick: handleAteliersClick, locked: !isAdmin },
     { label: 'Upgrade plan', onClick: onUpgradeClick },
     ...(hasPaidPlan ? [{ label: openingPortal ? 'Ouverture…' : 'Facturation', onClick: () => openBillingPortal(setOpeningPortal) }] : []),
     { label: 'Modifier le profil', onClick: onProfileClick },
@@ -62,8 +86,13 @@ export default function PageHeader({ onFavoritesClick, onUpgradeClick, onProfile
         <button onClick={onFavoritesClick} className="btn-primary text-sm py-2.5 px-5">
           Mes favoris
         </button>
-        <button onClick={() => navigate('/ateliers')} className="btn-primary text-sm py-2.5 px-5">
+        <button onClick={handleAteliersClick} className="btn-primary text-sm py-2.5 px-5 relative">
           Nos ateliers
+          {!isAdmin && (
+            <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-navy flex items-center justify-center">
+              <LockIcon />
+            </span>
+          )}
         </button>
         <button onClick={onUpgradeClick} className="btn-primary text-sm py-2.5 px-5">
           Upgrade plan
@@ -130,11 +159,16 @@ export default function PageHeader({ onFavoritesClick, onUpgradeClick, onProfile
               <button
                 key={item.label}
                 onClick={() => { setMobileMenuOpen(false); item.onClick?.() }}
-                className={`w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-navy/5 ${
+                className={`w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-navy/5 flex items-center justify-between ${
                   item.danger ? 'text-[#993C1D]' : 'text-navy'
                 }`}
               >
                 {item.label}
+                {item.locked && (
+                  <span className="shrink-0 w-4 h-4 rounded-full bg-navy flex items-center justify-center">
+                    <LockIcon />
+                  </span>
+                )}
               </button>
             ))}
           </div>
