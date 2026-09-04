@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { createPortal } from 'react-dom'
 import { supabase } from './supabaseClient'
 
 const PLAN_LABELS = {
@@ -35,18 +36,65 @@ async function openBillingPortal(setOpeningPortal) {
   }
 }
 
+// Popup "Bientôt disponible" — remplace l'alerte navigateur pour rester
+// cohérent avec le style des autres modales de l'app (fond blanc
+// arrondi, croix de fermeture en haut à droite).
+function ComingSoonModal({ onClose }) {
+  return createPortal(
+    <div
+      onClick={onClose}
+      style={{ position: 'fixed', inset: 0, zIndex: 1000 }}
+      className="flex justify-center items-center bg-navy/45 px-4"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white rounded-2xl p-6 sm:p-8 w-full max-w-sm relative text-center"
+      >
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center text-navy/40 hover:text-navy transition-colors"
+          aria-label="Fermer"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+
+        <div className="w-12 h-12 rounded-full bg-navy/10 flex items-center justify-center mx-auto mb-4">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B2A41" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg>
+        </div>
+
+        <p className="font-serif text-lg text-navy mb-2">Bientôt disponible</p>
+        <p className="text-sm text-navy/60 mb-6">
+          Les ateliers arrivent prochainement — reviens bientôt pour découvrir cette nouveauté.
+        </p>
+
+        <button onClick={onClose} className="btn-primary w-full justify-center text-sm py-2.5">
+          Compris
+        </button>
+      </div>
+    </div>,
+    document.body
+  )
+}
+
 // isAdmin : "Nos ateliers" mène vers une fonctionnalité encore
 // inachevée (Ateliers.jsx). Le bouton reste visible pour tout le monde
 // (pour que la fonctionnalité à venir soit connue), mais affiche un
-// cadenas et ne navigue pas au clic tant que ce n'est pas prêt — seul
-// l'admin peut y accéder normalement. Défaut à false pour ne rien
-// casser sur les pages qui n'auraient pas encore été mises à jour pour
-// passer cette prop.
+// cadenas et ouvre une popup "Bientôt disponible" au lieu de naviguer
+// tant que ce n'est pas prêt — seul l'admin peut y accéder normalement.
+// Défaut à false pour ne rien casser sur les pages qui n'auraient pas
+// encore été mises à jour pour passer cette prop.
 export default function PageHeader({ onFavoritesClick, onUpgradeClick, onProfileClick, currentPlan, isAdmin = false }) {
   const navigate = useNavigate()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [accountMenuOpen, setAccountMenuOpen] = useState(false)
   const [openingPortal, setOpeningPortal] = useState(false)
+  const [comingSoonOpen, setComingSoonOpen] = useState(false)
   const menuRef = useRef(null)
   const accountMenuRef = useRef(null)
 
@@ -66,7 +114,7 @@ export default function PageHeader({ onFavoritesClick, onUpgradeClick, onProfile
     if (isAdmin) {
       navigate('/ateliers')
     } else {
-      alert('Cette section arrive bientôt !')
+      setComingSoonOpen(true)
     }
   }
 
@@ -176,6 +224,8 @@ export default function PageHeader({ onFavoritesClick, onUpgradeClick, onProfile
       </div>
 
       <div className="sm:hidden h-10 mb-10" aria-hidden="true" />
+
+      {comingSoonOpen && <ComingSoonModal onClose={() => setComingSoonOpen(false)} />}
     </>
   )
 }
