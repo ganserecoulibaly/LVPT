@@ -163,6 +163,8 @@ export default function Sejours() {
               onFavoritesClick={() => setFavoritesOpen(true)}
               onUpgradeClick={() => setPricingOpen(true)}
               onProfileClick={() => setProfileOpen(true)}
+              currentPlan={currentPlan}
+              isAdmin={isAdmin}
             />
 
             <h1 className="font-serif text-3xl text-navy mb-2">Séjours</h1>
