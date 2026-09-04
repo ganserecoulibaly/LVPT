@@ -18,8 +18,6 @@ const GRADIENTS = [
   'linear-gradient(135deg, #ED93B1, #993556)',
 ]
 
-// Icône affichée selon le moyen de transport — 'Vol' par défaut si non
-// reconnu (nouvelle valeur ajoutée plus tard sans casser l'affichage).
 const TRANSPORT_ICONS = {
   Vol: <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />,
   Train: <path d="M4 3h16v11a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V3zM4 11h16M8 21l-2 2M16 21l2 2M7.5 15.5h.01M16.5 15.5h.01" />,
@@ -74,7 +72,7 @@ function SejourCard({ sejour, index }) {
               Voir l'offre ↗
             </a>
           ) : (
-            <span className="text-[11px] text-navy/30">OffreÒ indisponible</span>
+            <span className="text-[11px] text-navy/30">Offre indisponible</span>
           )}
         </div>
       </div>
@@ -95,6 +93,18 @@ export default function Sejours() {
   const [profileOpen, setProfileOpen] = useState(false)
   const [toolboxOpen, setToolboxOpen] = useState(false)
   const [toolboxTab, setToolboxTab] = useState('currency')
+
+  const [currentPlan, setCurrentPlan] = useState('free')
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  useEffect(() => {
+    if (!user) return
+    supabase.from('lvpt').select('abonnement, is_admin').eq('id', user.id).single()
+      .then(({ data }) => {
+        setCurrentPlan(data?.abonnement || 'free')
+        setIsAdmin(Boolean(data?.is_admin))
+      })
+  }, [user])
 
   useEffect(() => {
     supabase.from('d_sejour').select('*').eq('actif', true)
