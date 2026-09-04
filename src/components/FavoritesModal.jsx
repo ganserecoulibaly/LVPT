@@ -10,11 +10,11 @@ const FILTERS = [
   { id: 'itineraire', label: 'Itinéraires' },
   { id: 'voyage_commun', label: 'Voyage commun' },
   { id: 'plat', label: 'Plats' },
+  { id: 'spa', label: 'Spa & bien être' },
 ]
 
 export default function FavoritesModal({ onClose, favoriteDeals, userId, favoriteIds, onToggleFavorite }) {
   const [filter, setFilter] = useState('all')
-
   const activeFilter = FILTERS.find((f) => f.id === filter)
   const filteredDeals =
     filter === 'all'
@@ -22,7 +22,6 @@ export default function FavoritesModal({ onClose, favoriteDeals, userId, favorit
       : favoriteDeals.filter((deal) =>
           activeFilter?.types ? activeFilter.types.includes(deal.type) : deal.type === filter
         )
-
   const modalContent = (
     <div
       onClick={onClose}
@@ -44,12 +43,10 @@ export default function FavoritesModal({ onClose, favoriteDeals, userId, favorit
             <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
         </button>
-
         <p className="font-serif text-lg text-navy mb-1">Mes favoris</p>
         <p className="text-sm text-navy/55 mb-5">
           Retrouve ici les bons plans que tu as mis de côté.
         </p>
-
         {favoriteDeals.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-6">
             {FILTERS.map((f) => (
@@ -67,7 +64,6 @@ export default function FavoritesModal({ onClose, favoriteDeals, userId, favorit
             ))}
           </div>
         )}
-
         {favoriteDeals.length === 0 ? (
           <div className="text-center py-10">
             <p className="text-sm text-navy/50">
@@ -96,6 +92,5 @@ export default function FavoritesModal({ onClose, favoriteDeals, userId, favorit
       </div>
     </div>
   )
-
   return createPortal(modalContent, document.body)
 }
