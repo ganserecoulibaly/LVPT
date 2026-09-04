@@ -1,231 +1,613 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { createPortal } from 'react-dom'
 import { supabase } from './supabaseClient'
+import { useFavoriLieuxPlatsSpas } from './useFavoriLieuxPlatsSpas'
+import { formatDate } from './dateUtils'
+import Sidebar from './Sidebar'
+import PageHeader from './PageHeader'
+import EditProfileModal from './EditProfileModal'
+import Footer from './Footer'
+import PricingModal from './PricingModal'
+import FavoritesModal from './FavoritesModal'
+import ToolboxModal from './ToolboxModal'
+import CreateItineraireModal from './CreateItineraireModal'
+import CreateVoyageCommunModal from './CreateVoyageCommunModal'
+import QuickAddMenu from './QuickAddMenu'
+import TipBanner from './TipBanner'
+import AjouterMusiqueModal from './AjouterMusiqueModal'
+import AjouterPlatModal from './AjouterPlatModal'
+import AjouterLieuModal from './AjouterLieuModal'
 
-const PLAN_LABELS = {
-  free: 'Gratuit',
-  occasional: 'Voyageur occasionnel',
-  frequent: 'Grand Voyageur',
+const GRADIENTS = [
+  'from-[#D85A30]/30 to-[#8B2F1A]/20',
+  'from-[#F0997B]/40 to-[#D85A30]/20',
+  'from-navy/20 to-navy/5',
+]
+
+// Image générique fixe, utilisée si l'itinéraire n'a pas de couverture.
+// Simple et fiable — pas de clé API, pas de recherche par ville à faire.
+export const DEFAULT_ITINERAIRE_COVER = 'https://picsum.photos/id/1015/600/400'
+
+export function formatDuree(itineraire) {
+  if (itineraire.duree_totale_jour) {
+    return `${itineraire.duree_totale_jour} jour${itineraire.duree_totale_jour > 1 ? 's' : ''}`
+  }
+  if (itineraire.duree_totale_heure) {
+    return `${itineraire.duree_totale_heure}h`
+  }
+  return null
 }
 
-function LockIcon() {
+function GetYourGuideCityWidget() {
+  useEffect(() => {
+    if (document.querySelector('script[data-gyg-loader]')) return
+    const script = document.createElement('script')
+    script.async = true
+    script.src = 'https://widget.getyourguide.com/dist/pa.umd.production.min.js'
+    script.setAttribute('data-gyg-loader', 'true')
+    document.body.appendChild(script)
+  }, [])
+
   return (
-    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="11" width="18" height="11" rx="2" />
-      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    <div className="mb-6 rounded-xl overflow-hidden">
+      <div
+        data-gyg-href="https://widget.getyourguide.com/default/city.frame"
+        data-gyg-location-id="16"
+        data-gyg-locale-code="fr-FR"
+        data-gyg-widget="city"
+        data-gyg-partner-id="0MUBYBR"
+      />
+    </div>
+  )
+}
+
+function transformVolsDeals(rows) {
+  return rows.map((r, i) => ({
+    id: r.id_vol, type: 'vol',
+    title: `${r.aeroport_depart} ➔ ${r.aeroport_arrivee}`,
+    price: `${Number(r.prix).toFixed(0)}€`,
+    date: `${formatDate(r.date_depart)} → ${formatDate(r.date_arrivee)}`,
+    emoji: '✈️', fallbackGradient: GRADIENTS[i % GRADIENTS.length], link: r.lien_resa,
+  }))
+}
+function transformHebergementsDeals(rows) {
+  return rows.map((r, i) => ({
+    id: r.id_hebergement, type: 'hebergement',
+    title: `${r.type_hebergement || 'Hébergement'} à ${r.ville}`,
+    price: `${Number(r.prix_nuit).toFixed(0)}€ / nuit`,
+    date: `Disponible du ${formatDate(r.date_depart)} au ${formatDate(r.date_arrivee)}`,
+    emoji: '🏨', fallbackGradient: GRADIENTS[i % GRADIENTS.length], link: r.lien_resa,
+  }))
+}
+function transformActivitesDeals(rows) {
+  return rows.map((r, i) => ({
+    id: r.id_activite, type: 'activite', title: r.nom_activite,
+    price: r.prix ? `${Number(r.prix).toFixed(0)}€` : 'Gratuit',
+    date: r.ville, emoji: '🎟️', fallbackGradient: GRADIENTS[i % GRADIENTS.length], link: r.lien_resa,
+  }))
+}
+
+function transformItineraires(rows) {
+  return rows.map((r, i) => ({
+    id: r.id_itineraire, type: 'itineraire',
+    title: r.titre,
+    price: formatDuree(r) || 'Itinéraire',
+    date: `${r.pays}${r.ville ? ` — ${r.ville}` : ''}`,
+    emoji: '🗺️', fallbackGradient: GRADIENTS[i % GRADIENTS.length],
+    image: r.url_cover || DEFAULT_ITINERAIRE_COVER,
+  }))
+}
+
+// ---------- Vote + favoris, même logique et même charte que DealCard.jsx ----------
+
+const NAVY = [27, 42, 65]
+const CORAL = [216, 90, 48]
+const BLUE = [59, 130, 246]
+const MAX_MAGNITUDE = 10
+
+function mix(colorA, colorB, t) {
+  return colorA.map((c, i) => Math.round(c + (colorB[i] - c) * t))
+}
+
+function getCounterColor(value) {
+  const intensity = Math.min(Math.abs(value) / MAX_MAGNITUDE, 1)
+  const target = value > 0 ? CORAL : value < 0 ? BLUE : NAVY
+  const [r, g, b] = mix(NAVY, target, intensity)
+  return `rgb(${r}, ${g}, ${b})`
+}
+
+function HeartIcon({ filled }) {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill={filled ? '#D85A30' : 'none'} stroke={filled ? '#D85A30' : 'white'} strokeWidth="2">
+      <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z" />
     </svg>
   )
 }
 
-async function openBillingPortal(setOpeningPortal) {
-  try {
-    setOpeningPortal(true)
-    const { data, error } = await supabase.functions.invoke('create-portal-session')
+function ItineraireCard({ itineraire, authorName, locked, onOpen, onLockedClick, userId, isFavorite, onToggleFavorite, refreshKey }) {
+  const duree = formatDuree(itineraire)
+  const [aggregateScore, setAggregateScore] = useState(0)
+  const [myVote, setMyVote] = useState(null) // -1 | 1 | null
 
-    if (error || !data?.url) {
-      throw error ?? new Error('URL du portail manquante')
+  useEffect(() => {
+    async function loadVotes() {
+      const { data } = await supabase
+        .from('votes')
+        .select('pid, score')
+        .eq('nom', 'itineraire')
+        .eq('id_entite', itineraire.id_itineraire)
+      if (!data) return
+      const total = data.reduce((sum, v) => sum + v.score, 0)
+      setAggregateScore(total)
+      setMyVote(data.find((v) => v.pid === userId)?.score ?? null)
+    }
+    loadVotes()
+  }, [itineraire.id_itineraire, userId, refreshKey])
+
+  const castVote = async (value, e) => {
+    e.stopPropagation()
+    if (!userId) return
+
+    if (myVote !== null) {
+      // Un vote existe déjà : on le retire, peu importe le bouton cliqué.
+      await supabase.from('votes').delete().eq('pid', userId).eq('id_entite', itineraire.id_itineraire).eq('nom', 'itineraire')
+      setAggregateScore((s) => s - myVote)
+      setMyVote(null)
+      return
     }
 
-    window.open(data.url, '_blank')
-  } catch (err) {
-    console.error('Erreur lors de l\'ouverture du portail de facturation :', err)
-    alert("Impossible d'ouvrir la facturation pour le moment. Réessaie dans un instant.")
-  } finally {
-    setOpeningPortal(false)
+    await supabase.from('votes').upsert(
+      { pid: userId, id_entite: itineraire.id_itineraire, nom: 'itineraire', score: value },
+      { onConflict: 'pid,id_entite,nom' }
+    )
+    setAggregateScore((s) => s + value)
+    setMyVote(value)
   }
-}
 
-// Popup "Bientôt disponible" — remplace l'alerte navigateur pour rester
-// cohérent avec le style des autres modales de l'app (fond blanc
-// arrondi, croix de fermeture en haut à droite).
-function ComingSoonModal({ onClose }) {
-  return createPortal(
-    <div
-      onClick={onClose}
-      style={{ position: 'fixed', inset: 0, zIndex: 1000 }}
-      className="flex justify-center items-center bg-navy/45 px-4"
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-2xl p-6 sm:p-8 w-full max-w-sm relative text-center"
-      >
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center text-navy/40 hover:text-navy transition-colors"
-          aria-label="Fermer"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
-        </button>
+  const color = getCounterColor(aggregateScore)
+  const handleOpen = () => (locked ? onLockedClick() : onOpen(itineraire.id_itineraire))
 
-        <div className="w-12 h-12 rounded-full bg-navy/10 flex items-center justify-center mx-auto mb-4">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B2A41" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="11" width="18" height="11" rx="2" />
-            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-          </svg>
+  return (
+    <div className="text-left rounded-xl border border-navy/10 bg-white overflow-hidden hover:border-navy/20 transition-colors relative">
+      <button onClick={handleOpen} className="cursor-pointer w-full text-left block">
+        <div className="relative h-28">
+          <img
+            src={itineraire.url_cover || DEFAULT_ITINERAIRE_COVER}
+            alt=""
+            className={`w-full h-full object-cover ${locked ? 'opacity-60' : ''}`}
+          />
+          {duree && (
+            <span className="absolute top-2 left-2 bg-navy/80 text-white text-[11px] px-2 py-1 rounded-md">
+              {duree}
+            </span>
+          )}
+          {!locked && (
+            <span
+              onClick={(e) => { e.stopPropagation(); onToggleFavorite() }}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); onToggleFavorite() } }}
+              className="absolute top-2 right-2 w-7 h-7 rounded-full bg-navy/30 backdrop-blur-sm flex items-center justify-center hover:bg-navy/45 transition-colors"
+              aria-label={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+            >
+              <HeartIcon filled={isFavorite} />
+            </span>
+          )}
         </div>
+        <div className="p-3 pb-2">
+          <p className="text-sm font-medium text-navy truncate">{itineraire.titre}</p>
+          <p className="text-xs text-navy/55 mt-1">
+            {itineraire.pays}{itineraire.ville ? ` — ${itineraire.ville}` : ''}
+          </p>
+          <p className="text-[11px] text-navy/40 mt-1">Créé par {authorName}</p>
+        </div>
+      </button>
 
-        <p className="font-serif text-lg text-navy mb-2">Bientôt disponible</p>
-        <p className="text-sm text-navy/60 mb-6">
-          Les ateliers arrivent prochainement — reviens bientôt pour découvrir cette nouveauté.
-        </p>
+      {!locked && (
+        <div className="flex items-center gap-3 px-3 pb-3">
+          <button
+            onClick={(e) => castVote(-1, e)}
+            className={`w-7 h-7 rounded-full border flex items-center justify-center transition-colors shrink-0 ${
+              myVote === -1 ? 'border-blue-400 bg-blue-50 text-blue-600' : 'border-navy/15 text-navy/60 hover:bg-navy/5'
+            }`}
+            aria-label="Moins bon itinéraire"
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+          </button>
 
-        <button onClick={onClose} className="btn-primary w-full justify-center text-sm py-2.5">
-          Compris
+          <span
+            className="text-sm font-semibold w-8 text-center tabular-nums transition-colors duration-200"
+            style={{ color }}
+          >
+            {aggregateScore > 0 ? `+${aggregateScore}` : aggregateScore}
+          </span>
+
+          <button
+            onClick={(e) => castVote(1, e)}
+            className={`w-7 h-7 rounded-full border flex items-center justify-center transition-colors shrink-0 ${
+              myVote === 1 ? 'border-coral bg-coral/10 text-coral' : 'border-navy/15 text-navy/60 hover:bg-navy/5'
+            }`}
+            aria-label="Bon itinéraire"
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+          </button>
+        </div>
+      )}
+
+      {locked && (
+        <button onClick={onLockedClick} className="absolute inset-0 flex items-center justify-center bg-navy/20 cursor-pointer w-full">
+          <span className="bg-white text-navy text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+            Abonnement
+          </span>
         </button>
-      </div>
-    </div>,
-    document.body
+      )}
+    </div>
   )
 }
 
-// isAdmin : "Nos ateliers" mène vers une fonctionnalité encore
-// inachevée (Ateliers.jsx). Le bouton reste visible pour tout le monde
-// (pour que la fonctionnalité à venir soit connue), mais affiche un
-// cadenas et ouvre une popup "Bientôt disponible" au lieu de naviguer
-// tant que ce n'est pas prêt — seul l'admin peut y accéder normalement.
-// Défaut à false pour ne rien casser sur les pages qui n'auraient pas
-// encore été mises à jour pour passer cette prop.
-export default function PageHeader({ onFavoritesClick, onUpgradeClick, onProfileClick, currentPlan, isAdmin = false }) {
+export default function Itineraires() {
   const navigate = useNavigate()
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [accountMenuOpen, setAccountMenuOpen] = useState(false)
-  const [openingPortal, setOpeningPortal] = useState(false)
-  const [comingSoonOpen, setComingSoonOpen] = useState(false)
-  const menuRef = useRef(null)
-  const accountMenuRef = useRef(null)
+  const [user, setUser] = useState(null)
+  const { favoriLieuxEtPlats, refetchFavoriLieuxEtPlats } = useFavoriLieuxPlatsSpas(user)
+  const [profile, setProfile] = useState(null)
+  const [pricingOpen, setPricingOpen] = useState(false)
+  const [favoritesOpen, setFavoritesOpen] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
+  const [toolboxOpen, setToolboxOpen] = useState(false)
+  const [toolboxTab, setToolboxTab] = useState('currency')
+  const [createOpen, setCreateOpen] = useState(false)
+  const [quickAddOpen, setQuickAddOpen] = useState(false)
+  const [createVoyageCommunOpen, setCreateVoyageCommunOpen] = useState(false)
+  const [quickAddMusiqueOpen, setQuickAddMusiqueOpen] = useState(false)
+  const [quickAddPlatOpen, setQuickAddPlatOpen] = useState(false)
+  const [quickAddLieuOpen, setQuickAddLieuOpen] = useState(false)
+
+  const [itineraires, setItineraires] = useState([])
+  const [authors, setAuthors] = useState({})
+  const [scores, setScores] = useState({})
+  const [loading, setLoading] = useState(true)
+
+  const [search, setSearch] = useState('')
+  const [selectedPays, setSelectedPays] = useState('')
+  const [selectedVille, setSelectedVille] = useState('')
+  const [selectedFormat, setSelectedFormat] = useState('')
+  const [sort, setSort] = useState('recent')
+
+  const [flightDeals, setFlightDeals] = useState([])
+  const [hotelDeals, setHotelDeals] = useState([])
+  const [activityDeals, setActivityDeals] = useState([])
+  const [favoriteIds, setFavoriteIds] = useState(new Set())
+  const [voteRefreshKey, setVoteRefreshKey] = useState(0)
 
   useEffect(() => {
-    function handleClickOutside(e) {
-      if (menuRef.current && !menuRef.current.contains(e.target)) setMobileMenuOpen(false)
-      if (accountMenuRef.current && !accountMenuRef.current.contains(e.target)) setAccountMenuOpen(false)
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
+    supabase.auth.getSession().then(({ data: { session } }) => setUser(session?.user ?? null))
   }, [])
 
-  const planLabel = PLAN_LABELS[currentPlan] ?? PLAN_LABELS.free
-  const hasPaidPlan = currentPlan && currentPlan !== 'free'
+  useEffect(() => {
+    if (!user) return
+    supabase.from('lvpt').select('abonnement, is_admin').eq('id', user.id).single()
+      .then(({ data }) => setProfile(data))
 
-  const handleAteliersClick = () => {
-    if (isAdmin) {
-      navigate('/ateliers')
-    } else {
-      setComingSoonOpen(true)
+    async function loadFavoritesData() {
+      // Pas de filtre sur "nom" : cette requête récupère aussi bien les
+      // favoris vols/hébergements/activités que les favoris itinéraires.
+      const [{ data: d }, { data: h }, { data: a }, { data: f }] = await Promise.all([
+        supabase.from('d_vol').select('*'),
+        supabase.from('d_hebergement').select('*'),
+        supabase.from('d_activite').select('*'),
+        supabase.from('favoris').select('id_entite, nom').eq('actif', true),
+      ])
+      setFlightDeals(transformVolsDeals(d || []))
+      setHotelDeals(transformHebergementsDeals(h || []))
+      setActivityDeals(transformActivitesDeals(a || []))
+      setFavoriteIds(new Set((f || []).map((x) => `${x.nom}:${x.id_entite}`)))
     }
+    loadFavoritesData()
+  }, [user])
+
+  const loadScores = async (list) => {
+    const ids = list.map((i) => i.id_itineraire)
+    if (!ids.length) return
+    const { data: votes } = await supabase
+      .from('votes')
+      .select('id_entite, score')
+      .eq('nom', 'itineraire')
+      .in('id_entite', ids)
+    const tally = {}
+    ;(votes || []).forEach((v) => { tally[v.id_entite] = (tally[v.id_entite] || 0) + v.score })
+    setScores(tally)
   }
 
-  const items = [
-    { label: 'Mes favoris', onClick: onFavoritesClick },
-    { label: 'Nos ateliers', onClick: handleAteliersClick, locked: !isAdmin },
-    { label: 'Upgrade plan', onClick: onUpgradeClick },
-    ...(hasPaidPlan ? [{ label: openingPortal ? 'Ouverture…' : 'Facturation', onClick: () => openBillingPortal(setOpeningPortal) }] : []),
-    { label: 'Modifier le profil', onClick: onProfileClick },
-    { label: 'Se déconnecter', onClick: () => supabase.auth.signOut(), danger: true },
-  ]
+  const loadItineraires = async () => {
+    setLoading(true)
+    const { data } = await supabase.from('s_itineraire').select('*').order('created_at', { ascending: false })
+    const list = data || []
+    setItineraires(list)
+
+    const pids = [...new Set(list.map((i) => i.pid))]
+    if (pids.length) {
+      const { data: profiles } = await supabase.from('public_profiles').select('id, prenom').in('id', pids)
+      setAuthors(Object.fromEntries((profiles || []).map((p) => [p.id, p.prenom || 'Un voyageur'])))
+    }
+
+    const ids = list.map((i) => i.id_itineraire)
+    if (ids.length) {
+      await loadScores(list)
+    }
+
+    setLoading(false)
+  }
+
+  useEffect(() => { loadItineraires() }, [])
+
+  const toggleFavorite = async (deal) => {
+    const key = `${deal.type}:${deal.id}`
+    const isCurrentlyFavorite = favoriteIds.has(key)
+    setFavoriteIds((current) => {
+      const next = new Set(current)
+      if (isCurrentlyFavorite) next.delete(key)
+      else next.add(key)
+      return next
+    })
+    const { error } = await supabase.from('favoris').upsert(
+      { pid: user.id, id_entite: deal.id, nom: deal.type, actif: !isCurrentlyFavorite },
+      { onConflict: 'pid,id_entite,nom' }
+    )
+    if (error) {
+      // L'écriture a échoué (ex: contrainte CHECK sur favoris.nom qui
+      // n'accepte pas encore 'itineraire') : on annule la mise à jour
+      // optimiste pour ne pas laisser l'UI mentir sur l'état réel.
+      console.error('Erreur toggleFavorite:', error.message)
+      setFavoriteIds((current) => {
+        const next = new Set(current)
+        if (isCurrentlyFavorite) next.add(key)
+        else next.delete(key)
+        return next
+      })
+    }
+    if (['lieu', 'plat', 'spa'].includes(deal.type)) refetchFavoriLieuxEtPlats()
+  }
+
+  if (!user) return null
+
+  const currentPlan = profile?.abonnement || 'free'
+  const isAdmin = Boolean(profile?.is_admin)
+  const isFree = profile && !profile.is_admin && profile.abonnement === 'free'
+  const recentIds = new Set(
+    [...itineraires]
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+      .slice(0, 3)
+      .map((i) => i.id_itineraire)
+  )
+
+  const paysList = [...new Set(itineraires.map((i) => i.pays))].sort((a, b) => a.localeCompare(b, 'fr'))
+  const villeList = [...new Set(itineraires.filter((i) => i.ville).map((i) => i.ville))].sort((a, b) => a.localeCompare(b, 'fr'))
+
+  let filtered = itineraires.filter((i) => {
+    if (search && !i.titre.toLowerCase().includes(search.toLowerCase())) return false
+    if (selectedPays && i.pays !== selectedPays) return false
+    if (selectedVille && i.ville !== selectedVille) return false
+    if (selectedFormat === 'sejour' && !i.duree_totale_jour) return false
+    if (selectedFormat === 'journee' && !i.duree_totale_heure) return false
+    return true
+  })
+  filtered = [...filtered].sort((a, b) => {
+    if (sort === 'long') return (b.duree_totale_jour || 0) - (a.duree_totale_jour || 0)
+    if (sort === 'court_sejour') return (a.duree_totale_jour || 999) - (b.duree_totale_jour || 999)
+    if (sort === 'court_sortie') return (a.duree_totale_heure || 999) - (b.duree_totale_heure || 999)
+    if (sort === 'tendance') return (scores[b.id_itineraire] || 0) - (scores[a.id_itineraire] || 0)
+    return new Date(b.created_at) - new Date(a.created_at)
+  })
+
+  const ALL_DEALS = [...flightDeals, ...hotelDeals, ...activityDeals, ...transformItineraires(itineraires)]
+  const favoriteDeals = ALL_DEALS.filter((deal) => favoriteIds.has(`${deal.type}:${deal.id}`)).concat(favoriLieuxEtPlats)
 
   return (
     <>
-      {/* Desktop / tablette : pastilles en ligne, inchangé */}
-      <div className="hidden sm:flex flex-wrap items-center justify-end gap-3 mb-10">
-        <button onClick={onFavoritesClick} className="btn-primary text-sm py-2.5 px-5">
-          Mes favoris
-        </button>
-        <button onClick={handleAteliersClick} className="btn-primary text-sm py-2.5 px-5 relative">
-          Nos ateliers
-          {!isAdmin && (
-            <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-navy flex items-center justify-center">
-              <LockIcon />
-            </span>
-          )}
-        </button>
-        <button onClick={onUpgradeClick} className="btn-primary text-sm py-2.5 px-5">
-          Upgrade plan
-        </button>
-        <div className="relative" ref={accountMenuRef}>
-          <button
-            onClick={() => setAccountMenuOpen((o) => !o)}
-            className="btn-primary text-sm py-2.5 px-5 flex items-center gap-1.5"
-          >
-            Mon compte
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
-          </button>
-          {accountMenuOpen && (
-            <div className="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-lg border border-navy/10 py-1.5 overflow-hidden z-10">
-              <div className="px-4 py-2 text-xs text-navy/50 border-b border-navy/10 mb-1">
-                Abonnement {planLabel}
+      <div className="min-h-screen bg-cream flex flex-col">
+        <Sidebar
+          onLockedClick={() => setPricingOpen(true)}
+          onToolboxClick={(tab) => { setToolboxTab(tab); setToolboxOpen(true) }}
+        />
+
+        <div className="flex-1 ml-0 sm:ml-16 px-4 sm:px-6 pt-20 sm:pt-10 pb-10">
+          <div className="max-w-6xl mx-auto">
+            <PageHeader
+              onFavoritesClick={() => setFavoritesOpen(true)}
+              onUpgradeClick={() => setPricingOpen(true)}
+              onProfileClick={() => setProfileOpen(true)}
+              currentPlan={currentPlan}
+              isAdmin={isAdmin}
+            />
+
+            <div className="mb-8">
+              <div className="flex items-center justify-center sm:justify-start gap-3 mb-2">
+                <h1 className="font-serif text-3xl text-navy">Itinéraires</h1>
+                <QuickAddMenu
+                  open={quickAddOpen}
+                  onToggle={() => setQuickAddOpen((o) => !o)}
+                  onClose={() => setQuickAddOpen(false)}
+                  onCreateItineraire={() => { setQuickAddOpen(false); setCreateOpen(true) }}
+                  onCreateVoyageCommun={() => { setQuickAddOpen(false); setCreateVoyageCommunOpen(true) }}
+                  onSearchFlights={() => { setQuickAddOpen(false); navigate('/vols-hebergements') }}
+                  onAddMusique={() => { setQuickAddOpen(false); setQuickAddMusiqueOpen(true) }}
+                  onAddPlat={() => { setQuickAddOpen(false); setQuickAddPlatOpen(true) }}
+                  onAddLieu={() => { setQuickAddOpen(false); setQuickAddLieuOpen(true) }}
+                  currentPlan={currentPlan}
+                  isAdmin={isAdmin}
+                  onLockedClick={() => setPricingOpen(true)}
+                />
               </div>
-              {hasPaidPlan && (
-                <button
-                  onClick={() => { setAccountMenuOpen(false); openBillingPortal(setOpeningPortal) }}
-                  disabled={openingPortal}
-                  className="w-full text-left px-4 py-2.5 text-sm text-navy hover:bg-navy/5 transition-colors disabled:opacity-60"
-                >
-                  {openingPortal ? 'Ouverture…' : 'Facturation'}
-                </button>
-              )}
-              <button
-                onClick={() => { setAccountMenuOpen(false); onProfileClick?.() }}
-                className="w-full text-left px-4 py-2.5 text-sm text-navy hover:bg-navy/5 transition-colors"
-              >
-                Modifier le profil
-              </button>
-              <button
-                onClick={() => { setAccountMenuOpen(false); supabase.auth.signOut() }}
-                className="w-full text-left px-4 py-2.5 text-sm text-[#993C1D] hover:bg-navy/5 transition-colors"
-              >
-                Se déconnecter
-              </button>
+              <p className="text-navy/70 text-center sm:text-left">Des parcours partagés par la communauté, ou crée le tien.</p>
             </div>
-          )}
+
+            <TipBanner nomPage="itineraires" />
+            <GetYourGuideCityWidget />
+
+            {isFree && (
+              <div className="mb-6 px-4 py-3 rounded-xl bg-coral/5 border border-coral/20 text-sm text-navy/70">
+                Compte gratuit : tu vois les 3 derniers itinéraires publiés.{' '}
+                <button onClick={() => setPricingOpen(true)} className="text-coral font-medium hover:underline">
+                  Passe à l'abonnement
+                </button>{' '}
+                pour tous les débloquer.
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+              <div className="lg:col-span-1">
+                <input
+                  value={search} onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Rechercher un itinéraire"
+                  className="w-full px-3 py-2.5 border border-navy/15 rounded-lg text-sm mb-4 focus:outline-none focus:border-coral"
+                />
+
+                <p className="text-xs text-navy/40 mb-1.5">Pays</p>
+                <select
+                  value={selectedPays} onChange={(e) => setSelectedPays(e.target.value)}
+                  className="w-full px-3 py-2.5 border border-navy/15 rounded-lg text-sm bg-white mb-4 focus:outline-none focus:border-coral"
+                >
+                  <option value="">Tous les pays</option>
+                  {paysList.map((p) => <option key={p} value={p}>{p}</option>)}
+                </select>
+
+                <p className="text-xs text-navy/40 mb-1.5">Ville</p>
+                <select
+                  value={selectedVille} onChange={(e) => setSelectedVille(e.target.value)}
+                  className="w-full px-3 py-2.5 border border-navy/15 rounded-lg text-sm bg-white mb-4 focus:outline-none focus:border-coral"
+                >
+                  <option value="">Toutes les villes</option>
+                  {villeList.map((v) => <option key={v} value={v}>{v}</option>)}
+                </select>
+
+                <p className="text-xs text-navy/40 mb-1.5">Format</p>
+                <select
+                  value={selectedFormat} onChange={(e) => setSelectedFormat(e.target.value)}
+                  className="w-full px-3 py-2.5 border border-navy/15 rounded-lg text-sm bg-white mb-4 focus:outline-none focus:border-coral"
+                >
+                  <option value="">Tous les formats</option>
+                  <option value="sejour">Séjour (plusieurs jours)</option>
+                  <option value="journee">Sortie d'une journée</option>
+                </select>
+
+                <p className="text-xs text-navy/40 mb-1.5">Trier par</p>
+                <select
+                  value={sort} onChange={(e) => setSort(e.target.value)}
+                  className="w-full px-3 py-2.5 border border-navy/15 rounded-lg text-sm bg-white focus:outline-none focus:border-coral"
+                >
+                  <option value="recent">Plus récent</option>
+                  <option value="tendance">Tendance</option>
+                  <option value="long">Plus long</option>
+                  <option value="court_sejour">Plus court (séjour)</option>
+                  <option value="court_sortie">Plus court (sortie)</option>
+                </select>
+              </div>
+
+              <div className="lg:col-span-3">
+                {loading ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <div key={i} className="rounded-xl border border-navy/10 bg-white overflow-hidden animate-pulse">
+                        <div className="h-28 bg-navy/10" />
+                        <div className="p-3">
+                          <div className="h-3 w-3/4 bg-navy/10 rounded mb-2" />
+                          <div className="h-3 w-1/2 bg-navy/10 rounded" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : filtered.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-navy/15 bg-white p-10 text-center">
+                    <p className="text-sm text-navy/50">Aucun itinéraire ne correspond à ta recherche.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {filtered.map((it) => (
+                      <ItineraireCard
+                        key={it.id_itineraire}
+                        itineraire={it}
+                        authorName={authors[it.pid] || 'Un voyageur'}
+                        locked={isFree && !recentIds.has(it.id_itineraire) && it.pid !== user.id}
+                        onOpen={(id) => navigate(`/itineraires/${id}`)}
+                        onLockedClick={() => setPricingOpen(true)}
+                        userId={user.id}
+                        isFavorite={favoriteIds.has(`itineraire:${it.id_itineraire}`)}
+                        onToggleFavorite={() => toggleFavorite({ id: it.id_itineraire, type: 'itineraire' })}
+                        refreshKey={voteRefreshKey}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="ml-0 sm:ml-16">
+          <Footer />
         </div>
       </div>
 
-      {/* Mobile : icône fixe */}
-      <div className="sm:hidden fixed top-4 right-4 z-40" ref={menuRef}>
-        <button
-          onClick={() => setMobileMenuOpen((o) => !o)}
-          className="w-10 h-10 rounded-full bg-coral text-white flex items-center justify-center shadow-sm"
-          aria-label="Menu du compte"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <circle cx="5" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="19" cy="12" r="2" />
-          </svg>
-        </button>
+      {pricingOpen && <PricingModal onClose={() => setPricingOpen(false)} />}
+      {favoritesOpen && (
+        <FavoritesModal
+          onClose={() => { setFavoritesOpen(false); setVoteRefreshKey((k) => k + 1); loadScores(itineraires) }}
+          favoriteDeals={favoriteDeals}
+          userId={user.id}
+          favoriteIds={favoriteIds}
+          onToggleFavorite={toggleFavorite}
+        />
+      )}
+      {toolboxOpen && <ToolboxModal onClose={() => setToolboxOpen(false)} initialTab={toolboxTab} />}
 
-        {mobileMenuOpen && (
-          <div className="absolute right-0 top-12 w-52 bg-white rounded-xl shadow-lg border border-navy/10 py-1.5">
-            <div className="px-4 py-2 text-xs text-navy/50 border-b border-navy/10 mb-1">
-              Abonnement {planLabel}
-            </div>
-            {items.map((item) => (
-              <button
-                key={item.label}
-                onClick={() => { setMobileMenuOpen(false); item.onClick?.() }}
-                className={`w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-navy/5 flex items-center justify-between ${
-                  item.danger ? 'text-[#993C1D]' : 'text-navy'
-                }`}
-              >
-                {item.label}
-                {item.locked && (
-                  <span className="shrink-0 w-4 h-4 rounded-full bg-navy flex items-center justify-center">
-                    <LockIcon />
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+      {profileOpen && <EditProfileModal userId={user.id} onClose={() => setProfileOpen(false)} />}
+      {createOpen && (
+        <CreateItineraireModal
+          userId={user.id}
+          onClose={() => setCreateOpen(false)}
+          onCreated={() => { setCreateOpen(false); loadItineraires() }}
+        />
+      )}
 
-      <div className="sm:hidden h-10 mb-10" aria-hidden="true" />
+      {createVoyageCommunOpen && (
+        <CreateVoyageCommunModal
+          userId={user.id}
+          onClose={() => setCreateVoyageCommunOpen(false)}
+          onCreated={() => { setCreateVoyageCommunOpen(false); navigate('/voyage-commun') }}
+        />
+      )}
 
-      {comingSoonOpen && <ComingSoonModal onClose={() => setComingSoonOpen(false)} />}
+      {quickAddMusiqueOpen && (
+        <AjouterMusiqueModal
+          userId={user.id}
+          onClose={() => setQuickAddMusiqueOpen(false)}
+          onCreated={() => { setQuickAddMusiqueOpen(false); navigate('/playlist') }}
+        />
+      )}
+
+      {quickAddPlatOpen && (
+        <AjouterPlatModal
+          userId={user.id}
+          onClose={() => setQuickAddPlatOpen(false)}
+          onCreated={(idPlat) => { setQuickAddPlatOpen(false); navigate(`/carnet-gastronomique/${idPlat}`) }}
+        />
+      )}
+
+      {quickAddLieuOpen && (
+        <AjouterLieuModal
+          userId={user.id}
+          onClose={() => setQuickAddLieuOpen(false)}
+          onCreated={() => { setQuickAddLieuOpen(false); navigate('/activites') }}
+        />
+      )}
     </>
   )
 }
