@@ -13,6 +13,11 @@ import PlanLockedScreen from './PlanLockedScreen'
 import { useFavoriLieuxPlatsSpas } from './useFavoriLieuxPlatsSpas'
 
 import AjouterPlatModal from './AjouterPlatModal'
+import QuickAddMenu from './QuickAddMenu'
+import CreateItineraireModal from './CreateItineraireModal'
+import CreateVoyageCommunModal from './CreateVoyageCommunModal'
+import AjouterMusiqueModal from './AjouterMusiqueModal'
+import AjouterLieuModal from './AjouterLieuModal'
 
 
 function PlatCard({ plat, score, isFavori, onToggleFavori, onVote, myVote, onClick }) {
@@ -47,6 +52,22 @@ function PlatCard({ plat, score, isFavori, onToggleFavori, onVote, myVote, onCli
 
 export default function Gastronomie() {
   const { user, allowed } = usePlanAccess('occasional')
+  const [currentPlan, setCurrentPlan] = useState('free')
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [quickAddOpen, setQuickAddOpen] = useState(false)
+  const [quickCreateItineraireOpen, setQuickCreateItineraireOpen] = useState(false)
+  const [quickCreateVoyageCommunOpen, setQuickCreateVoyageCommunOpen] = useState(false)
+  const [quickAddMusiqueOpen, setQuickAddMusiqueOpen] = useState(false)
+  const [quickAddLieuOpen, setQuickAddLieuOpen] = useState(false)
+
+  useEffect(() => {
+    if (!user) return
+    supabase.from('lvpt').select('abonnement, is_admin').eq('id', user.id).single()
+      .then(({ data }) => {
+        setCurrentPlan(data?.abonnement || 'free')
+        setIsAdmin(Boolean(data?.is_admin))
+      })
+  }, [user])
   const navigate = useNavigate()
   const [plats, setPlats] = useState([])
   const [scores, setScores] = useState({})
@@ -156,13 +177,27 @@ export default function Gastronomie() {
               onFavoritesClick={() => setFavoritesOpen(true)}
               onUpgradeClick={() => setPricingOpen(true)}
               onProfileClick={() => setProfileOpen(true)}
+              currentPlan={currentPlan}
+              isAdmin={isAdmin}
             />
 
-            <div className="flex items-center justify-between gap-4 mb-2">
+            <div className="flex items-center gap-3 mb-2">
               <h1 className="font-serif text-3xl text-navy">Carnet gastronomique</h1>
-              <button onClick={() => setAddOpen(true)} className="btn-primary text-sm py-2.5 px-5 shrink-0">
-                + Ajouter un plat
-              </button>
+              <QuickAddMenu
+                open={quickAddOpen}
+                onToggle={() => setQuickAddOpen((o) => !o)}
+                onClose={() => setQuickAddOpen(false)}
+                onCreateItineraire={() => { setQuickAddOpen(false); setQuickCreateItineraireOpen(true) }}
+                onCreateVoyageCommun={() => { setQuickAddOpen(false); setQuickCreateVoyageCommunOpen(true) }}
+                onSearchFlights={() => { setQuickAddOpen(false); navigate('/vols-hebergements') }}
+                onAddDepense={() => { setQuickAddOpen(false); navigate('/depenses') }}
+                onAddMusique={() => { setQuickAddOpen(false); setQuickAddMusiqueOpen(true) }}
+                onAddPlat={() => { setQuickAddOpen(false); setAddOpen(true) }}
+                onAddLieu={() => { setQuickAddOpen(false); setQuickAddLieuOpen(true) }}
+                currentPlan={currentPlan}
+                isAdmin={isAdmin}
+                onLockedClick={() => setPricingOpen(true)}
+              />
             </div>
             <p className="text-navy/70 mb-5">Les plats goûtés par la communauté — une idée de quoi manger avant d'y aller.</p>
 
@@ -216,6 +251,35 @@ export default function Gastronomie() {
       )}
       {toolboxOpen && <ToolboxModal onClose={() => setToolboxOpen(false)} initialTab={toolboxTab} />}
       {profileOpen && <EditProfileModal userId={user.id} onClose={() => setProfileOpen(false)} />}
+
+      {quickCreateItineraireOpen && (
+        <CreateItineraireModal
+          userId={user.id}
+          onClose={() => setQuickCreateItineraireOpen(false)}
+          onCreated={() => { setQuickCreateItineraireOpen(false); navigate('/itineraires') }}
+        />
+      )}
+      {quickCreateVoyageCommunOpen && (
+        <CreateVoyageCommunModal
+          userId={user.id}
+          onClose={() => setQuickCreateVoyageCommunOpen(false)}
+          onCreated={() => { setQuickCreateVoyageCommunOpen(false); navigate('/voyage-commun') }}
+        />
+      )}
+      {quickAddMusiqueOpen && (
+        <AjouterMusiqueModal
+          userId={user.id}
+          onClose={() => setQuickAddMusiqueOpen(false)}
+          onCreated={() => { setQuickAddMusiqueOpen(false); navigate('/playlist') }}
+        />
+      )}
+      {quickAddLieuOpen && (
+        <AjouterLieuModal
+          userId={user.id}
+          onClose={() => setQuickAddLieuOpen(false)}
+          onCreated={() => { setQuickAddLieuOpen(false); navigate('/activites') }}
+        />
+      )}
     </>
   )
 }

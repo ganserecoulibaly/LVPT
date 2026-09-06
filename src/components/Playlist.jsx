@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from './supabaseClient'
 import Sidebar from './Sidebar'
 import PageHeader from './PageHeader'
@@ -10,7 +11,12 @@ import Footer from './Footer'
 import { usePlanAccess } from './usePlanAccess'
 import { useFavoriLieuxPlatsSpas } from './useFavoriLieuxPlatsSpas'
 import PlanLockedScreen from './PlanLockedScreen'
+import QuickAddMenu from './QuickAddMenu'
+import CreateItineraireModal from './CreateItineraireModal'
+import CreateVoyageCommunModal from './CreateVoyageCommunModal'
 import AjouterMusiqueModal from './AjouterMusiqueModal'
+import AjouterPlatModal from './AjouterPlatModal'
+import AjouterLieuModal from './AjouterLieuModal'
 
 const GRADIENTS = [
   'linear-gradient(135deg, #F0997B, #D85A30)',
@@ -79,6 +85,7 @@ export default function Playlist() {
   const planAccess = usePlanAccess('occasional')
   const user = planAccess.user
   const allowed = planAccess.allowed
+  const navigate = useNavigate()
 
   const favData = useFavoriLieuxPlatsSpas(user)
   const favoriLieuxEtPlats = favData.favoriLieuxEtPlats
@@ -91,6 +98,23 @@ export default function Playlist() {
   const [profileOpen, setProfileOpen] = useState(false)
   const [toolboxOpen, setToolboxOpen] = useState(false)
   const [toolboxTab, setToolboxTab] = useState('currency')
+
+  const [currentPlan, setCurrentPlan] = useState('free')
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [quickAddOpen, setQuickAddOpen] = useState(false)
+  const [quickCreateItineraireOpen, setQuickCreateItineraireOpen] = useState(false)
+  const [quickCreateVoyageCommunOpen, setQuickCreateVoyageCommunOpen] = useState(false)
+  const [quickAddPlatOpen, setQuickAddPlatOpen] = useState(false)
+  const [quickAddLieuOpen, setQuickAddLieuOpen] = useState(false)
+
+  useEffect(function () {
+    if (!user) return
+    supabase.from('lvpt').select('abonnement, is_admin').eq('id', user.id).single()
+      .then(function (res) {
+        setCurrentPlan(res.data && res.data.abonnement ? res.data.abonnement : 'free')
+        setIsAdmin(Boolean(res.data && res.data.is_admin))
+      })
+  }, [user])
 
   function loadMusiques() {
     supabase
@@ -135,16 +159,31 @@ export default function Playlist() {
               onFavoritesClick={function () { setFavoritesOpen(true) }}
               onUpgradeClick={function () { setPricingOpen(true) }}
               onProfileClick={function () { setProfileOpen(true) }}
+              currentPlan={currentPlan}
+              isAdmin={isAdmin}
             />
 
-            <h1 className="font-serif text-3xl text-navy mb-2">Playlist du voyage</h1>
+            <div className="flex items-center gap-3 mb-2">
+              <h1 className="font-serif text-3xl text-navy">Playlist du voyage</h1>
+              <QuickAddMenu
+                open={quickAddOpen}
+                onToggle={function () { setQuickAddOpen(function (o) { return !o }) }}
+                onClose={function () { setQuickAddOpen(false) }}
+                onCreateItineraire={function () { setQuickAddOpen(false); setQuickCreateItineraireOpen(true) }}
+                onCreateVoyageCommun={function () { setQuickAddOpen(false); setQuickCreateVoyageCommunOpen(true) }}
+                onSearchFlights={function () { setQuickAddOpen(false); navigate('/vols-hebergements') }}
+                onAddDepense={function () { setQuickAddOpen(false); navigate('/depenses') }}
+                onAddMusique={function () { setQuickAddOpen(false); setAddOpen(true) }}
+                onAddPlat={function () { setQuickAddOpen(false); setQuickAddPlatOpen(true) }}
+                onAddLieu={function () { setQuickAddOpen(false); setQuickAddLieuOpen(true) }}
+                currentPlan={currentPlan}
+                isAdmin={isAdmin}
+                onLockedClick={function () { setPricingOpen(true) }}
+              />
+            </div>
             <p className="text-navy/70 mb-6">
               Une ambiance sonore pour chaque destination — découvre la musique des pays visités par la communauté.
             </p>
-
-            <button onClick={function () { setAddOpen(true) }} className="btn-primary text-sm py-2.5 px-5 mb-6">
-              + Ajouter une musique
-            </button>
 
             {musiques.length === 0 ? (
               <p className="text-sm text-navy/40 text-center py-16">Aucun morceau partagé pour l'instant.</p>
@@ -182,6 +221,35 @@ export default function Playlist() {
       )}
       {toolboxOpen && <ToolboxModal onClose={function () { setToolboxOpen(false) }} initialTab={toolboxTab} />}
       {profileOpen && <EditProfileModal userId={user.id} onClose={function () { setProfileOpen(false) }} />}
+
+      {quickCreateItineraireOpen && (
+        <CreateItineraireModal
+          userId={user.id}
+          onClose={function () { setQuickCreateItineraireOpen(false) }}
+          onCreated={function () { setQuickCreateItineraireOpen(false); navigate('/itineraires') }}
+        />
+      )}
+      {quickCreateVoyageCommunOpen && (
+        <CreateVoyageCommunModal
+          userId={user.id}
+          onClose={function () { setQuickCreateVoyageCommunOpen(false) }}
+          onCreated={function () { setQuickCreateVoyageCommunOpen(false); navigate('/voyage-commun') }}
+        />
+      )}
+      {quickAddPlatOpen && (
+        <AjouterPlatModal
+          userId={user.id}
+          onClose={function () { setQuickAddPlatOpen(false) }}
+          onCreated={function (idPlat) { setQuickAddPlatOpen(false); navigate('/carnet-gastronomique/' + idPlat) }}
+        />
+      )}
+      {quickAddLieuOpen && (
+        <AjouterLieuModal
+          userId={user.id}
+          onClose={function () { setQuickAddLieuOpen(false) }}
+          onCreated={function () { setQuickAddLieuOpen(false); navigate('/activites') }}
+        />
+      )}
     </>
   )
 }

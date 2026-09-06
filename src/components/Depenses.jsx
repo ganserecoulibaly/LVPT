@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from './supabaseClient'
 import Sidebar from './Sidebar'
 import PageHeader from './PageHeader'
@@ -8,6 +9,12 @@ import FavoritesModal from './FavoritesModal'
 import ToolboxModal from './ToolboxModal'
 import Footer from './Footer'
 import { usePlanAccess } from './usePlanAccess'
+import QuickAddMenu from './QuickAddMenu'
+import CreateItineraireModal from './CreateItineraireModal'
+import CreateVoyageCommunModal from './CreateVoyageCommunModal'
+import AjouterMusiqueModal from './AjouterMusiqueModal'
+import AjouterPlatModal from './AjouterPlatModal'
+import AjouterLieuModal from './AjouterLieuModal'
 import { useFavoriLieuxPlatsSpas } from './useFavoriLieuxPlatsSpas'
 import PlanLockedScreen from './PlanLockedScreen'
 import PaysAutocomplete from './PaysAutocomplete'
@@ -101,6 +108,24 @@ function DepenseRow({ d, onDelete }) {
 
 export default function Depenses() {
   const { user, allowed } = usePlanAccess('occasional')
+  const navigate = useNavigate()
+  const [currentPlan, setCurrentPlan] = useState('free')
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [quickAddOpen, setQuickAddOpen] = useState(false)
+  const [quickCreateItineraireOpen, setQuickCreateItineraireOpen] = useState(false)
+  const [quickCreateVoyageCommunOpen, setQuickCreateVoyageCommunOpen] = useState(false)
+  const [quickAddMusiqueOpen, setQuickAddMusiqueOpen] = useState(false)
+  const [quickAddPlatOpen, setQuickAddPlatOpen] = useState(false)
+  const [quickAddLieuOpen, setQuickAddLieuOpen] = useState(false)
+
+  useEffect(() => {
+    if (!user) return
+    supabase.from('lvpt').select('abonnement, is_admin').eq('id', user.id).single()
+      .then(({ data }) => {
+        setCurrentPlan(data?.abonnement || 'free')
+        setIsAdmin(Boolean(data?.is_admin))
+      })
+  }, [user])
   const { favoriLieuxEtPlats, toggleFavoriGeneric } = useFavoriLieuxPlatsSpas(user)
   const [voyages, setVoyages] = useState([])
   const [depenses, setDepenses] = useState([])
@@ -364,11 +389,29 @@ export default function Depenses() {
               onFavoritesClick={() => setFavoritesOpen(true)}
               onUpgradeClick={() => setPricingOpen(true)}
               onProfileClick={() => setProfileOpen(true)}
+              currentPlan={currentPlan}
+              isAdmin={isAdmin}
             />
 
             <div className="flex items-start justify-between gap-4 mb-2">
               <div>
-                <h1 className="font-serif text-3xl text-navy mb-1">Journal de dépenses</h1>
+                <div className="flex items-center gap-3 mb-1">
+                  <h1 className="font-serif text-3xl text-navy">Journal de dépenses</h1>
+                  <QuickAddMenu
+                    open={quickAddOpen}
+                    onToggle={() => setQuickAddOpen((o) => !o)}
+                    onClose={() => setQuickAddOpen(false)}
+                    onCreateItineraire={() => { setQuickAddOpen(false); setQuickCreateItineraireOpen(true) }}
+                    onCreateVoyageCommun={() => { setQuickAddOpen(false); setQuickCreateVoyageCommunOpen(true) }}
+                    onSearchFlights={() => { setQuickAddOpen(false); navigate('/vols-hebergements') }}
+                    onAddMusique={() => { setQuickAddOpen(false); setQuickAddMusiqueOpen(true) }}
+                    onAddPlat={() => { setQuickAddOpen(false); setQuickAddPlatOpen(true) }}
+                    onAddLieu={() => { setQuickAddOpen(false); setQuickAddLieuOpen(true) }}
+                    currentPlan={currentPlan}
+                    isAdmin={isAdmin}
+                    onLockedClick={() => setPricingOpen(true)}
+                  />
+                </div>
                 {currentVoyage ? (
                   <p className="text-navy/70">
                     {currentVoyage.destination_ville}, {currentVoyage.destination_pays} · {currentVoyage.duree_jours} jour{currentVoyage.duree_jours > 1 ? 's' : ''}
@@ -599,6 +642,42 @@ export default function Depenses() {
       )}
       {toolboxOpen && <ToolboxModal onClose={() => setToolboxOpen(false)} initialTab={toolboxTab} />}
       {profileOpen && <EditProfileModal userId={user.id} onClose={() => setProfileOpen(false)} />}
+
+      {quickCreateItineraireOpen && (
+        <CreateItineraireModal
+          userId={user.id}
+          onClose={() => setQuickCreateItineraireOpen(false)}
+          onCreated={() => { setQuickCreateItineraireOpen(false); navigate('/itineraires') }}
+        />
+      )}
+      {quickCreateVoyageCommunOpen && (
+        <CreateVoyageCommunModal
+          userId={user.id}
+          onClose={() => setQuickCreateVoyageCommunOpen(false)}
+          onCreated={() => { setQuickCreateVoyageCommunOpen(false); navigate('/voyage-commun') }}
+        />
+      )}
+      {quickAddMusiqueOpen && (
+        <AjouterMusiqueModal
+          userId={user.id}
+          onClose={() => setQuickAddMusiqueOpen(false)}
+          onCreated={() => { setQuickAddMusiqueOpen(false); navigate('/playlist') }}
+        />
+      )}
+      {quickAddPlatOpen && (
+        <AjouterPlatModal
+          userId={user.id}
+          onClose={() => setQuickAddPlatOpen(false)}
+          onCreated={(idPlat) => { setQuickAddPlatOpen(false); navigate(`/carnet-gastronomique/${idPlat}`) }}
+        />
+      )}
+      {quickAddLieuOpen && (
+        <AjouterLieuModal
+          userId={user.id}
+          onClose={() => setQuickAddLieuOpen(false)}
+          onCreated={() => { setQuickAddLieuOpen(false); navigate('/activites') }}
+        />
+      )}
     </>
   )
 }

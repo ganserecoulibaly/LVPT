@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 import { supabase } from './supabaseClient'
 import Sidebar from './Sidebar'
 import PageHeader from './PageHeader'
@@ -10,6 +10,12 @@ import ToolboxModal from './ToolboxModal'
 import Footer from './Footer'
 import { usePlanAccess } from './usePlanAccess'
 import { useFavoriLieuxPlatsSpas } from './useFavoriLieuxPlatsSpas'
+import QuickAddMenu from './QuickAddMenu'
+import CreateItineraireModal from './CreateItineraireModal'
+import CreateVoyageCommunModal from './CreateVoyageCommunModal'
+import AjouterMusiqueModal from './AjouterMusiqueModal'
+import AjouterPlatModal from './AjouterPlatModal'
+import AjouterLieuModal from './AjouterLieuModal'
 
 const GRADIENTS = [
   'linear-gradient(135deg, #F0997B, #D85A30)',
@@ -86,6 +92,7 @@ function SpaCard({ spa, index, isFavori, onToggleFavori, isHighlighted, cardRef 
 
 export default function SpaBienEtre() {
   const { user, allowed } = usePlanAccess('free')
+  const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const { favoriLieuxEtPlats, toggleFavoriGeneric } = useFavoriLieuxPlatsSpas(user)
   const [spas, setSpas] = useState([])
@@ -95,6 +102,24 @@ export default function SpaBienEtre() {
   const [filtreVille, setFiltreVille] = useState('')
   const [highlightedSpaId, setHighlightedSpaId] = useState(null)
   const highlightedCardRef = useRef(null)
+
+  const [currentPlan, setCurrentPlan] = useState('free')
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [quickAddOpen, setQuickAddOpen] = useState(false)
+  const [quickCreateItineraireOpen, setQuickCreateItineraireOpen] = useState(false)
+  const [quickCreateVoyageCommunOpen, setQuickCreateVoyageCommunOpen] = useState(false)
+  const [quickAddMusiqueOpen, setQuickAddMusiqueOpen] = useState(false)
+  const [quickAddPlatOpen, setQuickAddPlatOpen] = useState(false)
+  const [quickAddLieuOpen, setQuickAddLieuOpen] = useState(false)
+
+  useEffect(() => {
+    if (!user) return
+    supabase.from('lvpt').select('abonnement, is_admin').eq('id', user.id).single()
+      .then(({ data }) => {
+        setCurrentPlan(data?.abonnement || 'free')
+        setIsAdmin(Boolean(data?.is_admin))
+      })
+  }, [user])
 
   const [pricingOpen, setPricingOpen] = useState(false)
   const [favoritesOpen, setFavoritesOpen] = useState(false)
@@ -183,9 +208,28 @@ export default function SpaBienEtre() {
               onFavoritesClick={() => setFavoritesOpen(true)}
               onUpgradeClick={() => setPricingOpen(true)}
               onProfileClick={() => setProfileOpen(true)}
+              currentPlan={currentPlan}
+              isAdmin={isAdmin}
             />
 
-            <h1 className="font-serif text-3xl text-navy mb-2">Spa & bien-être</h1>
+            <div className="flex items-center gap-3 mb-2">
+              <h1 className="font-serif text-3xl text-navy">Spa & bien-être</h1>
+              <QuickAddMenu
+                open={quickAddOpen}
+                onToggle={() => setQuickAddOpen((o) => !o)}
+                onClose={() => setQuickAddOpen(false)}
+                onCreateItineraire={() => { setQuickAddOpen(false); setQuickCreateItineraireOpen(true) }}
+                onCreateVoyageCommun={() => { setQuickAddOpen(false); setQuickCreateVoyageCommunOpen(true) }}
+                onSearchFlights={() => { setQuickAddOpen(false); navigate('/vols-hebergements') }}
+                onAddDepense={() => { setQuickAddOpen(false); navigate('/depenses') }}
+                onAddMusique={() => { setQuickAddOpen(false); setQuickAddMusiqueOpen(true) }}
+                onAddPlat={() => { setQuickAddOpen(false); setQuickAddPlatOpen(true) }}
+                onAddLieu={() => { setQuickAddOpen(false); setQuickAddLieuOpen(true) }}
+                currentPlan={currentPlan}
+                isAdmin={isAdmin}
+                onLockedClick={() => setPricingOpen(true)}
+              />
+            </div>
             <p className="text-navy/70 mb-6">Une pause détente, où que tu sois — même sans partir en voyage.</p>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-6">
@@ -240,6 +284,42 @@ export default function SpaBienEtre() {
       )}
       {toolboxOpen && <ToolboxModal onClose={() => setToolboxOpen(false)} initialTab={toolboxTab} />}
       {profileOpen && <EditProfileModal userId={user.id} onClose={() => setProfileOpen(false)} />}
+
+      {quickCreateItineraireOpen && (
+        <CreateItineraireModal
+          userId={user.id}
+          onClose={() => setQuickCreateItineraireOpen(false)}
+          onCreated={() => { setQuickCreateItineraireOpen(false); navigate('/itineraires') }}
+        />
+      )}
+      {quickCreateVoyageCommunOpen && (
+        <CreateVoyageCommunModal
+          userId={user.id}
+          onClose={() => setQuickCreateVoyageCommunOpen(false)}
+          onCreated={() => { setQuickCreateVoyageCommunOpen(false); navigate('/voyage-commun') }}
+        />
+      )}
+      {quickAddMusiqueOpen && (
+        <AjouterMusiqueModal
+          userId={user.id}
+          onClose={() => setQuickAddMusiqueOpen(false)}
+          onCreated={() => { setQuickAddMusiqueOpen(false); navigate('/playlist') }}
+        />
+      )}
+      {quickAddPlatOpen && (
+        <AjouterPlatModal
+          userId={user.id}
+          onClose={() => setQuickAddPlatOpen(false)}
+          onCreated={(idPlat) => { setQuickAddPlatOpen(false); navigate(`/carnet-gastronomique/${idPlat}`) }}
+        />
+      )}
+      {quickAddLieuOpen && (
+        <AjouterLieuModal
+          userId={user.id}
+          onClose={() => setQuickAddLieuOpen(false)}
+          onCreated={() => { setQuickAddLieuOpen(false); navigate('/activites') }}
+        />
+      )}
     </>
   )
 }
