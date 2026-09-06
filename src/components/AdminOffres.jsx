@@ -74,6 +74,24 @@ const emptySejour = {
   moyen_transport: 'Vol', compagnie_transport: '', nom_hebergement: '',
   type_hebergement: '', prix_personne: '', lien_offre: '',
 }
+const emptySpa = {
+  nom: '', type_spa: 'spa_hotel', pays: '', ville: '', quartier: '',
+  description: '', prix_indicatif: '', lien_resa: '', lien_photo: '',
+}
+
+// Libellés lisibles pour les 8 catégories de s_spa (contrainte CHECK
+// s_spa_type_check) — mêmes valeurs que TYPE_LABELS dans SpaBienEtre.jsx,
+// à garder synchronisées si une catégorie est ajoutée un jour.
+const SPA_TYPE_LABELS = {
+  spa_hotel: "Spa d'hôtel",
+  thermes: 'Thermes',
+  bain_thermal: 'Bain thermal',
+  source_chaude: "Source naturelle d'eau chaude",
+  hammam_hotel: "Hammam d'hôtel",
+  onsen: 'Onsen',
+  spa_nordique: 'Spa nordique',
+  flottaison_cryo: 'Flottaison / Cryothérapie',
+}
 
 // Page réservée à l'admin (le lien n'apparaît que pour is_admin dans la
 // Sidebar) — hub centralisant l'ajout de contenu pour toutes les sections
@@ -215,6 +233,37 @@ export default function AdminOffres() {
     setSuccessSejour(true)
     setSavingSejour(false)
     setTimeout(() => setSuccessSejour(false), 2000)
+  }
+
+  // --- Spa & bien-être ---
+  const [spaForm, setSpaForm] = useState(emptySpa)
+  const [savingSpa, setSavingSpa] = useState(false)
+  const [errorSpa, setErrorSpa] = useState(null)
+  const [successSpa, setSuccessSpa] = useState(false)
+
+  const updateSpa = (field, value) => setSpaForm((prev) => ({ ...prev, [field]: value }))
+
+  const handleSubmitSpa = async (e) => {
+    e.preventDefault()
+    setErrorSpa(null)
+    setSavingSpa(true)
+    const { error: insertError } = await supabase.from('s_spa').insert({
+      nom: spaForm.nom.trim(),
+      type_spa: spaForm.type_spa,
+      pays: spaForm.pays.trim(),
+      ville: spaForm.ville.trim(),
+      quartier: spaForm.quartier.trim() || null,
+      description: spaForm.description.trim() || null,
+      prix_indicatif: spaForm.prix_indicatif.trim() || null,
+      lien_resa: spaForm.lien_resa.trim() || null,
+      lien_photo: spaForm.lien_photo.trim() || null,
+      actif: true,
+    })
+    if (insertError) { setErrorSpa(insertError.message); setSavingSpa(false); return }
+    setSpaForm(emptySpa)
+    setSuccessSpa(true)
+    setSavingSpa(false)
+    setTimeout(() => setSuccessSpa(false), 2000)
   }
 
   // --- Voyage Commun / Itinéraire / Playlist / Gastronomie / Activités ---
@@ -732,6 +781,68 @@ export default function AdminOffres() {
                 + Ajouter un lieu
               </button>
             </div>
+          )}
+
+          {/* --- SPA & BIEN-ÊTRE --- */}
+          {section === 'spa' && (
+            <form onSubmit={handleSubmitSpa} className="bg-white rounded-2xl p-6 flex flex-col gap-3">
+              <p className="font-serif text-lg text-navy mb-2">Ajouter un spa</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="col-span-2">
+                  <label className="text-xs text-navy/70 mb-1 block">Nom</label>
+                  <input type="text" required className={inputClass}
+                    value={spaForm.nom} onChange={(e) => updateSpa('nom', e.target.value)} />
+                </div>
+                <div>
+                  <label className="text-xs text-navy/70 mb-1 block">Type</label>
+                  <select className={inputClass} value={spaForm.type_spa} onChange={(e) => updateSpa('type_spa', e.target.value)}>
+                    {Object.entries(SPA_TYPE_LABELS).map(([key, label]) => (
+                      <option key={key} value={key}>{label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs text-navy/70 mb-1 block">Prix indicatif</label>
+                  <input type="text" placeholder="ex : 80-120€" className={inputClass}
+                    value={spaForm.prix_indicatif} onChange={(e) => updateSpa('prix_indicatif', e.target.value)} />
+                </div>
+                <div>
+                  <label className="text-xs text-navy/70 mb-1 block">Pays</label>
+                  <input type="text" required className={inputClass}
+                    value={spaForm.pays} onChange={(e) => updateSpa('pays', e.target.value)} />
+                </div>
+                <div>
+                  <label className="text-xs text-navy/70 mb-1 block">Ville</label>
+                  <input type="text" required className={inputClass}
+                    value={spaForm.ville} onChange={(e) => updateSpa('ville', e.target.value)} />
+                </div>
+                <div className="col-span-2">
+                  <label className="text-xs text-navy/70 mb-1 block">Quartier</label>
+                  <input type="text" className={inputClass}
+                    value={spaForm.quartier} onChange={(e) => updateSpa('quartier', e.target.value)} />
+                </div>
+                <div className="col-span-2">
+                  <label className="text-xs text-navy/70 mb-1 block">Description</label>
+                  <textarea rows={3} className={inputClass}
+                    value={spaForm.description} onChange={(e) => updateSpa('description', e.target.value)} />
+                </div>
+                <div>
+                  <label className="text-xs text-navy/70 mb-1 block">Lien de réservation</label>
+                  <input type="url" placeholder="https://..." className={inputClass}
+                    value={spaForm.lien_resa} onChange={(e) => updateSpa('lien_resa', e.target.value)} />
+                </div>
+                <div>
+                  <label className="text-xs text-navy/70 mb-1 block">Lien photo</label>
+                  <input type="url" placeholder="https://..." className={inputClass}
+                    value={spaForm.lien_photo} onChange={(e) => updateSpa('lien_photo', e.target.value)} />
+                </div>
+              </div>
+              {errorSpa && <p className="text-sm text-red-600">{errorSpa}</p>}
+              {successSpa && <p className="text-sm text-green-600">Spa publié !</p>}
+              <button type="submit" disabled={savingSpa} className="btn-primary text-sm py-2.5 mt-2 disabled:opacity-60">
+                {savingSpa ? 'Publication…' : 'Publier le spa'}
+              </button>
+            </form>
           )}
         </div>
       </div>
