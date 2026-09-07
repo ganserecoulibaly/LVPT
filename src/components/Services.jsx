@@ -47,6 +47,13 @@ const IconUsers = () => (
     <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
   </svg>
 )
+const IconSpa = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 22c4-2 6-5.5 6-9.5C18 8 15 4 12 2 9 4 6 8 6 12.5 6 16.5 8 20 12 22z"/>
+    <path d="M12 22c-2-1.5-3-4-3-6.5"/>
+    <path d="M12 22c2-1.5 3-4 3-6.5"/>
+  </svg>
+)
 
 const modules = [
   {
@@ -55,9 +62,7 @@ const modules = [
     color: 'bg-coral', textColor: 'text-white',
     visual: (
       <div className="mt-4 bg-white p-3 shadow-md rotate-[1.5deg] inline-block">
-        <div className="w-36 h-24 bg-gradient-to-br from-sky-200 via-sky-300 to-blue-400 rounded overflow-hidden flex items-center justify-center">
-          <div className="text-2xl">✈️</div>
-        </div>
+        <img src="/images/imgLanding/volHebergement.png" alt="Recherche de vols & hébergements" className="w-36 h-24 object-cover rounded" />
         <p className="font-handwriting text-navy text-xs mt-1.5 text-center">Paris → Hanoï ✦</p>
       </div>
     )
@@ -68,16 +73,7 @@ const modules = [
     color: 'bg-cream-dark', textColor: 'text-navy',
     visual: (
       <div className="mt-4 bg-white p-3 shadow-md rotate-[-1.5deg] inline-block">
-        <div className="w-36 h-24 bg-gradient-to-br from-orange-900 via-orange-700 to-amber-800 rounded overflow-hidden flex items-center justify-center">
-          <div className="text-center">
-            <div className="text-2xl mb-1">🏮</div>
-            <div className="flex gap-1 justify-center">
-              <div className="w-5 h-8 bg-amber-900/80 rounded-t-sm" />
-              <div className="w-5 h-6 bg-amber-800/80 rounded-t-sm" />
-              <div className="w-5 h-8 bg-amber-900/80 rounded-t-sm" />
-            </div>
-          </div>
-        </div>
+        <img src="/images/imgLanding/gastronomie.png" alt="Carnet gastronomique" className="w-36 h-24 object-cover rounded" />
         <p className="font-handwriting text-navy text-xs mt-1.5 text-center">le pho de Trang ★★★★★</p>
       </div>
     )
@@ -88,16 +84,7 @@ const modules = [
     color: 'bg-white', textColor: 'text-navy',
     visual: (
       <div className="mt-4 bg-white p-3 shadow-md rotate-[-1deg] inline-block">
-        <div className="w-36 h-24 bg-gradient-to-br from-emerald-100 to-teal-200 rounded overflow-hidden p-2.5 flex flex-col justify-center gap-1.5">
-          {[ {l:'Logement', w:'70%'}, {l:'Transport', w:'45%'}, {l:'Food', w:'85%'} ].map((row,i) => (
-            <div key={i} className="flex items-center gap-1.5">
-              <span className="text-[9px] text-navy/50 w-12">{row.l}</span>
-              <div className="flex-1 h-2 bg-navy/10 rounded-full overflow-hidden">
-                <div className="h-full bg-coral rounded-full" style={{ width: row.w }} />
-              </div>
-            </div>
-          ))}
-        </div>
+        <img src="/images/imgLanding/depense.png" alt="Journal de dépenses" className="w-36 h-24 object-cover rounded" />
         <p className="font-handwriting text-navy text-xs mt-1.5 text-center">12 jours, 480€ ✦</p>
       </div>
     )
@@ -108,11 +95,7 @@ const modules = [
     color: 'bg-[#2d4a6b]', textColor: 'text-white',
     visual: (
       <div className="mt-4 bg-white p-3 shadow-md rotate-[1deg] inline-block">
-        <div className="w-36 h-24 bg-gradient-to-br from-violet-300 via-fuchsia-300 to-pink-300 rounded overflow-hidden flex items-center justify-center gap-1">
-          {[8,14,6,18,10,16,7].map((h,i) => (
-            <div key={i} className="w-1.5 bg-navy/70 rounded-full" style={{ height: `${h*3}px` }} />
-          ))}
-        </div>
+        <img src="/images/imgLanding/playlist.png" alt="Playlist du voyage" className="w-36 h-24 object-cover rounded" />
         <p className="font-handwriting text-navy text-xs mt-1.5 text-center">la BO d'Hanoï 🎧</p>
       </div>
     )
@@ -123,9 +106,7 @@ const modules = [
     color: 'bg-cream-dark', textColor: 'text-navy',
     visual: (
       <div className="mt-4 bg-white p-3 shadow-md rotate-[1deg] inline-block">
-        <div className="w-36 h-24 bg-gradient-to-br from-amber-800 to-yellow-700 rounded overflow-hidden flex items-center justify-center">
-          <div className="text-2xl">🗺️</div>
-        </div>
+        <img src="/images/imgLanding/activite.png" alt="Tracker activités, musées & sites" className="w-36 h-24 object-cover rounded" />
       </div>
     )
   },
@@ -135,9 +116,7 @@ const modules = [
     color: 'bg-white', textColor: 'text-navy',
     visual: (
       <div className="mt-4 bg-white p-3 shadow-md rotate-[1.5deg] inline-block">
-        <div className="w-36 h-24 bg-gradient-to-br from-stone-200 to-amber-200 rounded overflow-hidden flex items-center justify-center">
-          <div className="text-2xl">🛏️</div>
-        </div>
+        <img src="/images/imgLanding/carnetHebergement.png" alt="Carnet d'hébergements" className="w-36 h-24 object-cover rounded" />
         <p className="font-handwriting text-navy text-xs mt-1.5 text-center">auberge Mai — accueil ★★★★★</p>
       </div>
     )
@@ -148,11 +127,7 @@ const modules = [
     color: 'bg-coral', textColor: 'text-white',
     visual: (
       <div className="mt-4 bg-white p-3 shadow-md rotate-[-1.5deg] inline-block">
-        <div className="w-36 h-24 bg-gradient-to-br from-slate-100 to-slate-300 rounded overflow-hidden flex flex-col items-center justify-center gap-1 p-2">
-          <div className="w-full h-3 bg-navy/15 rounded-sm" />
-          <div className="w-full h-3 bg-navy/15 rounded-sm" />
-          <div className="w-2/3 h-3 bg-coral/40 rounded-sm" />
-        </div>
+        <img src="/images/imgLanding/document_transport.png" alt="Documents de transport" className="w-36 h-24 object-cover rounded" />
         <p className="font-handwriting text-navy text-xs mt-1.5 text-center">vol HAN→CDG, dispo hors-ligne</p>
       </div>
     )
@@ -163,9 +138,18 @@ const modules = [
     color: 'bg-teal', textColor: 'text-white',
     visual: (
       <div className="mt-4 bg-white p-3 shadow-md rotate-[-1deg] inline-block">
-        <div className="w-36 h-24 bg-gradient-to-br from-orange-300 via-amber-400 to-yellow-500 rounded overflow-hidden flex items-end justify-center pb-2">
-          <div className="text-2xl">🏔️</div>
-        </div>
+        <img src="/images/imgLanding/voyageCommun.png" alt="Voyage commun" className="w-36 h-24 object-cover rounded" />
+      </div>
+    )
+  },
+  {
+    num: '09', icon: <IconSpa />, title: 'Spa & bien-être',
+    desc: "Trouve et réserve un moment détente sur ta route : spa, massage, thermes — repère les bonnes adresses près de toi.",
+    color: 'bg-cream-dark', textColor: 'text-navy',
+    visual: (
+      <div className="mt-4 bg-white p-3 shadow-md rotate-[1.5deg] inline-block">
+        <img src="/images/imgLanding/spa.png" alt="Spa & bien-être" className="w-36 h-24 object-cover rounded" />
+        <p className="font-handwriting text-navy text-xs mt-1.5 text-center">onsen à Hakone ✦</p>
       </div>
     )
   },
@@ -179,7 +163,7 @@ export default function Services() {
         <div className="mb-14">
           <p className="section-eyebrow">Tout ce qu'un voyageur garde en tête</p>
           <h2 className="section-title mb-4">
-            Huit carnets, <em className="text-coral not-italic font-serif italic">un seul</em> compagnon.
+            Neuf carnets, <em className="text-coral not-italic font-serif italic">un seul</em> compagnon.
           </h2>
           <p className="section-subtitle max-w-lg">
             Chaque module est un coin de ton carnet : pour chercher, noter, comparer, écouter, retrouver — et partager.
