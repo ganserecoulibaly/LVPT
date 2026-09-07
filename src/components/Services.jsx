@@ -62,7 +62,7 @@ const modules = [
     color: 'bg-coral', textColor: 'text-white',
     visual: (
       <div className="mt-4 bg-white p-3 shadow-md rotate-[1.5deg] inline-block">
-        <img src="/images/imgLanding/volHebergement.png" alt="Recherche de vols & hébergements" className="w-36 h-24 object-cover rounded" />
+        <img src="/images/imgLanding/volHebergement.png" alt="Recherche de vols & hébergements" className="w-48 h-32 object-cover rounded" />
         <p className="font-handwriting text-navy text-xs mt-1.5 text-center">Paris → Hanoï ✦</p>
       </div>
     )
@@ -73,7 +73,7 @@ const modules = [
     color: 'bg-cream-dark', textColor: 'text-navy',
     visual: (
       <div className="mt-4 bg-white p-3 shadow-md rotate-[-1.5deg] inline-block">
-        <img src="/images/imgLanding/gastronomie.png" alt="Carnet gastronomique" className="w-36 h-24 object-cover rounded" />
+        <img src="/images/imgLanding/gastronomie.png" alt="Carnet gastronomique" className="w-48 h-32 object-cover rounded" />
         <p className="font-handwriting text-navy text-xs mt-1.5 text-center">le pho de Trang ★★★★★</p>
       </div>
     )
@@ -84,7 +84,7 @@ const modules = [
     color: 'bg-white', textColor: 'text-navy',
     visual: (
       <div className="mt-4 bg-white p-3 shadow-md rotate-[-1deg] inline-block">
-        <img src="/images/imgLanding/depense.png" alt="Journal de dépenses" className="w-36 h-24 object-cover rounded" />
+        <img src="/images/imgLanding/depense.png" alt="Journal de dépenses" className="w-48 h-32 object-cover rounded" />
         <p className="font-handwriting text-navy text-xs mt-1.5 text-center">12 jours, 480€ ✦</p>
       </div>
     )
@@ -95,7 +95,7 @@ const modules = [
     color: 'bg-[#2d4a6b]', textColor: 'text-white',
     visual: (
       <div className="mt-4 bg-white p-3 shadow-md rotate-[1deg] inline-block">
-        <img src="/images/imgLanding/playlist.png" alt="Playlist du voyage" className="w-36 h-24 object-cover rounded" />
+        <img src="/images/imgLanding/playlist.png" alt="Playlist du voyage" className="w-48 h-32 object-cover rounded" />
         <p className="font-handwriting text-navy text-xs mt-1.5 text-center">la BO d'Hanoï 🎧</p>
       </div>
     )
@@ -106,7 +106,7 @@ const modules = [
     color: 'bg-cream-dark', textColor: 'text-navy',
     visual: (
       <div className="mt-4 bg-white p-3 shadow-md rotate-[1deg] inline-block">
-        <img src="/images/imgLanding/activite.png" alt="Tracker activités, musées & sites" className="w-36 h-24 object-cover rounded" />
+        <img src="/images/imgLanding/activite.png" alt="Tracker activités, musées & sites" className="w-48 h-32 object-cover rounded" />
       </div>
     )
   },
@@ -116,7 +116,7 @@ const modules = [
     color: 'bg-white', textColor: 'text-navy',
     visual: (
       <div className="mt-4 bg-white p-3 shadow-md rotate-[1.5deg] inline-block">
-        <img src="/images/imgLanding/carnetHebergement.png" alt="Carnet d'hébergements" className="w-36 h-24 object-cover rounded" />
+        <img src="/images/imgLanding/carnetHebergement.png" alt="Carnet d'hébergements" className="w-48 h-32 object-cover rounded" />
         <p className="font-handwriting text-navy text-xs mt-1.5 text-center">auberge Mai — accueil ★★★★★</p>
       </div>
     )
@@ -127,7 +127,7 @@ const modules = [
     color: 'bg-coral', textColor: 'text-white',
     visual: (
       <div className="mt-4 bg-white p-3 shadow-md rotate-[-1.5deg] inline-block">
-        <img src="/images/imgLanding/document_transport.png" alt="Documents de transport" className="w-36 h-24 object-cover rounded" />
+        <img src="/images/imgLanding/document_transport.png" alt="Documents de transport" className="w-48 h-32 object-cover rounded" />
         <p className="font-handwriting text-navy text-xs mt-1.5 text-center">vol HAN→CDG, dispo hors-ligne</p>
       </div>
     )
@@ -138,7 +138,7 @@ const modules = [
     color: 'bg-teal', textColor: 'text-white',
     visual: (
       <div className="mt-4 bg-white p-3 shadow-md rotate-[-1deg] inline-block">
-        <img src="/images/imgLanding/voyageCommun.png" alt="Voyage commun" className="w-36 h-24 object-cover rounded" />
+        <img src="/images/imgLanding/voyageCommun.png" alt="Voyage commun" className="w-48 h-32 object-cover rounded" />
       </div>
     )
   },
@@ -148,7 +148,7 @@ const modules = [
     color: 'bg-cream-dark', textColor: 'text-navy',
     visual: (
       <div className="mt-4 bg-white p-3 shadow-md rotate-[1.5deg] inline-block">
-        <img src="/images/imgLanding/spa.png" alt="Spa & bien-être" className="w-36 h-24 object-cover rounded" />
+        <img src="/images/imgLanding/spa.png" alt="Spa & bien-être" className="w-48 h-32 object-cover rounded" />
         <p className="font-handwriting text-navy text-xs mt-1.5 text-center">onsen à Hakone ✦</p>
       </div>
     )
@@ -180,7 +180,7 @@ export default function Services() {
               </div>
               <h3 className="font-serif text-2xl font-medium mb-2">{mod.title}</h3>
               <p className={`font-sans text-sm leading-relaxed ${mod.textColor === 'text-white' ? 'text-white/80' : 'text-navy/60'}`}>{mod.desc}</p>
-              {mod.visual && <div className="mt-4">{mod.visual}</div>}
+              {mod.visual && <div className="mt-4 text-center">{mod.visual}</div>}
             </div>
           ))}
         </div>
