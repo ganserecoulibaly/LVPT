@@ -38,7 +38,7 @@ export default function Hero() {
   </p>
 </div>
 
-{/* Bloc 2 — recherche gratuite vols/hébergements */}
+{/* Bloc 2 — modules gratuits */}
 <div className="flex items-start gap-3 max-w-md mb-10">
   <div className="flex-shrink-0 w-7 h-7 rounded-full bg-coral/20 flex items-center justify-center mt-px">
     <Gift className="w-3.5 h-3.5" stroke="#e8735a" strokeWidth={2} />
@@ -46,8 +46,8 @@ export default function Hero() {
   <p className="section-subtitle">
     Et pour commencer l'aventure :{' '}
     <span className="bg-[#D85A30] text-[#FAECE7] px-2 py-0.5 rounded-md font-medium whitespace-nowrap">
-      deux modules gratuits
-    </span>, dont la recherche de vols/hébergements et Voyage Commun.
+      trois modules gratuits
+    </span>, dont la recherche de vols/hébergements, Voyage Commun et Spa & bien-être.
   </p>
 </div>
 
