@@ -5,7 +5,6 @@ import { supabase } from './supabaseClient' // adapte ce chemin au vrai fichier 
 
 const MONTHLY = 'monthly'
 const YEARLY = 'yearly'
-const TRIAL_DAYS = 7
 
 // Fonctionnalités alignées sur les vrais modules de l'app (Sidebar.jsx),
 // pas des fonctionnalités inventées qui n'existent pas dans LVPT.
@@ -89,9 +88,7 @@ function formatPrice(plan, billing) {
 }
 
 // Premier abonnement (l'utilisateur est sur Gratuit) : passe par
-// Stripe Checkout classique. L'essai de 7 jours (TRIAL_DAYS) est
-// accordé côté create-checkout-session, uniquement si le compte n'a
-// jamais eu de stripe_customer_id (voir logique anti-abus côté backend).
+// Stripe Checkout classique, paiement immédiat dès la souscription.
 async function startCheckout(planId, billing, setLoadingPlan) {
   try {
     setLoadingPlan(planId)
@@ -114,8 +111,7 @@ async function startCheckout(planId, billing, setLoadingPlan) {
 
 // Changement de plan alors qu'un abonnement payant est déjà actif :
 // modifie l'abonnement Stripe existant en place (proration automatique),
-// pas de nouvelle session Checkout — évite le double abonnement. Pas
-// d'essai gratuit ici, l'utilisateur est déjà un client payant actif.
+// pas de nouvelle session Checkout — évite le double abonnement.
 async function startChangePlan(planId, billing, setLoadingPlan, navigate, onClose) {
   try {
     setLoadingPlan(planId)
@@ -179,11 +175,6 @@ export default function PricingModal({ onClose, onSelectPlan, currentPlan = 'fre
     () => PLANS.map((plan) => ({ ...plan, ...formatPrice(plan, billing) })),
     [billing]
   )
-
-  // L'essai gratuit n'est proposé que pour une première souscription
-  // (l'utilisateur est actuellement sur Gratuit) — un utilisateur déjà
-  // payant qui change de plan passe par startChangePlan, sans essai.
-  const isFirstSubscription = currentPlan === 'free'
 
   const modalContent = (
     <div
@@ -321,16 +312,12 @@ export default function PricingModal({ onClose, onSelectPlan, currentPlan = 'fre
                     >
                       {loadingPlan === plan.id
                         ? (currentPlan !== 'free' ? 'Changement…' : 'Redirection…')
-                        : isFirstSubscription
-                          ? `Essayer ${TRIAL_DAYS} jours gratuits`
-                          : plan.cta}
+                        : plan.cta}
                     </button>
                     <p className="text-center text-[11px] text-navy/40 mt-2">
                       {currentPlan !== 'free'
                         ? 'Changement pris en compte immédiatement'
-                        : isFirstSubscription
-                          ? `Sans engagement — annule pendant l'essai sans frais`
-                          : 'Paiement sécurisé avec Stripe'}
+                        : 'Paiement sécurisé avec Stripe'}
                     </p>
                   </>
                 )}
