@@ -72,6 +72,13 @@ export default function Footer() {
             </p>
           </div>
         </div>
+
+        {/* Paragraphe SEO — texte discret pour les moteurs de recherche,
+            reste lisible et informatif pour un humain qui le lirait. */}
+        <p className="font-sans text-white/30 text-xs leading-relaxed max-w-4xl mb-10 border-t border-white/10 pt-8">
+          Le Voyage Pour Tous est une application qui simplifie la préparation et le suivi de vos voyages. Recherchez gratuitement des vols et hébergements, sans inscription ni engagement, et laissez-nous comparer les meilleures options pour vous. Une fois votre voyage lancé, gardez une trace de votre budget avec le journal de dépenses, notez vos adresses gastronomiques préférées dans le carnet gastronomique, créez une playlist pour chaque destination, et suivez vos visites et activités culturelles. Le module Voyage Commun vous permet d'échanger conseils et bons plans avec d'autres voyageurs ayant visité les mêmes destinations, tandis que la section Spa & bien-être vous aide à trouver un moment de détente partout dans le monde : thermes, onsens, hammams ou spas d'hôtel. Que vous partiez pour un week-end ou un tour du monde, Le Voyage Pour Tous centralise tout ce dont vous avez besoin pour voyager sans stress.
+        </p>
+
         <div className="border-t border-white/10 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 font-sans text-white/30 text-xs">
             <span>© 2026 Le Voyage Pour Tous</span>

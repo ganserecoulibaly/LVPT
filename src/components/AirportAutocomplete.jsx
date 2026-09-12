@@ -1,9 +1,26 @@
 import React, { useState, useRef, useEffect } from 'react'
-import airports from '../data/airports.json'
+
+// airports.json n'est chargé qu'à la demande (première frappe dans le
+// champ), pas au chargement de la page — évite d'alourdir le bundle
+// initial avec ce fichier de données volumineux alors que la homepage
+// n'en a besoin qu'une fois l'utilisateur interagit avec la recherche.
+let airportsCache = null
+let airportsPromise = null
+
+function loadAirports() {
+  if (airportsCache) return Promise.resolve(airportsCache)
+  if (!airportsPromise) {
+    airportsPromise = import('../data/airports.json').then((mod) => {
+      airportsCache = mod.default
+      return airportsCache
+    })
+  }
+  return airportsPromise
+}
 
 // Recherche simple : correspond sur la ville, le nom de l'aéroport, le pays ou le code IATA.
 // Limité à 8 résultats pour rester lisible dans la liste déroulante.
-function searchAirports(query) {
+function searchAirports(airports, query) {
   const q = query.trim().toLowerCase()
   if (q.length < 2) return []
 
@@ -61,11 +78,19 @@ export default function AirportAutocomplete({ label, placeholder, value, onChang
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  function handleInputChange(e) {
+  async function handleInputChange(e) {
     const next = e.target.value
     setInputValue(next)
     setHighlightedIndex(-1)
-    const results = searchAirports(next)
+
+    if (next.trim().length < 2) {
+      setSuggestions([])
+      setIsOpen(false)
+      return
+    }
+
+    const airports = await loadAirports()
+    const results = searchAirports(airports, next)
     setSuggestions(results)
     setIsOpen(results.length > 0)
     // tant que rien n'est sélectionné dans la liste, on ne pousse pas encore la valeur
@@ -142,4 +167,4 @@ export default function AirportAutocomplete({ label, placeholder, value, onChang
       )}
     </div>
   )
-}
+}Ò
