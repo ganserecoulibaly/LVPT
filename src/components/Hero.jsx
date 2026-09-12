@@ -15,7 +15,8 @@ export default function Hero() {
             <span className="font-sans text-navy/60 text-xs uppercase tracking-widest font-medium">Le compagnon des voyageurs curieux</span>
           </div>
 
-          <h1 className="hidden md:block font-serif text-5xl md:text-6xl text-navy font-medium leading-tight mb-6">
+          <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl text-navy font-medium leading-tight mb-6">
+            <span className="sr-only">Carnet de voyage gratuit : recherche de vols et hébergements, itinéraires et communauté de voyageurs — </span>
             Chaque <em className="text-coral not-italic">détour</em><br />
             mérite d'être<br />
             raconté.
