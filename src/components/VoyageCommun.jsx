@@ -152,6 +152,8 @@ function PostCard({ post, categorie, authorName, score, isFavorite, onToggleFavo
 export default function VoyageCommun() {
   const navigate = useNavigate()
   const [user, setUser] = useState(null)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [currentPlan, setCurrentPlan] = useState('free')
   const [pricingOpen, setPricingOpen] = useState(false)
   const [favoritesOpen, setFavoritesOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
@@ -191,6 +193,15 @@ export default function VoyageCommun() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setUser(session?.user ?? null))
   }, [])
+
+  useEffect(() => {
+    if (!user) return
+    supabase.from('lvpt').select('is_admin, abonnement').eq('id', user.id).single()
+      .then(({ data }) => {
+        setIsAdmin(Boolean(data?.is_admin))
+        setCurrentPlan(data?.abonnement || 'free')
+      })
+  }, [user])
 
   useEffect(() => {
     if (!user) return
@@ -404,6 +415,9 @@ export default function VoyageCommun() {
                   onCreateItineraire={() => { setQuickAddOpen(false); setCreateItineraireOpen(true) }}
                   onCreateVoyageCommun={() => { setQuickAddOpen(false); setCreateOpen(true) }}
                   onSearchFlights={() => { setQuickAddOpen(false); navigate('/vols-hebergements') }}
+                  currentPlan={currentPlan}
+                  isAdmin={isAdmin}
+                  onLockedClick={() => setPricingOpen(true)}
                 />
               </div>
               <p className="text-navy/70 text-center sm:text-left">Conseils, bons plans et alertes partagés par la communauté.</p>
