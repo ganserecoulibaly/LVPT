@@ -14,6 +14,30 @@ import CreateVoyageCommunModal from './CreateVoyageCommunModal'
 import { DEFAULT_ITINERAIRE_COVER, formatDuree } from './Itineraires'
 import ShareButton from './ShareButton'
 
+// Transforme les URLs présentes dans un texte en liens cliquables,
+// en gardant le reste du texte tel quel. Nécessaire car la description
+// (post.description) est du texte brut stocké en base (ex: bons plans
+// Voyage Commun) qui peut contenir des URLs ajoutées manuellement.
+function linkifyText(text) {
+  if (!text) return null
+  const urlRegex = /(https?:\/\/[^\s]+)/g
+  return text.split(urlRegex).map((part, i) =>
+    /^https?:\/\//.test(part) ? (
+      <a
+        key={i}
+        href={part}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-coral underline hover:text-coral/80 break-all"
+      >
+        {part}
+      </a>
+    ) : (
+      part
+    )
+  )
+}
+
 const GRADIENTS = [
   'from-[#D85A30]/30 to-[#8B2F1A]/20',
   'from-[#F0997B]/40 to-[#D85A30]/20',
@@ -410,7 +434,7 @@ export default function VoyageCommunDetail() {
                 {post.updated_at && <span className="text-navy/35">· modifié</span>}
               </div>
 
-              <p className="text-sm text-navy/80 leading-relaxed mb-6">{post.description}</p>
+              <p className="text-sm text-navy/80 leading-relaxed mb-6">{linkifyText(post.description)}</p>
 
               <div className="flex items-center gap-3 pb-5 mb-5 border-b border-navy/10">
                 <button
