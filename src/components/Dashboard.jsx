@@ -403,7 +403,7 @@ export default function Dashboard() {
         supabase.from('d_hebergement').select('*').order('score', { ascending: false }),
         supabase.from('d_activite').select('*').order('score', { ascending: false }),
         supabase.from('favoris').select('id_entite, nom').eq('actif', true),
-        supabase.from('s_itineraire').select('*').order('created_at', { ascending: false }),
+        supabase.rpc('get_accessible_itineraires'),
       ])
 
       setFlightDeals(transformVols(vols || []))
@@ -466,6 +466,7 @@ export default function Dashboard() {
         ...transformSpasFavoris(spasFav || []),
       ])
     }
+
     loadDeals()
   }, [user, paysDepartFav, villeDepartFav])
 
