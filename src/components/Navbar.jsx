@@ -19,6 +19,8 @@ export default function Navbar({ forceOpaque = false }) {
   const [user, setUser] = useState(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const menuRef = useRef(null)
+  const mobileMenuButtonRef = useRef(null)
+  const firstMobileLinkRef = useRef(null)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
@@ -56,6 +58,30 @@ export default function Navbar({ forceOpaque = false }) {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
+  // Accessibilité du menu mobile : focus sur le premier lien à l'ouverture,
+  // fermeture avec Échap et retour du focus sur le bouton hamburger.
+  useEffect(() => {
+    if (mobileNavOpen) {
+      firstMobileLinkRef.current?.focus()
+      return
+    }
+
+    mobileMenuButtonRef.current?.focus()
+  }, [mobileNavOpen])
+
+  useEffect(() => {
+    if (!mobileNavOpen) return
+
+    function handleMobileMenuKeyDown(event) {
+      if (event.key === 'Escape') {
+        setMobileNavOpen(false)
+      }
+    }
+
+    document.addEventListener('keydown', handleMobileMenuKeyDown)
+    return () => document.removeEventListener('keydown', handleMobileMenuKeyDown)
+  }, [mobileNavOpen])
+
   const openAuthModal = (mode) => {
     setMenuOpen(false)
     setAuthMode(mode)
@@ -80,9 +106,12 @@ export default function Navbar({ forceOpaque = false }) {
                 deviennent totalement inaccessibles sur mobile. Placé en
                 premier dans ce groupe pour rester tout à gauche du header. */}
             <button
+              ref={mobileMenuButtonRef}
               onClick={() => setMobileNavOpen((open) => !open)}
               className="md:hidden w-10 h-10 rounded-full flex items-center justify-center text-navy hover:bg-navy/5 transition-colors"
               aria-label={mobileNavOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+              aria-expanded={mobileNavOpen}
+              aria-controls="mobile-navigation"
             >
               {mobileNavOpen ? (
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
@@ -197,10 +226,14 @@ export default function Navbar({ forceOpaque = false }) {
 
         {/* Panneau mobile : mêmes liens que la version desktop, empilés */}
         {mobileNavOpen && (
-          <div className="md:hidden bg-cream border-t border-navy/10 px-6 py-4 flex flex-col gap-1">
-            {NAV_LINKS.map((link) => (
+          <div
+            id="mobile-navigation"
+            className="md:hidden bg-cream border-t border-navy/10 px-6 py-4 flex flex-col gap-1"
+          >
+            {NAV_LINKS.map((link, index) => (
               <a
                 key={link.label}
+                ref={index === 0 ? firstMobileLinkRef : undefined}
                 href={link.href}
                 onClick={() => setMobileNavOpen(false)}
                 className="font-sans text-navy/70 hover:text-coral transition-colors text-sm py-2.5"
