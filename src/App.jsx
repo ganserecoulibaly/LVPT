@@ -2,6 +2,7 @@ import React, { Suspense, lazy } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import ScrollToTop from './components/ScrollToTop'
 import CookieConsent from './components/CookieConsent'
+import AnalyticsTracker from './components/AnalyticsTracker'
 import Navbar from './components/Navbar'
 import Hero from './components/Hero'
 import FlightHotelSearch from './components/FlightHotelSearch'
@@ -73,6 +74,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
+      <AnalyticsTracker />
       <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* Page publique */}
