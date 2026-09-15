@@ -83,7 +83,6 @@ function transformActivitesDeals(rows) {
     date: r.ville, emoji: '🎟️', fallbackGradient: GRADIENTS[i % GRADIENTS.length], link: r.lien_resa,
   }))
 }
-
 function transformItineraires(rows) {
   return rows.map((r, i) => ({
     id: r.id_itineraire, type: 'itineraire',
@@ -239,7 +238,7 @@ function ItineraireCard({ itineraire, authorName, locked, onOpen, onLockedClick,
       {locked && (
         <button onClick={onLockedClick} className="absolute inset-0 flex items-center justify-center bg-navy/20 cursor-pointer w-full">
           <span className="bg-white text-navy text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
             </svg>
             Abonnement
@@ -322,7 +321,8 @@ export default function Itineraires() {
 
   const loadItineraires = async () => {
     setLoading(true)
-    const { data } = await supabase.from('s_itineraire').select('*').order('created_at', { ascending: false })
+    const { data, error } = await supabase.rpc('get_accessible_itineraires')
+    if (error) console.error('Erreur chargement itinéraires:', error.message)
     const list = data || []
     setItineraires(list)
 
@@ -373,12 +373,6 @@ export default function Itineraires() {
   if (!user) return null
 
   const isFree = profile && !profile.is_admin && profile.abonnement === 'free'
-  const recentIds = new Set(
-    [...itineraires]
-      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-      .slice(0, 3)
-      .map((i) => i.id_itineraire)
-  )
 
   const paysList = [...new Set(itineraires.map((i) => i.pays))].sort((a, b) => a.localeCompare(b, 'fr'))
   const villeList = [...new Set(itineraires.filter((i) => i.ville).map((i) => i.ville))].sort((a, b) => a.localeCompare(b, 'fr'))
@@ -519,7 +513,7 @@ export default function Itineraires() {
                         key={it.id_itineraire}
                         itineraire={it}
                         authorName={authors[it.pid] || 'Un voyageur'}
-                        locked={isFree && !recentIds.has(it.id_itineraire) && it.pid !== user.id}
+                        locked={false}
                         onOpen={(id) => navigate(`/itineraires/${id}`)}
                         onLockedClick={() => setPricingOpen(true)}
                         userId={user.id}
