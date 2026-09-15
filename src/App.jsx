@@ -12,6 +12,7 @@ import Testimonials from './components/Testimonials'
 import WaitlistForm from './components/WaitlistForm'
 import Footer from './components/Footer'
 import ProtectedRoute from './components/ProtectedRoute'
+import AdminRoute from './components/AdminRoute'
 
 // Pages privées et secondaires chargées à la demande (lazy) — réduit le
 // bundle JS initial téléchargé sur la landing page publique. Chaque page
@@ -41,10 +42,6 @@ const DefisCommunaute = lazy(() => import('./components/DefisCommunaute'))
 const AdminOffres = lazy(() => import('./components/AdminOffres'))
 const EspacePro = lazy(() => import('./components/EspacePro'))
 const SpaBienEtre = lazy(() => import('./components/SpaBienEtre'))
-
-// Au fur et à mesure, importe ici les futures pages privées (en lazy) :
-// const Carnet = lazy(() => import('./components/Carnet'))
-// const Profil = lazy(() => import('./components/Profil'))
 
 function HomePage() {
   return (
@@ -82,74 +79,19 @@ export default function App() {
           <Route path="/" element={<HomePage />} />
 
           {/* Pages privées : chacune enveloppée dans ProtectedRoute */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/vols-hebergements"
-            element={
-              <ProtectedRoute>
-                <VolsHebergements />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/itineraires"
-            element={
-              <ProtectedRoute>
-                <Itineraires />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/itineraires/:id"
-            element={
-              <ProtectedRoute>
-                <ItineraireDetail />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/vols-hebergements" element={<ProtectedRoute><VolsHebergements /></ProtectedRoute>} />
+          <Route path="/itineraires" element={<ProtectedRoute><Itineraires /></ProtectedRoute>} />
+          <Route path="/itineraires/:id" element={<ProtectedRoute><ItineraireDetail /></ProtectedRoute>} />
+          <Route path="/spa-bien-etre" element={<ProtectedRoute><SpaBienEtre /></ProtectedRoute>} />
+          <Route path="/voyage-commun" element={<ProtectedRoute><VoyageCommun /></ProtectedRoute>} />
+          <Route path="/voyage-commun/:id" element={<ProtectedRoute><VoyageCommunDetail /></ProtectedRoute>} />
 
-          {/* Ajoutée juste après Itinéraires — plan Gratuit, aucun verrou de
-              plan côté route (la Sidebar l'affiche déjà sans cadenas). */}
-          <Route
-            path="/spa-bien-etre"
-            element={
-              <ProtectedRoute>
-                <SpaBienEtre />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/voyage-commun"
-            element={
-              <ProtectedRoute>
-                <VoyageCommun />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/voyage-commun/:id"
-            element={
-              <ProtectedRoute>
-                <VoyageCommunDetail />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/feuille-de-route"
-            element={
-              <ProtectedRoute>
-                <RoadmapInterne />
-              </ProtectedRoute>
-            }
-          />
+          {/* Pages internes réservées exclusivement à l'administrateur */}
+          <Route path="/feuille-de-route" element={<AdminRoute><RoadmapInterne /></AdminRoute>} />
+          <Route path="/defis-communaute" element={<AdminRoute><DefisCommunaute /></AdminRoute>} />
+          <Route path="/admin-offres" element={<AdminRoute><AdminOffres /></AdminRoute>} />
+          <Route path="/espace-pro" element={<AdminRoute><EspacePro /></AdminRoute>} />
 
           {/* Pages légales — publiques, consultables sans compte */}
           <Route path="/mentions-legales" element={<MentionsLegales />} />
@@ -157,137 +99,16 @@ export default function App() {
           <Route path="/cgv" element={<CGV />} />
           <Route path="/confidentialite" element={<Confidentialite />} />
 
-          <Route
-            path="/sejours"
-            element={
-              <ProtectedRoute>
-                <Sejours />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/depenses"
-            element={
-              <ProtectedRoute>
-                <Depenses />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/playlist"
-            element={
-              <ProtectedRoute>
-                <Playlist />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/activites"
-            element={
-              <ProtectedRoute>
-                <Activites />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/carnet-gastronomique"
-            element={
-              <ProtectedRoute>
-                <Gastronomie />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/carnet-gastronomique/:id"
-            element={
-              <ProtectedRoute>
-                <PlatDetail />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/ateliers"
-            element={
-              <ProtectedRoute>
-                <Ateliers />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/ateliers/confirmation"
-            element={
-              <ProtectedRoute>
-                <AtelierConfirmation />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/ateliers/:id"
-            element={
-              <ProtectedRoute>
-                <AtelierDetail />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Encart "Miles" de la sidebar — accessible dès le plan Gratuit,
-              donc juste ProtectedRoute (connexion requise) sans verrou de plan. */}
-          <Route
-            path="/miles-vs-euros"
-            element={
-              <ProtectedRoute>
-                <MilesVsEuros />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/defis-communaute"
-            element={
-              <ProtectedRoute>
-                <DefisCommunaute />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Page admin-only : le lien n'apparaît que pour is_admin dans la
-              Sidebar (AdminOnlyNavItem, même logique que /defis-communaute et
-              /feuille-de-route) — connexion requise, pas de vérification
-              is_admin supplémentaire au niveau de la route pour l'instant. */}
-          <Route
-            path="/admin-offres"
-            element={
-              <ProtectedRoute>
-                <AdminOffres />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/espace-pro"
-            element={
-              <ProtectedRoute>
-                <EspacePro />
-              </ProtectedRoute>
-            }
-          />
-
-          {/*
-            Pour chaque nouvelle page privée, même schéma :
-            <Route
-              path="/carnet"
-              element={
-                <ProtectedRoute>
-                  <Carnet />
-                </ProtectedRoute>
-              }
-            />
-          */}
+          <Route path="/sejours" element={<ProtectedRoute><Sejours /></ProtectedRoute>} />
+          <Route path="/depenses" element={<ProtectedRoute><Depenses /></ProtectedRoute>} />
+          <Route path="/playlist" element={<ProtectedRoute><Playlist /></ProtectedRoute>} />
+          <Route path="/activites" element={<ProtectedRoute><Activites /></ProtectedRoute>} />
+          <Route path="/carnet-gastronomique" element={<ProtectedRoute><Gastronomie /></ProtectedRoute>} />
+          <Route path="/carnet-gastronomique/:id" element={<ProtectedRoute><PlatDetail /></ProtectedRoute>} />
+          <Route path="/ateliers" element={<ProtectedRoute><Ateliers /></ProtectedRoute>} />
+          <Route path="/ateliers/confirmation" element={<ProtectedRoute><AtelierConfirmation /></ProtectedRoute>} />
+          <Route path="/ateliers/:id" element={<ProtectedRoute><AtelierDetail /></ProtectedRoute>} />
+          <Route path="/miles-vs-euros" element={<ProtectedRoute><MilesVsEuros /></ProtectedRoute>} />
         </Routes>
       </Suspense>
       <CookieConsent />
