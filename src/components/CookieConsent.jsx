@@ -1,13 +1,9 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 
 const STORAGE_KEY = 'lvpt_cookie_consent'
 
-// Bandeau de consentement cookies, affiché une seule fois tant que le
-// user n'a pas fait de choix. "Refuser" ne bloque rien aujourd'hui côté
-// technique (le site n'a pas encore d'outil analytics/publicitaire),
-// mais pose l'infrastructure : le jour où un outil de mesure est ajouté
-// (ex: Google Analytics, Meta Pixel), son chargement doit être conditionné
-// à `hasAnalyticsConsent()` plutôt que chargé sans condition.
+// Le consentement analytics est partagé avec AnalyticsTracker. Les outils
+// de mesure ne doivent être chargés qu'après un choix explicite "accepted".
 export function hasAnalyticsConsent() {
   return localStorage.getItem(STORAGE_KEY) === 'accepted'
 }
@@ -18,6 +14,10 @@ export default function CookieConsent() {
   const respond = (value) => {
     localStorage.setItem(STORAGE_KEY, value)
     setChoice(value)
+
+    if (value === 'accepted') {
+      window.dispatchEvent(new Event('lvpt:analytics-consent'))
+    }
   }
 
   if (choice) return null
