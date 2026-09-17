@@ -7,7 +7,7 @@ const CONFIG = {
   '/activites': { table: 'd_lieu', id: 'id_lieu', title: 'nom', fields: ['nom', 'pays', 'ville', 'quartier'], label: 'Lieu / visite / musée' },
   '/carnet-gastronomique': { table: 'd_plat', id: 'id_plat', title: 'nom_plat', fields: ['nom_plat', 'nom_restaurant', 'adresse_restaurant', 'ville', 'pays', 'prix', 'lien_photo', 'notes'], label: 'Gastronomie' },
   '/voyage-commun': { table: 's_voyage_commun', id: 'id_post', title: 'titre', fields: ['titre', 'pays', 'ville', 'description'], label: 'Le Comptoir Voyage' },
-  '/playlist': { table: 's_musique', id: 'id_musique', title: 'titre', fields: ['titre', 'artiste', 'pays', 'lien_spotify', 'lien_youtube', 'lien_apple_music', 'lien_deezer'], label: 'Playlist du voyage', anchor: 'title' },
+  '/playlist': { table: 's_musique', id: 'id_musique', title: 'titre', fields: ['titre', 'artiste', 'pays', 'lien_spotify', 'lien_youtube', 'lien_apple_music', 'lien_deezer'], label: 'Playlist du voyage' },
   '/depenses': { table: 's_depense', id: 'id_depense', title: 'intitule', fields: ['intitule', 'montant', 'devise', 'categorie', 'date_depense'], label: 'Dépense' },
 }
 
@@ -20,7 +20,7 @@ const LABELS = {
 
 function canEdit(record, userId, isAdmin) { return Boolean(isAdmin || record?.pid === userId) }
 function EditIcon() { return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1-1-4Z"/></svg> }
-function EditButton({ onClick }) { return <button type="button" onClick={(e) => { e.stopPropagation(); onClick() }} className="w-7 h-7 rounded-full border border-navy/15 text-navy/60 hover:bg-navy/5 hover:text-coral flex items-center justify-center transition-colors shrink-0" aria-label="Modifier" title="Modifier"><EditIcon /></button> }
+function EditButton({ onClick }) { return <button type="button" onClick={(e) => { e.stopPropagation(); onClick() }} className="w-7 h-7 rounded-full border border-navy/15 text-navy/60 hover:bg-navy/5 hover:text-coral flex items-center justify-center transition-colors shrink-0 bg-white" aria-label="Modifier" title="Modifier"><EditIcon /></button> }
 
 function EditModal({ target, onClose, onSaved }) {
   const [draft, setDraft] = useState(() => Object.fromEntries(target.config.fields.map((f) => [f, target.record[f] ?? ''])))
@@ -110,24 +110,14 @@ export default function ContentEditEnhancer({ children }) {
         const titleNode = findTitleNode(title); const card = findCard(titleNode); if (!card) return
         const heart = card.querySelector('button[aria-label="Favori"]')
         const isPlaylist = config.table === 's_musique'
-        let anchor
-        if (heart) anchor = heart
-        else if (config.table === 's_depense') anchor = findAmountAnchor(card, record) || titleNode
-        else anchor = titleNode
+        const anchor = heart || (config.table === 's_depense' ? findAmountAnchor(card, record) || titleNode : titleNode)
         if (!anchor || anchor.dataset.lvptContentEdit) return
 
         const host = document.createElement('span')
         if (isPlaylist) {
-          const titleRow = titleNode.parentElement
-          if (titleRow) {
-            titleRow.classList.add('flex', 'items-center', 'gap-2', 'w-full')
-            titleNode.classList.add('flex-1', 'min-w-0')
-            host.className = 'inline-flex items-center ml-auto shrink-0'
-            titleNode.parentNode.insertBefore(host, titleNode.nextSibling)
-          } else {
-            host.className = 'inline-flex items-center ml-1'
-            anchor.parentNode.insertBefore(host, anchor.nextSibling)
-          }
+          host.className = 'absolute top-2 right-2 z-10 inline-flex items-center'
+          card.classList.add('relative')
+          card.appendChild(host)
         } else {
           host.className = heart ? 'absolute top-2 right-10 z-10' : 'inline-flex items-center ml-1'
           anchor.parentNode.insertBefore(host, anchor.nextSibling)
