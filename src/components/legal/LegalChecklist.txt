@@ -1,0 +1,4 @@
+Checklist avant mise en production
+
+Remplacer tous les placeholders en MAJUSCULES dans les pages légales.
+Vérifier identité, coordonnées, SIREN/SIRET/RNE/RCS si applicable, TVA, hébergeur, prestataires, prix Premium, résiliation, rétractation, médiateur si applicable, conditions des Ateliers au lancement et consentement cookies.
