@@ -14,6 +14,7 @@ import WaitlistForm from './components/WaitlistForm'
 import Footer from './components/Footer'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
+import ItineraireEditEnhancer from './components/ItineraireEditEnhancer'
 
 const Dashboard = lazy(() => import('./components/Dashboard'))
 const VolsHebergements = lazy(() => import('./components/VolsHebergements'))
@@ -77,7 +78,7 @@ export default function App() {
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/vols-hebergements" element={<ProtectedRoute><VolsHebergements /></ProtectedRoute>} />
           <Route path="/itineraires" element={<ProtectedRoute><Itineraires /></ProtectedRoute>} />
-          <Route path="/itineraires/:id" element={<ProtectedRoute><ItineraireDetail /></ProtectedRoute>} />
+          <Route path="/itineraires/:id" element={<ProtectedRoute><ItineraireEditEnhancer><ItineraireDetail /></ItineraireEditEnhancer></ProtectedRoute>} />
           <Route path="/spa-bien-etre" element={<ProtectedRoute><SpaBienEtre /></ProtectedRoute>} />
           <Route path="/voyage-commun" element={<ProtectedRoute><VoyageCommun /></ProtectedRoute>} />
           <Route path="/voyage-commun/:id" element={<ProtectedRoute><VoyageCommunDetail /></ProtectedRoute>} />
