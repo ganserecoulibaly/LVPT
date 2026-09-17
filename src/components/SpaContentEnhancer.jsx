@@ -26,7 +26,7 @@ function FormFields({ draft, setDraft }) {
         {field === 'pays' ? <div className="mt-1"><PaysAutocomplete label="" placeholder="Pays" value={draft[field] ?? ''} onChange={(value) => setDraft((d) => ({ ...d, [field]: value }))} /></div>
           : field === 'type_spa' ? <select value={draft[field] ?? ''} onChange={(e) => setDraft((d) => ({ ...d, [field]: e.target.value }))} className="mt-1 w-full px-3 py-2.5 border border-navy/15 rounded-lg text-sm bg-white"><option value="">Type (facultatif)</option>{TYPES.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select>
           : field === 'description' ? <textarea value={draft[field] ?? ''} onChange={(e) => setDraft((d) => ({ ...d, [field]: e.target.value }))} rows={4} className="mt-1 w-full px-3 py-2.5 border border-navy/15 rounded-lg text-sm resize-none" />
-          : <input type={field === 'lien_resa' ? 'url' : field === 'prix_indicatif' ? 'number' : 'text'} value={draft[field] ?? ''} onChange={(e) => setDraft((d) => ({ ...d, [field]: e.target.value }))} className="mt-1 w-full px-3 py-2.5 border border-navy/15 rounded-lg text-sm" />}
+          : <input type={field === 'lien_resa' ? 'url' : 'text'} value={draft[field] ?? ''} onChange={(e) => setDraft((d) => ({ ...d, [field]: e.target.value }))} className="mt-1 w-full px-3 py-2.5 border border-navy/15 rounded-lg text-sm" />}
       </label>
     ))}
   </div>
@@ -45,15 +45,7 @@ function SpaModal({ mode, record, userId, onClose, onSaved }) {
     setSaving(true); setError(null)
     const payload = { ...draft }
     FIELDS.forEach((f) => { if (payload[f] === '') payload[f] = null })
-    if (payload.prix_indicatif != null) {
-      const price = Number(payload.prix_indicatif)
-      if (!Number.isFinite(price)) {
-        setError('Le prix indicatif doit être un nombre valide.')
-        setSaving(false)
-        return
-      }
-      payload.prix_indicatif = price
-    }
+
     if (mode === 'create') {
       payload.pid = userId
       payload.actif = true
@@ -147,7 +139,7 @@ export default function SpaContentEnhancer({ children }) {
     return () => observer.disconnect()
   }, [user, isAdmin, records, location.pathname])
 
-  const saved = async () => { setAddOpen(false); setTarget(null); setMounted([]); await load() }
+  const saved = async () => { setAddOpen(false); setTarget(null); setMounted([]); window.location.reload() }
   return <>
     {children}
     {mounted.map((item) => createPortal(<EditButton onClick={() => setTarget(item.record)} />, item.host, item.key))}
