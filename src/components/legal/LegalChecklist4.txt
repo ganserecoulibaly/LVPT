@@ -1,0 +1,1 @@
+Vérifications légales avant mise en production : identité EI, coordonnées, immatriculation, TVA, hébergeur, prestataires, tarifs, résiliation, rétractation, médiateur si applicable, Ateliers au lancement, cookies.
