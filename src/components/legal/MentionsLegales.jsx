@@ -3,64 +3,43 @@ import LegalPageLayout from './LegalPageLayout'
 
 export default function MentionsLegales() {
   return (
-    <LegalPageLayout title="Mentions légales" updatedAt="31 juillet 2026">
-      <h2>Éditeur du site</h2>
-      <p>
-        Le site Le Voyage Pour Tous est édité par une entreprise individuelle,
-        immatriculée sous le nom commercial <strong>Le Voyage Pour Tous</strong>.
-      </p>
+    <LegalPageLayout title="Mentions légales" updatedAt="17 septembre 2026">
+      <h2>1. Éditeur du site</h2>
+      <p>Le site <strong>Le Voyage Pour Tous (LVPT)</strong> est édité et exploité par une personne physique exerçant sous le statut d'entrepreneur individuel.</p>
       <ul>
-        <li><strong>Statut</strong> : entreprise individuelle</li>
-        <li><strong>Adresse</strong> : 1 rue de Paris, 75001 Paris, France</li>
-        <li><strong>SIRET</strong> : [SIRET À COMPLÉTER]</li>
-        <li><strong>Email de contact</strong> : levoyagepourtous@gmail.com</li>
+        <li><strong>Nom et prénom :</strong> NOM PRÉNOM</li>
+        <li><strong>Statut :</strong> ENTREPRENEUR INDIVIDUEL (EI)</li>
+        <li><strong>Nom commercial :</strong> LE VOYAGE POUR TOUS</li>
+        <li><strong>Adresse professionnelle :</strong> ADRESSE, CODE POSTAL VILLE, PAYS</li>
+        <li><strong>SIREN :</strong> SIREN</li>
+        <li><strong>SIRET :</strong> SIRET</li>
+        <li><strong>RNE :</strong> RNE</li>
+        <li><strong>RCS :</strong> RCS — VILLE, SI APPLICABLE</li>
+        <li><strong>TVA intracommunautaire :</strong> NUMÉRO TVA INTRACOMMUNAUTAIRE, SI APPLICABLE</li>
+        <li><strong>Email :</strong> EMAIL</li>
+        <li><strong>Téléphone :</strong> TÉLÉPHONE</li>
       </ul>
 
-      <h2>Directeur de la publication</h2>
-      <p>
-        Le directeur de la publication est le représentant légal de l'entreprise
-        individuelle mentionnée ci-dessus.
-      </p>
+      <h2>2. Directeur de la publication</h2>
+      <p><strong>NOM PRÉNOM</strong>, en qualité de représentant légal de l'entreprise individuelle éditrice du site.</p>
 
-      <h2>Hébergement</h2>
-      <p>
-        Le site est hébergé par Vercel Inc., 340 S Lemon Ave #4133, Walnut, CA
-        91789, États-Unis. La base de données et l'authentification sont
-        gérées par Supabase Inc., via son infrastructure cloud.
-      </p>
+      <h2>3. Hébergement</h2>
+      <p>Le site est hébergé par <strong>Vercel Inc.</strong>, 340 S Lemon Ave #4133, Walnut, CA 91789, États-Unis.</p>
+      <p>Les services techniques utilisés par LVPT peuvent également faire intervenir des prestataires distincts pour la base de données, l'authentification, les paiements, l'envoi d'emails et la sécurité. Ces prestataires sont décrits dans la politique de confidentialité.</p>
 
-      <h2>Propriété intellectuelle</h2>
-      <p>
-        L'ensemble des éléments constituant le site (textes, structure,
-        identité visuelle, logo) sont, sauf mention contraire, la propriété
-        de l'éditeur. Toute reproduction non autorisée est interdite.
-      </p>
-      <p>
-        Les contenus publiés par les utilisateurs (itinéraires, conseils,
-        commentaires, photos éventuelles) restent la propriété de leurs
-        auteurs respectifs. En les publiant sur le site, l'utilisateur
-        accorde à l'éditeur une licence non exclusive d'affichage dans le
-        cadre du fonctionnement normal du service.
-      </p>
+      <h2>4. Propriété intellectuelle</h2>
+      <p>La structure, le design, le logo, les textes, éléments graphiques, fonctionnalités et contenus éditoriaux créés pour LVPT sont protégés par les droits applicables et appartiennent à l'éditeur, sauf mention contraire.</p>
+      <p>Les contenus publiés par les utilisateurs restent leur propriété. L'utilisateur accorde à LVPT les droits nécessaires à leur hébergement, affichage, reproduction technique et diffusion au sein du service, conformément aux CGU.</p>
 
-      <h2>Signalement d'un contenu</h2>
-      <p>
-        Tout contenu jugé inapproprié, illicite ou contraire aux présentes
-        mentions peut être signalé à l'adresse{' '}
-        <a href="mailto:levoyagepourtous@gmail.com" className="text-coral hover:underline">
-          levoyagepourtous@gmail.com
-        </a>
-        . L'éditeur se réserve le droit de le retirer sans préavis.
-      </p>
+      <h2>5. Contenus et informations de voyage</h2>
+      <p>LVPT peut présenter des informations relatives aux destinations, transports, hébergements, activités, tarifs, disponibilités, promotions et recommandations. Ces informations peuvent évoluer et ne constituent pas une garantie de disponibilité, de prix ou de qualité du service fourni par un tiers.</p>
+      <p>Lorsque LVPT redirige vers un prestataire tiers, la réservation ou l'achat est conclu directement avec ce prestataire et selon ses propres conditions.</p>
 
-      <h2>Limitation de responsabilité</h2>
-      <p>
-        Le site présente des informations, prix et disponibilités (vols,
-        hébergements, activités) fournis à titre indicatif. L'éditeur ne
-        garantit pas leur exactitude en temps réel et invite l'utilisateur à
-        vérifier chaque offre directement auprès du prestataire concerné
-        avant toute réservation.
-      </p>
+      <h2>6. Contenus publiés par les utilisateurs</h2>
+      <p>Les utilisateurs peuvent publier notamment des itinéraires, conseils, avis, bons plans, alertes et autres contenus communautaires. Ils restent responsables des contenus qu'ils publient. Les modalités applicables sont précisées dans les CGU.</p>
+
+      <h2>7. Signalement</h2>
+      <p>Tout contenu susceptible de porter atteinte aux droits d'un tiers ou de contrevenir à la loi peut être signalé à <a href="mailto:EMAIL" className="text-coral hover:underline">EMAIL</a>.</p>
     </LegalPageLayout>
   )
 }
