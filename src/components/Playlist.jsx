@@ -40,7 +40,7 @@ function MusiqueCard(props) {
   })
 
   return (
-    <div className="bg-white border border-navy/10 rounded-xl overflow-hidden">
+    <div className="bg-white border border-navy/10 rounded-xl overflow-hidden relative">
       <div
         className="h-20 flex items-center justify-center"
         style={{ background: GRADIENTS[index % GRADIENTS.length] }}
@@ -58,7 +58,7 @@ function MusiqueCard(props) {
           {m.pays ? ' · ' + m.pays : ''}
         </p>
         {liensDisponibles.length > 0 ? (
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-col items-start gap-1.5">
             {liensDisponibles.map(function (p) {
               return (
                 <a
