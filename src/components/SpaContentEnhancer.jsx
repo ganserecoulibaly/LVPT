@@ -67,7 +67,7 @@ function SpaModal({ mode, record, userId, onClose, onSaved }) {
   </div>, document.body)
 }
 
-function EditButton({ onClick }) { return <button type="button" onClick={(e) => { e.stopPropagation(); onClick() }} className="w-7 h-7 rounded-full border border-navy/15 text-navy/60 hover:bg-navy/5 hover:text-coral flex items-center justify-center transition-colors ml-1 shrink-0" aria-label="Modifier" title="Modifier"><EditIcon /></button> }
+function EditButton({ onClick }) { return <button type="button" onClick={(e) => { e.stopPropagation(); onClick() }} className="w-7 h-7 rounded-full border border-navy/15 text-navy/60 hover:bg-navy/5 hover:text-coral flex items-center justify-center transition-colors shrink-0" aria-label="Modifier" title="Modifier"><EditIcon /></button> }
 
 export default function SpaContentEnhancer({ children }) {
   const location = useLocation()
@@ -109,11 +109,17 @@ export default function SpaContentEnhancer({ children }) {
         const title = String(record.nom || '').trim().toLowerCase()
         if (!title) return
         const titleNode = Array.from(document.querySelectorAll('p,h2,h3,h4')).find((el) => el.textContent?.trim().toLowerCase() === title)
-        const card = titleNode?.closest('div')
-        const heart = card?.querySelector('button[aria-label="Favori"]')
+        if (!titleNode) return
+        let card = titleNode
+        for (let i = 0; i < 8 && card; i += 1) {
+          if (card.querySelector?.('button[aria-label="Favori"]')) break
+          card = card.parentElement
+        }
+        const heart = card?.querySelector?.('button[aria-label="Favori"]')
         const anchor = heart || titleNode
         if (!anchor || anchor.dataset.lvptSpaEdit) return
-        const host = document.createElement('span'); host.className = 'inline-flex ml-1'
+        const host = document.createElement('span')
+        host.className = heart ? 'absolute top-2 right-10 z-10' : 'inline-flex ml-1'
         anchor.parentNode.insertBefore(host, anchor.nextSibling)
         anchor.dataset.lvptSpaEdit = record.id_spa
         next.push({ key: `spa-edit-${record.id_spa}`, host, record })
