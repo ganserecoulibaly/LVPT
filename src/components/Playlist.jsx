@@ -26,10 +26,10 @@ const GRADIENTS = [
 ]
 
 const PLATEFORMES = [
-  { key: 'lien_spotify', label: 'Spotify' },
-  { key: 'lien_youtube', label: 'YouTube' },
-  { key: 'lien_apple_music', label: 'Apple Music' },
-  { key: 'lien_deezer', label: 'Deezer' },
+  { key: 'lien_spotify', label: 'Spotify', className: 'bg-[#1DB954]/10 text-[#15803D] hover:bg-[#1DB954]/20' },
+  { key: 'lien_youtube', label: 'YouTube', className: 'bg-[#FF0000]/10 text-[#DC2626] hover:bg-[#FF0000]/20' },
+  { key: 'lien_apple_music', label: 'Apple Music', className: 'bg-[#A855F7]/10 text-[#7E22CE] hover:bg-[#A855F7]/20' },
+  { key: 'lien_deezer', label: 'Deezer', className: 'bg-[#FF0092]/10 text-[#C026D3] hover:bg-[#FF0092]/20' },
 ]
 
 function MusiqueCard(props) {
@@ -66,7 +66,7 @@ function MusiqueCard(props) {
                   href={m[p.key]}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[10px] px-2 py-1 rounded-full bg-coral/10 text-[#712B13] hover:bg-coral/20 transition-colors"
+                  className={'text-[10px] px-2 py-1 rounded-full transition-colors ' + p.className}
                 >
                   {p.label}
                 </a>
