@@ -16,6 +16,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
 import ItineraireEditEnhancer from './components/ItineraireEditEnhancer'
 import ContentEditEnhancer from './components/ContentEditEnhancer'
+import DisplayLabelEnhancer from './components/DisplayLabelEnhancer'
 
 const Dashboard = lazy(() => import('./components/Dashboard'))
 const VolsHebergements = lazy(() => import('./components/VolsHebergements'))
@@ -74,35 +75,37 @@ export default function App() {
       <ScrollToTop />
       <AnalyticsTracker />
       <Suspense fallback={<PageLoader />}>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/vols-hebergements" element={<ProtectedRoute><VolsHebergements /></ProtectedRoute>} />
-          <Route path="/itineraires" element={<ProtectedRoute><Itineraires /></ProtectedRoute>} />
-          <Route path="/itineraires/:id" element={<ProtectedRoute><ItineraireEditEnhancer><ItineraireDetail /></ItineraireEditEnhancer></ProtectedRoute>} />
-          <Route path="/spa-bien-etre" element={<ProtectedRoute><SpaBienEtre /></ProtectedRoute>} />
-          <Route path="/voyage-commun" element={<ProtectedRoute><ContentEditEnhancer><VoyageCommun /></ContentEditEnhancer></ProtectedRoute>} />
-          <Route path="/voyage-commun/:id" element={<ProtectedRoute><VoyageCommunDetail /></ProtectedRoute>} />
-          <Route path="/mes-contenus" element={<ProtectedRoute><ContentManager /></ProtectedRoute>} />
-          <Route path="/feuille-de-route" element={<AdminRoute><RoadmapInterne /></AdminRoute>} />
-          <Route path="/defis-communaute" element={<AdminRoute><DefisCommunaute /></AdminRoute>} />
-          <Route path="/admin-offres" element={<AdminRoute><AdminOffres /></AdminRoute>} />
-          <Route path="/espace-pro" element={<AdminRoute><EspacePro /></AdminRoute>} />
-          <Route path="/mentions-legales" element={<MentionsLegales />} />
-          <Route path="/cgu" element={<CGU />} />
-          <Route path="/cgv" element={<CGV />} />
-          <Route path="/confidentialite" element={<Confidentialite />} />
-          <Route path="/sejours" element={<ProtectedRoute><Sejours /></ProtectedRoute>} />
-          <Route path="/depenses" element={<ProtectedRoute><ContentEditEnhancer><Depenses /></ContentEditEnhancer></ProtectedRoute>} />
-          <Route path="/playlist" element={<ProtectedRoute><ContentEditEnhancer><Playlist /></ContentEditEnhancer></ProtectedRoute>} />
-          <Route path="/activites" element={<ProtectedRoute><ContentEditEnhancer><Activites /></ContentEditEnhancer></ProtectedRoute>} />
-          <Route path="/carnet-gastronomique" element={<ProtectedRoute><ContentEditEnhancer><Gastronomie /></ContentEditEnhancer></ProtectedRoute>} />
-          <Route path="/carnet-gastronomique/:id" element={<ProtectedRoute><PlatDetail /></ProtectedRoute>} />
-          <Route path="/ateliers" element={<ProtectedRoute><Ateliers /></ProtectedRoute>} />
-          <Route path="/ateliers/confirmation" element={<ProtectedRoute><AtelierConfirmation /></ProtectedRoute>} />
-          <Route path="/ateliers/:id" element={<ProtectedRoute><AtelierDetail /></ProtectedRoute>} />
-          <Route path="/miles-vs-euros" element={<ProtectedRoute><MilesVsEuros /></ProtectedRoute>} />
-        </Routes>
+        <DisplayLabelEnhancer>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/vols-hebergements" element={<ProtectedRoute><VolsHebergements /></ProtectedRoute>} />
+            <Route path="/itineraires" element={<ProtectedRoute><Itineraires /></ProtectedRoute>} />
+            <Route path="/itineraires/:id" element={<ProtectedRoute><ItineraireEditEnhancer><ItineraireDetail /></ItineraireEditEnhancer></ProtectedRoute>} />
+            <Route path="/spa-bien-etre" element={<ProtectedRoute><SpaBienEtre /></ProtectedRoute>} />
+            <Route path="/voyage-commun" element={<ProtectedRoute><ContentEditEnhancer><VoyageCommun /></ContentEditEnhancer></ProtectedRoute>} />
+            <Route path="/voyage-commun/:id" element={<ProtectedRoute><VoyageCommunDetail /></ProtectedRoute>} />
+            <Route path="/mes-contenus" element={<ProtectedRoute><ContentManager /></ProtectedRoute>} />
+            <Route path="/feuille-de-route" element={<AdminRoute><RoadmapInterne /></AdminRoute>} />
+            <Route path="/defis-communaute" element={<AdminRoute><DefisCommunaute /></AdminRoute>} />
+            <Route path="/admin-offres" element={<AdminRoute><AdminOffres /></AdminRoute>} />
+            <Route path="/espace-pro" element={<AdminRoute><EspacePro /></AdminRoute>} />
+            <Route path="/mentions-legales" element={<MentionsLegales />} />
+            <Route path="/cgu" element={<CGU />} />
+            <Route path="/cgv" element={<CGV />} />
+            <Route path="/confidentialite" element={<Confidentialite />} />
+            <Route path="/sejours" element={<ProtectedRoute><Sejours /></ProtectedRoute>} />
+            <Route path="/depenses" element={<ProtectedRoute><ContentEditEnhancer><Depenses /></ContentEditEnhancer></ProtectedRoute>} />
+            <Route path="/playlist" element={<ProtectedRoute><ContentEditEnhancer><Playlist /></ContentEditEnhancer></ProtectedRoute>} />
+            <Route path="/activites" element={<ProtectedRoute><ContentEditEnhancer><Activites /></ContentEditEnhancer></ProtectedRoute>} />
+            <Route path="/carnet-gastronomique" element={<ProtectedRoute><ContentEditEnhancer><Gastronomie /></ContentEditEnhancer></ProtectedRoute>} />
+            <Route path="/carnet-gastronomique/:id" element={<ProtectedRoute><PlatDetail /></ProtectedRoute>} />
+            <Route path="/ateliers" element={<ProtectedRoute><Ateliers /></ProtectedRoute>} />
+            <Route path="/ateliers/confirmation" element={<ProtectedRoute><AtelierConfirmation /></ProtectedRoute>} />
+            <Route path="/ateliers/:id" element={<ProtectedRoute><AtelierDetail /></ProtectedRoute>} />
+            <Route path="/miles-vs-euros" element={<ProtectedRoute><MilesVsEuros /></ProtectedRoute>} />
+          </Routes>
+        </DisplayLabelEnhancer>
       </Suspense>
       <CookieConsent />
     </BrowserRouter>
