@@ -52,7 +52,9 @@ function MusiqueCard(props) {
         </svg>
       </div>
       <div className="p-3.5">
-        <p className="text-sm font-medium text-navy mb-0.5 truncate">{m.titre}</p>
+        <div className="flex items-center w-full min-w-0">
+          <p className="text-sm font-medium text-navy mb-0.5 truncate flex-1 min-w-0">{m.titre}</p>
+        </div>
         <p className="text-xs text-navy/50 mb-2.5 truncate">
           {m.artiste}
           {m.pays ? ' · ' + m.pays : ''}
