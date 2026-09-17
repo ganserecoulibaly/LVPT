@@ -1,0 +1,1 @@
+Vérifications avant mise en production : remplacer les placeholders ; confirmer les informations EI ; vérifier les obligations liées aux ventes et aux futurs Ateliers ; vérifier le consentement cookies.
