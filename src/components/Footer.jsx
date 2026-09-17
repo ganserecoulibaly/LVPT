@@ -6,6 +6,7 @@ const LEGAL_LINKS = [
   { label: 'CGU', href: '/cgu' },
   { label: 'CGV', href: '/cgv' },
   { label: 'Confidentialité', href: '/confidentialite' },
+  { label: 'Cookies', href: '/cookies' },
 ]
 
 export default function Footer() {
@@ -13,7 +14,6 @@ export default function Footer() {
     <footer className="bg-navy text-white">
       <div className="max-w-6xl mx-auto px-6 py-16">
         <div className="grid md:grid-cols-3 gap-10 mb-12">
-          {/* Brand */}
           <div>
             <div className="flex items-center gap-2 mb-5">
               <div className="w-8 h-8 rounded-full bg-coral flex items-center justify-center">
@@ -29,7 +29,6 @@ export default function Footer() {
               Le carnet qui voyage <em className="not-italic text-coral">avec</em><br />toi.
             </p>
           </div>
-          {/* Links */}
           <div>
             <p className="font-sans text-white/40 text-xs uppercase tracking-widest mb-5">Explorer</p>
             <ul className="space-y-3">
@@ -44,39 +43,25 @@ export default function Footer() {
               ))}
             </ul>
           </div>
-          {/* Contact */}
           <div>
             <p className="font-sans text-white/40 text-xs uppercase tracking-widest mb-5">Restons en contact</p>
             <div className="flex gap-3 mb-6">
-              <a href="mailto:levoyagepourtous@gmail.com" className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center hover:border-coral transition-colors">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                  <polyline points="22,6 12,13 2,6"/>
-                </svg>
+              <a href="mailto:EMAIL" className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center hover:border-coral transition-colors" aria-label="Nous contacter par email">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
               </a>
-              <a href="https://www.instagram.com/levoyagepourtous" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center hover:border-coral transition-colors">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
-                  <circle cx="12" cy="12" r="4"/>
-                  <circle cx="17.5" cy="6.5" r="1" fill="white"/>
-                </svg>
+              <a href="https://www.instagram.com/levoyagepourtous" target="_blank" rel="noopener noreferrer" aria-label="Instagram Le Voyage Pour Tous" className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center hover:border-coral transition-colors">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="white"/></svg>
               </a>
-              <a href="https://www.tiktok.com/@levoyagepourtous" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center hover:border-coral transition-colors">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="white" stroke="none">
-                  <path d="M16.6 5.82s.51.5 0 0A4.278 4.278 0 0 1 15.54 3h-3.09v12.4a2.592 2.592 0 0 1-2.59 2.5c-1.42 0-2.6-1.16-2.6-2.6 0-1.72 1.66-3.01 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3s-1.88.09-3.24-1.48z"/>
-                </svg>
+              <a href="https://www.tiktok.com/@levoyagepourtous" target="_blank" rel="noopener noreferrer" aria-label="TikTok Le Voyage Pour Tous" className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center hover:border-coral transition-colors">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="white" stroke="none"><path d="M16.6 5.82s.51.5 0 0A4.278 4.278 0 0 1 15.54 3h-3.09v12.4a2.592 2.592 0 0 1-2.59 2.5c-1.42 0-2.6-1.16-2.6-2.6 0-1.72 1.66-3.01 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3s-1.88.09-3.24-1.48z"/></svg>
               </a>
             </div>
-            <p className="font-sans text-white/30 text-xs">
-              Construit avec 🧡 et beaucoup de tampons de passeport.
-            </p>
+            <p className="font-sans text-white/30 text-xs">Construit avec 🧡 et beaucoup de tampons de passeport.</p>
           </div>
         </div>
 
-        {/* Paragraphe SEO — texte discret pour les moteurs de recherche,
-            reste lisible et informatif pour un humain qui le lirait. */}
         <p className="font-sans text-white/30 text-xs leading-relaxed max-w-4xl mb-10 border-t border-white/10 pt-8">
-          Le Voyage Pour Tous est une application qui simplifie la préparation et le suivi de vos voyages. Recherchez gratuitement des vols et hébergements, sans inscription ni engagement, et laissez-nous comparer les meilleures options pour vous. Une fois votre voyage lancé, gardez une trace de votre budget avec le journal de dépenses, notez vos adresses gastronomiques préférées dans le carnet gastronomique, créez une playlist pour chaque destination, et suivez vos visites et activités culturelles. Le module Voyage Commun vous permet d'échanger conseils et bons plans avec d'autres voyageurs ayant visité les mêmes destinations, tandis que la section Spa & bien-être vous aide à trouver un moment de détente partout dans le monde : thermes, onsens, hammams ou spas d'hôtel. Que vous partiez pour un week-end ou un tour du monde, Le Voyage Pour Tous centralise tout ce dont vous avez besoin pour voyager sans stress.
+          Le Voyage Pour Tous est une application qui simplifie la préparation et le suivi de vos voyages. Recherchez gratuitement des vols et hébergements, sans inscription ni engagement, et laissez-nous comparer les meilleures options pour vous. Une fois votre voyage lancé, gardez une trace de votre budget avec le journal de dépenses, notez vos adresses gastronomiques préférées dans le carnet gastronomique, créez une playlist pour chaque destination, et suivez vos visites et activités culturelles. Le module Le Comptoir Voyage vous permet d'échanger conseils et bons plans avec d'autres voyageurs, tandis que la section Spa & bien-être vous aide à trouver un moment de détente partout dans le monde. Les futurs ateliers pourront proposer des sessions avec des experts du voyage. Que vous partiez pour un week-end ou un tour du monde, Le Voyage Pour Tous centralise tout ce dont vous avez besoin pour voyager sans stress.
         </p>
 
         <div className="border-t border-white/10 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
@@ -85,9 +70,7 @@ export default function Footer() {
             {LEGAL_LINKS.map((link) => (
               <React.Fragment key={link.href}>
                 <span className="text-white/15">·</span>
-                <Link to={link.href} className="underline underline-offset-2 hover:text-coral transition-colors">
-                  {link.label}
-                </Link>
+                <Link to={link.href} className="underline underline-offset-2 hover:text-coral transition-colors">{link.label}</Link>
               </React.Fragment>
             ))}
           </div>
