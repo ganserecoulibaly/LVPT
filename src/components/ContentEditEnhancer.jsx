@@ -39,16 +39,14 @@ const LABELS = {
   categorie: 'Catégorie', date_depense: 'Date',
 }
 
-function canEdit(record, userId, isAdmin) {
-  return Boolean(isAdmin || record?.pid === userId)
-}
+function canEdit(record, userId, isAdmin) { return Boolean(isAdmin || record?.pid === userId) }
 
 function EditIcon() {
-  return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
+  return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1-1-4Z" /></svg>
 }
 
 function EditButton({ onClick }) {
-  return <button type="button" onClick={(e) => { e.stopPropagation(); onClick() }} className="w-7 h-7 rounded-full border border-navy/15 text-navy/60 hover:bg-navy/5 hover:text-coral flex items-center justify-center transition-colors ml-1 shrink-0" aria-label="Modifier" title="Modifier"><EditIcon /></button>
+  return <button type="button" onClick={(e) => { e.stopPropagation(); onClick() }} className="w-7 h-7 rounded-full border border-navy/15 text-navy/60 hover:bg-navy/5 hover:text-coral flex items-center justify-center transition-colors ml-2 shrink-0" aria-label="Modifier" title="Modifier"><EditIcon /></button>
 }
 
 function EditModal({ target, onClose, onSaved }) {
@@ -94,6 +92,28 @@ function EditModal({ target, onClose, onSaved }) {
 
 function normalize(s) { return String(s ?? '').trim().toLowerCase() }
 
+function findTitleNode(title) {
+  return Array.from(document.querySelectorAll('p,h2,h3,h4')).find((el) => normalize(el.textContent) === title)
+}
+
+function findCard(titleNode) {
+  if (!titleNode) return null
+  let current = titleNode
+  for (let i = 0; i < 5 && current; i += 1) {
+    if (current.querySelector?.('button[aria-label="Favori"]')) return current
+    current = current.parentElement
+  }
+  return titleNode.parentElement
+}
+
+function findAmountAnchor(card, record) {
+  if (!card) return null
+  const amount = normalize(record.montant)
+  if (!amount) return null
+  const candidates = Array.from(card.querySelectorAll('*')).filter((el) => normalize(el.textContent) === amount)
+  return candidates.sort((a, b) => a.textContent.length - b.textContent.length)[0] || null
+}
+
 export default function ContentEditEnhancer({ children }) {
   const location = useLocation()
   const config = useMemo(() => CONFIG[location.pathname], [location.pathname])
@@ -117,30 +137,45 @@ export default function ContentEditEnhancer({ children }) {
     if (!config || !user || records.length === 0) { setMounted([]); return undefined }
     const mount = () => {
       const next = []
-      const cards = Array.from(document.querySelectorAll('button, [role="button"], div')).filter((el) => {
-        if (el.dataset.lvptContentEdit) return false
-        const text = normalize(el.textContent)
-        return text && text.length > 2 && text.length < 700
-      })
       records.forEach((record) => {
         if (!canEdit(record, user.id, isAdmin)) return
         const title = normalize(record[config.title])
         if (!title) return
-        const card = cards.find((el) => normalize(el.textContent).includes(title) && el.children.length > 0)
+        const titleNode = findTitleNode(title)
+        const card = findCard(titleNode)
         if (!card) return
-        const host = document.createElement('span'); host.className = 'inline-flex ml-auto'; card.appendChild(host); card.dataset.lvptContentEdit = record[config.id]
+
+        let anchor = null
+        if (config.table === 's_depense') {
+          anchor = findAmountAnchor(card, record) || titleNode
+        } else {
+          anchor = card.querySelector('button[aria-label="Favori"]') || titleNode
+        }
+        if (!anchor || anchor.dataset.lvptContentEdit) return
+
+        const host = document.createElement('span')
+        host.className = 'inline-flex items-center'
+        anchor.parentNode.insertBefore(host, anchor.nextSibling)
+        anchor.dataset.lvptContentEdit = record[config.id]
         next.push({ key: `${config.table}-${record[config.id]}`, host, record, config, table: config.table })
       })
       if (next.length) setMounted((current) => {
-        const existing = new Set(current.map((x) => x.key)); return [...current, ...next.filter((x) => !existing.has(x.key))]
+        const existing = new Set(current.map((x) => x.key))
+        return [...current, ...next.filter((x) => !existing.has(x.key))]
       })
     }
     mount()
-    const observer = new MutationObserver(mount); observer.observe(document.body, { childList: true, subtree: true })
+    const observer = new MutationObserver(mount)
+    observer.observe(document.body, { childList: true, subtree: true })
     return () => observer.disconnect()
   }, [config, user, isAdmin, records])
 
-  const saved = async () => { setTarget(null); setMounted([]); await new Promise((r) => setTimeout(r, 50)); window.location.reload() }
+  const saved = async () => {
+    setTarget(null)
+    setMounted([])
+    await new Promise((r) => setTimeout(r, 50))
+    window.location.reload()
+  }
 
   return <>
     {children}
