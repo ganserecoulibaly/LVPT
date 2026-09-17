@@ -1,0 +1,1 @@
+Vérifier les placeholders et les obligations applicables avant mise en production.
