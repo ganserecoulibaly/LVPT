@@ -109,14 +109,29 @@ export default function ContentEditEnhancer({ children }) {
         const title = normalize(record[config.title]); if (!title) return
         const titleNode = findTitleNode(title); const card = findCard(titleNode); if (!card) return
         const heart = card.querySelector('button[aria-label="Favori"]')
+        const isPlaylist = config.table === 's_musique'
         let anchor
         if (heart) anchor = heart
         else if (config.table === 's_depense') anchor = findAmountAnchor(card, record) || titleNode
         else anchor = titleNode
         if (!anchor || anchor.dataset.lvptContentEdit) return
+
         const host = document.createElement('span')
-        host.className = heart ? 'absolute top-2 right-10 z-10' : 'inline-flex items-center ml-1'
-        anchor.parentNode.insertBefore(host, anchor.nextSibling)
+        if (isPlaylist) {
+          const titleRow = titleNode.parentElement
+          if (titleRow) {
+            titleRow.classList.add('flex', 'items-center', 'gap-2', 'w-full')
+            titleNode.classList.add('flex-1', 'min-w-0')
+            host.className = 'inline-flex items-center ml-auto shrink-0'
+            titleNode.parentNode.insertBefore(host, titleNode.nextSibling)
+          } else {
+            host.className = 'inline-flex items-center ml-1'
+            anchor.parentNode.insertBefore(host, anchor.nextSibling)
+          }
+        } else {
+          host.className = heart ? 'absolute top-2 right-10 z-10' : 'inline-flex items-center ml-1'
+          anchor.parentNode.insertBefore(host, anchor.nextSibling)
+        }
         anchor.dataset.lvptContentEdit = record[config.id]
         next.push({ key: `${config.table}-${record[config.id]}`, host, record, config, table: config.table })
       })
