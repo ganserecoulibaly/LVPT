@@ -12,20 +12,10 @@ function EditIcon() {
 }
 
 const FIELD_LABELS = {
-  titre: 'Titre',
-  pays: 'Pays',
-  ville: 'Ville',
-  description: 'Description',
-  duree_totale_jour: 'Durée totale (jours)',
-  duree_totale_heure: 'Durée totale (heures)',
-  url_cover: 'Image de couverture',
-  jour_numero: 'Numéro du jour',
-  sous_titre: 'Sous-titre',
-  nom_etape: 'Nom de l’étape',
-  adresse: 'Adresse',
-  lieu: 'Lieu',
-  heure: 'Heure',
-  duree: 'Durée',
+  titre: 'Titre', pays: 'Pays', ville: 'Ville', description: 'Description',
+  duree_totale_jour: 'Durée totale (jours)', duree_totale_heure: 'Durée totale (heures)', url_cover: 'Image de couverture',
+  jour_numero: 'Numéro du jour', sous_titre: 'Sous-titre', nom_etape: 'Nom de l’étape',
+  adresse: 'Adresse', lieu: 'Lieu', heure: 'Heure', duree: 'Durée',
 }
 
 const FIELDS = {
@@ -42,7 +32,7 @@ function EditButton({ onClick, label = 'Modifier' }) {
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={(event) => { event.stopPropagation(); onClick() }}
       className="w-7 h-7 rounded-full border border-navy/15 text-navy/60 hover:bg-navy/5 hover:text-coral flex items-center justify-center transition-colors ml-1 shrink-0"
       aria-label={label}
       title={label}
@@ -61,16 +51,11 @@ function EditModal({ target, onClose, onSaved }) {
     setSaving(true)
     setError(null)
     const payload = { ...draft }
-    Object.keys(payload).forEach((key) => {
-      if (payload[key] === '') payload[key] = null
-    })
+    Object.keys(payload).forEach((key) => { if (payload[key] === '') payload[key] = null })
     if ('updated_at' in target.record) payload.updated_at = new Date().toISOString()
 
     const idField = target.type === 'itineraire' ? 'id_itineraire' : target.type === 'jour' ? 'id_jour' : 'id_segment'
-    const { error: updateError } = await supabase
-      .from(target.table)
-      .update(payload)
-      .eq(idField, target.record[idField])
+    const { error: updateError } = await supabase.from(target.table).update(payload).eq(idField, target.record[idField])
 
     if (updateError) {
       setError(updateError.message)
@@ -87,9 +72,7 @@ function EditModal({ target, onClose, onSaved }) {
         <div className="flex items-center justify-between mb-5">
           <div>
             <p className="text-xs uppercase tracking-wide text-coral">Modifier</p>
-            <h2 className="font-serif text-xl text-navy">
-              {target.type === 'itineraire' ? 'Itinéraire' : target.type === 'jour' ? 'Jour' : 'Étape'}
-            </h2>
+            <h2 className="font-serif text-xl text-navy">{target.type === 'itineraire' ? 'Itinéraire' : target.type === 'jour' ? 'Jour' : 'Étape'}</h2>
           </div>
           <button type="button" onClick={onClose} disabled={saving} className="text-navy/40 hover:text-navy">✕</button>
         </div>
@@ -99,18 +82,9 @@ function EditModal({ target, onClose, onSaved }) {
             <label key={field} className="text-xs text-navy/65">
               {FIELD_LABELS[field] || field}
               {field === 'description' || field === 'sous_titre' ? (
-                <textarea
-                  value={draft[field] ?? ''}
-                  onChange={(e) => setDraft((d) => ({ ...d, [field]: e.target.value }))}
-                  rows={4}
-                  className="mt-1 w-full px-3 py-2.5 border border-navy/15 rounded-lg text-sm text-navy"
-                />
+                <textarea value={draft[field] ?? ''} onChange={(e) => setDraft((d) => ({ ...d, [field]: e.target.value }))} rows={4} className="mt-1 w-full px-3 py-2.5 border border-navy/15 rounded-lg text-sm text-navy" />
               ) : (
-                <input
-                  value={draft[field] ?? ''}
-                  onChange={(e) => setDraft((d) => ({ ...d, [field]: e.target.value }))}
-                  className="mt-1 w-full px-3 py-2.5 border border-navy/15 rounded-lg text-sm text-navy"
-                />
+                <input value={draft[field] ?? ''} onChange={(e) => setDraft((d) => ({ ...d, [field]: e.target.value }))} className="mt-1 w-full px-3 py-2.5 border border-navy/15 rounded-lg text-sm text-navy" />
               )}
             </label>
           ))}
@@ -140,8 +114,7 @@ export default function ItineraireEditEnhancer({ children }) {
 
   useEffect(() => {
     if (!user) return
-    supabase.from('lvpt').select('is_admin').eq('id', user.id).single()
-      .then(({ data }) => setIsAdmin(Boolean(data?.is_admin)))
+    supabase.from('lvpt').select('is_admin').eq('id', user.id).single().then(({ data }) => setIsAdmin(Boolean(data?.is_admin)))
   }, [user])
 
   const reload = async () => {
@@ -174,50 +147,59 @@ export default function ItineraireEditEnhancer({ children }) {
       return undefined
     }
 
-    let observer
     const mountButtons = () => {
-      const targets = []
+      const found = []
       const deleteButton = document.querySelector('button[aria-label="Supprimer cet itinéraire"]')
       if (deleteButton && !deleteButton.dataset.lvptEditMounted) {
         const host = document.createElement('span')
-        host.dataset.lvptEditHost = 'itineraire'
         deleteButton.parentNode.insertBefore(host, deleteButton)
         deleteButton.dataset.lvptEditMounted = 'true'
-        targets.push({ key: 'itineraire', type: 'itineraire', table: 's_itineraire', record: itineraire, host })
+        found.push({ key: 'itineraire', type: 'itineraire', table: 's_itineraire', record: itineraire, host })
       }
 
+      const dayButtons = Array.from(document.querySelectorAll('button')).filter((button) => {
+        const text = button.textContent?.trim() || ''
+        return /^Jour\s+\d+/.test(text) && button.classList.contains('rounded-lg')
+      })
+      dayButtons.forEach((button) => {
+        const match = button.textContent.trim().match(/^Jour\s+(\d+)/)
+        const day = days.find((item) => String(item.jour_numero) === match?.[1])
+        if (!day || button.dataset.lvptEditMounted) return
+        const host = document.createElement('span')
+        host.className = 'inline-flex'
+        button.appendChild(host)
+        button.dataset.lvptEditMounted = 'true'
+        found.push({ key: `jour-${day.id_jour}`, type: 'jour', table: 's_itineraire_jour', record: day, host })
+      })
+
+      const activeDayButton = dayButtons.find((button) => button.classList.contains('bg-coral'))
+      const activeMatch = activeDayButton?.textContent?.trim().match(/^Jour\s+(\d+)/)
+      const currentDay = days.find((day) => String(day.jour_numero) === activeMatch?.[1]) || days[0]
       const stepCards = Array.from(document.querySelectorAll('div')).filter((el) =>
-        el.classList.contains('flex') &&
-        el.classList.contains('items-center') &&
-        el.classList.contains('gap-3') &&
-        el.classList.contains('bg-navy/5') &&
-        el.classList.contains('rounded-lg') &&
-        el.classList.contains('p-2.5')
+        el.classList.contains('flex') && el.classList.contains('items-center') && el.classList.contains('gap-3') &&
+        el.classList.contains('bg-navy/5') && el.classList.contains('rounded-lg') && el.classList.contains('p-2.5')
       )
-      const currentDay = days.find((day) => document.querySelector(`button[data-lvpt-day-id="${day.id_jour}"]`)?.dataset.lvptDaySelected === 'true') || days[0]
       ;(currentDay?.steps || []).forEach((step, index) => {
         const card = stepCards[index]
         if (!card || card.dataset.lvptEditMounted) return
         const host = document.createElement('span')
-        host.dataset.lvptEditHost = `step-${step.id_segment}`
+        host.className = 'inline-flex'
         card.appendChild(host)
         card.dataset.lvptEditMounted = 'true'
-        targets.push({ key: `step-${step.id_segment}`, type: 'step', table: 's_itineraire_step', record: step, host })
+        found.push({ key: `step-${step.id_segment}`, type: 'step', table: 's_itineraire_step', record: step, host })
       })
 
-      setPortalTargets((current) => {
-        const merged = [...current]
-        targets.forEach((item) => {
-          if (!merged.some((x) => x.key === item.key)) merged.push(item)
-        })
-        return merged
+      if (found.length) setPortalTargets((current) => {
+        const next = [...current]
+        found.forEach((item) => { if (!next.some((existing) => existing.key === item.key)) next.push(item) })
+        return next
       })
     }
 
     mountButtons()
-    observer = new MutationObserver(mountButtons)
+    const observer = new MutationObserver(mountButtons)
     observer.observe(document.body, { childList: true, subtree: true })
-    return () => observer?.disconnect()
+    return () => observer.disconnect()
   }, [canManage, itineraire, days])
 
   const closeAndReload = async () => {
@@ -230,11 +212,7 @@ export default function ItineraireEditEnhancer({ children }) {
   return (
     <>
       {children}
-      {portalTargets.map((item) => createPortal(
-        <EditButton onClick={() => setTarget(item)} />,
-        item.host,
-        item.key
-      ))}
+      {portalTargets.map((item) => createPortal(<EditButton onClick={() => setTarget(item)} />, item.host, item.key))}
       {target && <EditModal target={target} onClose={() => setTarget(null)} onSaved={closeAndReload} />}
     </>
   )
