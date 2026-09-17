@@ -52,26 +52,12 @@ function MusiqueCard(props) {
         </svg>
       </div>
       <div className="p-3.5">
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-navy mb-0.5 truncate">{m.titre}</p>
-            <p className="text-xs text-navy/50 truncate">
-              {m.artiste}
-              {m.pays ? ' · ' + m.pays : ''}
-            </p>
-          </div>
-          <button
-            type="button"
-            className="w-7 h-7 rounded-full border border-navy/15 text-navy/60 hover:bg-navy/5 hover:text-coral flex items-center justify-center transition-colors shrink-0"
-            aria-label="Modifier"
-            title="Modifier"
-            onClick={function (e) { e.stopPropagation(); window.dispatchEvent(new CustomEvent('lvpt:edit-musique', { detail: m })) }}
-          >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 20h9" />
-              <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1-1-4Z" />
-            </svg>
-          </button>
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-navy mb-0.5 truncate">{m.titre}</p>
+          <p className="text-xs text-navy/50 truncate">
+            {m.artiste}
+            {m.pays ? ' · ' + m.pays : ''}
+          </p>
         </div>
         {liensDisponibles.length > 0 ? (
           <div className="flex flex-col items-start gap-1.5 mt-2.5">
