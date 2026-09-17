@@ -18,7 +18,22 @@ WITH CHECK (pid = auth.uid() OR EXISTS (SELECT 1 FROM public.lvpt l WHERE l.id =
 
 -- Voyage commun already had owner/admin semantics; make both USING and WITH CHECK explicit.
 DROP POLICY IF EXISTS voyage_commun_update_own ON public.s_voyage_commun;
+DROP POLICY IF EXISTS voyage_commun_update_own_or_admin ON public.s_voyage_commun;
 CREATE POLICY voyage_commun_update_own_or_admin ON public.s_voyage_commun FOR UPDATE TO authenticated
+USING (pid = auth.uid() OR EXISTS (SELECT 1 FROM public.lvpt l WHERE l.id = auth.uid() AND l.is_admin = true))
+WITH CHECK (pid = auth.uid() OR EXISTS (SELECT 1 FROM public.lvpt l WHERE l.id = auth.uid() AND l.is_admin = true));
+
+-- Playlist / musique
+DROP POLICY IF EXISTS s_musique_update_own ON public.s_musique;
+DROP POLICY IF EXISTS s_musique_update_own_or_admin ON public.s_musique;
+CREATE POLICY s_musique_update_own_or_admin ON public.s_musique FOR UPDATE TO authenticated
+USING (pid = auth.uid() OR EXISTS (SELECT 1 FROM public.lvpt l WHERE l.id = auth.uid() AND l.is_admin = true))
+WITH CHECK (pid = auth.uid() OR EXISTS (SELECT 1 FROM public.lvpt l WHERE l.id = auth.uid() AND l.is_admin = true));
+
+-- Dépenses
+DROP POLICY IF EXISTS s_depense_update_own ON public.s_depense;
+DROP POLICY IF EXISTS s_depense_update_own_or_admin ON public.s_depense;
+CREATE POLICY s_depense_update_own_or_admin ON public.s_depense FOR UPDATE TO authenticated
 USING (pid = auth.uid() OR EXISTS (SELECT 1 FROM public.lvpt l WHERE l.id = auth.uid() AND l.is_admin = true))
 WITH CHECK (pid = auth.uid() OR EXISTS (SELECT 1 FROM public.lvpt l WHERE l.id = auth.uid() AND l.is_admin = true));
 
