@@ -13,7 +13,7 @@ const CONFIG = {
 
 const LABELS = {
   nom: 'Nom', pays: 'Pays', ville: 'Ville', quartier: 'Quartier', description: 'Description', adresse: 'Adresse', lien_photo: 'Photo',
-  nom_plat: 'Nom du plat', nom_restaurant: 'Restaurant', adresse_restaurant: 'Adresse du restaurant', ville: 'Ville', pays: 'Pays', prix: 'Prix', notes: 'Notes',
+  nom_plat: 'Nom du plat', nom_restaurant: 'Restaurant', adresse_restaurant: 'Adresse du restaurant', prix: 'Prix', notes: 'Notes',
   titre: 'Titre', artiste: 'Artiste', lien_spotify: 'Spotify', lien_youtube: 'YouTube', lien_apple_music: 'Apple Music', lien_deezer: 'Deezer',
   intitule: 'Intitulé', montant: 'Montant', devise: 'Devise', categorie: 'Catégorie', date_depense: 'Date',
 }
