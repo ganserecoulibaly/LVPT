@@ -4,16 +4,16 @@ import { useLocation } from 'react-router-dom'
 import { supabase } from './supabaseClient'
 
 const CONFIG = {
-  '/activites': { table: 'd_lieu', id: 'id_lieu', title: 'nom', fields: ['nom', 'pays', 'ville', 'quartier', 'description', 'adresse', 'lien_photo'], label: 'Lieu / visite / musée' },
+  '/activites': { table: 'd_lieu', id: 'id_lieu', title: 'nom', fields: ['nom', 'pays', 'ville', 'quartier'], label: 'Lieu / visite / musée' },
   '/carnet-gastronomique': { table: 'd_plat', id: 'id_plat', title: 'nom_plat', fields: ['nom_plat', 'nom_restaurant', 'adresse_restaurant', 'ville', 'pays', 'prix', 'lien_photo', 'notes'], label: 'Gastronomie' },
   '/voyage-commun': { table: 's_voyage_commun', id: 'id_post', title: 'titre', fields: ['titre', 'pays', 'ville', 'description'], label: 'Le Comptoir Voyage' },
-  '/playlist': { table: 's_musique', id: 'id_musique', title: 'titre', fields: ['titre', 'artiste', 'pays', 'lien_spotify', 'lien_youtube', 'lien_apple_music', 'lien_deezer'], label: 'Playlist du voyage' },
+  '/playlist': { table: 's_musique', id: 'id_musique', title: 'titre', fields: ['titre', 'artiste', 'pays', 'lien_spotify', 'lien_youtube', 'lien_apple_music', 'lien_deezer'], label: 'Playlist du voyage', anchor: 'title' },
   '/depenses': { table: 's_depense', id: 'id_depense', title: 'intitule', fields: ['intitule', 'montant', 'devise', 'categorie', 'date_depense'], label: 'Dépense' },
 }
 
 const LABELS = {
-  nom: 'Nom', pays: 'Pays', ville: 'Ville', quartier: 'Quartier', description: 'Description', adresse: 'Adresse', lien_photo: 'Photo',
-  nom_plat: 'Nom du plat', nom_restaurant: 'Restaurant', adresse_restaurant: 'Adresse du restaurant', prix: 'Prix', notes: 'Notes',
+  nom: 'Nom', pays: 'Pays', ville: 'Ville', quartier: 'Quartier',
+  nom_plat: 'Nom du plat', nom_restaurant: 'Restaurant', adresse_restaurant: 'Adresse du restaurant', prix: 'Prix', lien_photo: 'Photo', notes: 'Notes',
   titre: 'Titre', artiste: 'Artiste', lien_spotify: 'Spotify', lien_youtube: 'YouTube', lien_apple_music: 'Apple Music', lien_deezer: 'Deezer',
   intitule: 'Intitulé', montant: 'Montant', devise: 'Devise', categorie: 'Catégorie', date_depense: 'Date',
 }
@@ -24,21 +24,54 @@ function EditButton({ onClick }) { return <button type="button" onClick={(e) => 
 
 function EditModal({ target, onClose, onSaved }) {
   const [draft, setDraft] = useState(() => Object.fromEntries(target.config.fields.map((f) => [f, target.record[f] ?? ''])))
-  const [saving, setSaving] = useState(false); const [error, setError] = useState(null)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState(null)
+
   const save = async () => {
-    setSaving(true); setError(null); const payload = { ...draft }
+    setSaving(true)
+    setError(null)
+    const payload = { ...draft }
     Object.keys(payload).forEach((key) => { if (payload[key] === '') payload[key] = null })
+
     if (target.table === 's_depense' && payload.montant != null) {
-      const oldAmount = Number(target.record.montant); const oldEur = Number(target.record.montant_eur); const newAmount = Number(payload.montant)
+      const oldAmount = Number(target.record.montant)
+      const oldEur = Number(target.record.montant_eur)
+      const newAmount = Number(payload.montant)
+      if (!Number.isFinite(newAmount)) {
+        setError('Le montant doit être un nombre valide.')
+        setSaving(false)
+        return
+      }
+      payload.montant = newAmount
       if (payload.devise === 'EUR') payload.montant_eur = newAmount
       else if (Number.isFinite(oldAmount) && oldAmount !== 0 && Number.isFinite(oldEur)) payload.montant_eur = Number((newAmount * oldEur / oldAmount).toFixed(2))
     }
+
     if ('updated_at' in target.record) payload.updated_at = new Date().toISOString()
-    const { error: updateError } = await supabase.from(target.table).update(payload).eq(target.config.id, target.record[target.config.id])
-    if (updateError) { setError(updateError.message); setSaving(false); return }
-    setSaving(false); onSaved()
+
+    const { data, error: updateError } = await supabase
+      .from(target.table)
+      .update(payload)
+      .eq(target.config.id, target.record[target.config.id])
+      .select(target.config.id)
+      .single()
+
+    if (updateError) {
+      setError(updateError.message)
+      setSaving(false)
+      return
+    }
+    if (!data) {
+      setError('La modification n’a pas été enregistrée.')
+      setSaving(false)
+      return
+    }
+
+    setSaving(false)
+    onSaved()
   }
-  return createPortal(<div className="fixed inset-0 z-[1200] bg-navy/45 flex items-center justify-center p-4" onClick={() => !saving && onClose()}><div className="bg-white rounded-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto p-6" onClick={(e) => e.stopPropagation()}><div className="flex items-center justify-between mb-5"><div><p className="text-xs uppercase tracking-wide text-coral">Modifier</p><h2 className="font-serif text-xl text-navy">{target.config.label}</h2></div><button type="button" onClick={onClose} disabled={saving} className="text-navy/40 hover:text-navy" aria-label="Fermer">✕</button></div><div className="flex flex-col gap-3">{target.config.fields.map((field) => <label key={field} className="text-xs text-navy/65">{LABELS[field] || field}{field === 'description' || field === 'notes' ? <textarea value={draft[field] ?? ''} onChange={(e) => setDraft((d) => ({ ...d, [field]: e.target.value }))} rows={4} className="mt-1 w-full px-3 py-2.5 border border-navy/15 rounded-lg text-sm text-navy"/> : <input type={field === 'date_depense' ? 'date' : field === 'montant' ? 'number' : 'text'} value={draft[field] ?? ''} onChange={(e) => setDraft((d) => ({ ...d, [field]: e.target.value }))} className="mt-1 w-full px-3 py-2.5 border border-navy/15 rounded-lg text-sm text-navy"/>}</label>)}</div>{error && <p className="text-xs text-red-500 mt-3">{error}</p>}<button type="button" onClick={save} disabled={saving} className="btn-primary w-full justify-center mt-5 disabled:opacity-60">{saving ? 'Enregistrement…' : 'Enregistrer'}</button></div></div>, document.body)
+
+  return createPortal(<div className="fixed inset-0 z-[1200] bg-navy/45 flex items-center justify-center p-4" onClick={() => !saving && onClose()}><div className="bg-white rounded-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto p-6" onClick={(e) => e.stopPropagation()}><div className="flex items-center justify-between mb-5"><div><p className="text-xs uppercase tracking-wide text-coral">Modifier</p><h2 className="font-serif text-xl text-navy">{target.config.label}</h2></div><button type="button" onClick={onClose} disabled={saving} className="text-navy/40 hover:text-navy" aria-label="Fermer">✕</button></div><div className="flex flex-col gap-3">{target.config.fields.map((field) => <label key={field} className="text-xs text-navy/65">{LABELS[field] || field}{field === 'notes' ? <textarea value={draft[field] ?? ''} onChange={(e) => setDraft((d) => ({ ...d, [field]: e.target.value }))} rows={4} className="mt-1 w-full px-3 py-2.5 border border-navy/15 rounded-lg text-sm text-navy"/> : <input type={field === 'date_depense' ? 'date' : field === 'montant' || field === 'prix' ? 'number' : 'text'} value={draft[field] ?? ''} onChange={(e) => setDraft((d) => ({ ...d, [field]: e.target.value }))} className="mt-1 w-full px-3 py-2.5 border border-navy/15 rounded-lg text-sm text-navy"/>}</label>)}</div>{error && <p className="text-xs text-red-500 mt-3">{error}</p>}<button type="button" onClick={save} disabled={saving} className="btn-primary w-full justify-center mt-5 disabled:opacity-60">{saving ? 'Enregistrement…' : 'Enregistrer'}</button></div></div>, document.body)
 }
 
 function normalize(s) { return String(s ?? '').trim().toLowerCase() }
@@ -54,7 +87,8 @@ function findCard(titleNode) {
 }
 function findAmountAnchor(card, record) {
   if (!card) return null
-  const amount = normalize(record.montant); if (!amount) return null
+  const amount = normalize(record.montant)
+  if (!amount) return null
   const candidates = Array.from(card.querySelectorAll('*')).filter((el) => normalize(el.textContent) === amount)
   return candidates.sort((a, b) => a.textContent.length - b.textContent.length)[0] || null
 }
