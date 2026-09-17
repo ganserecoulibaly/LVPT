@@ -42,6 +42,7 @@ const MilesVsEuros = lazy(() => import('./components/MilesVsEuros'))
 const DefisCommunaute = lazy(() => import('./components/DefisCommunaute'))
 const AdminOffres = lazy(() => import('./components/AdminOffres'))
 const EspacePro = lazy(() => import('./components/EspacePro'))
+const AdminItineraires = lazy(() => import('./components/AdminItineraires'))
 const SpaBienEtre = lazy(() => import('./components/SpaBienEtre'))
 
 function HomePage() {
@@ -85,6 +86,8 @@ export default function App() {
           <Route path="/vols-hebergements" element={<ProtectedRoute><VolsHebergements /></ProtectedRoute>} />
           <Route path="/itineraires" element={<ProtectedRoute><Itineraires /></ProtectedRoute>} />
           <Route path="/itineraires/:id" element={<ProtectedRoute><ItineraireDetail /></ProtectedRoute>} />
+          <Route path="/admin-itineraires" element={<AdminRoute><AdminItineraires /></AdminRoute>} />
+          <Route path="/admin-itineraires/:id" element={<AdminRoute><AdminItineraires /></AdminRoute>} />
           <Route path="/spa-bien-etre" element={<ProtectedRoute><SpaBienEtre /></ProtectedRoute>} />
           <Route path="/voyage-commun" element={<ProtectedRoute><VoyageCommun /></ProtectedRoute>} />
           <Route path="/voyage-commun/:id" element={<ProtectedRoute><VoyageCommunDetail /></ProtectedRoute>} />
