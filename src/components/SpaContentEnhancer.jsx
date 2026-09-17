@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useLocation } from 'react-router-dom'
 import { supabase } from './supabaseClient'
 import PaysAutocomplete from './PaysAutocomplete'
 
@@ -15,8 +16,7 @@ const TYPES = [
 ]
 
 function canEdit(record, userId, isAdmin) { return Boolean(isAdmin || record?.pid === userId) }
-function EditIcon() { return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> }
-function PlusIcon() { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> }
+function EditIcon() { return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1-1-4Z"/></svg> }
 
 function FormFields({ draft, setDraft }) {
   return <div className="flex flex-col gap-3">
@@ -51,7 +51,6 @@ function SpaModal({ mode, record, userId, onClose, onSaved }) {
       const { error: insertError } = await supabase.from('s_spa').insert(payload)
       if (insertError) { setError(insertError.message); setSaving(false); return }
     } else {
-      if ('updated_at' in record) payload.updated_at = new Date().toISOString()
       const { error: updateError } = await supabase.from('s_spa').update(payload).eq('id_spa', record.id_spa)
       if (updateError) { setError(updateError.message); setSaving(false); return }
     }
@@ -68,10 +67,10 @@ function SpaModal({ mode, record, userId, onClose, onSaved }) {
   </div>, document.body)
 }
 
-function AddButton({ onClick }) { return <button type="button" onClick={onClick} className="w-9 h-9 rounded-full bg-coral text-white flex items-center justify-center hover:bg-coral/90 transition-colors shrink-0" aria-label="Ajouter un spa" title="Ajouter un spa"><PlusIcon /></button> }
 function EditButton({ onClick }) { return <button type="button" onClick={(e) => { e.stopPropagation(); onClick() }} className="w-7 h-7 rounded-full border border-navy/15 text-navy/60 hover:bg-navy/5 hover:text-coral flex items-center justify-center transition-colors ml-1 shrink-0" aria-label="Modifier" title="Modifier"><EditIcon /></button> }
 
 export default function SpaContentEnhancer({ children }) {
+  const location = useLocation()
   const [user, setUser] = useState(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [records, setRecords] = useState([])
@@ -90,36 +89,46 @@ export default function SpaContentEnhancer({ children }) {
   useEffect(() => { load() }, [user])
 
   useEffect(() => {
+    if (!user || location.pathname !== '/spa-bien-etre') return undefined
+    const state = location.state
+    if (state?.openAddSpa) {
+      setAddOpen(true)
+      window.history.replaceState({}, document.title, window.location.href.split('#')[0])
+    }
+  }, [user, location])
+
+  useEffect(() => {
     if (!user) return undefined
     const mount = () => {
       const next = []
       const heading = Array.from(document.querySelectorAll('h1')).find((el) => el.textContent?.trim() === 'Spa & bien-être')
-      if (heading && !heading.dataset.lvptSpaAdd) {
-        const host = document.createElement('span'); host.className = 'inline-flex ml-1'; heading.parentNode.appendChild(host); heading.dataset.lvptSpaAdd = 'true'
-        next.push({ key: 'spa-add', type: 'add', host })
-      }
+      if (heading) heading.dataset.lvptSpaAddHandled = 'true'
+
       records.forEach((record) => {
         if (!canEdit(record, user.id, isAdmin)) return
         const title = String(record.nom || '').trim().toLowerCase()
         if (!title) return
-        const candidates = Array.from(document.querySelectorAll('div')).filter((el) => !el.dataset.lvptSpaEdit && el.children.length > 1 && String(el.textContent || '').trim().toLowerCase().includes(title))
-        const card = candidates.sort((a, b) => a.textContent.length - b.textContent.length)[0]
-        if (!card) return
+        const titleNode = Array.from(document.querySelectorAll('p,h2,h3,h4')).find((el) => el.textContent?.trim().toLowerCase() === title)
+        const card = titleNode?.closest('div')
+        const heart = card?.querySelector('button[aria-label="Favori"]')
+        const anchor = heart || titleNode
+        if (!anchor || anchor.dataset.lvptSpaEdit) return
         const host = document.createElement('span'); host.className = 'inline-flex ml-1'
-        card.appendChild(host); card.dataset.lvptSpaEdit = record.id_spa
-        next.push({ key: `spa-edit-${record.id_spa}`, type: 'edit', host, record })
+        anchor.parentNode.insertBefore(host, anchor.nextSibling)
+        anchor.dataset.lvptSpaEdit = record.id_spa
+        next.push({ key: `spa-edit-${record.id_spa}`, host, record })
       })
       if (next.length) setMounted((current) => { const keys = new Set(current.map((x) => x.key)); return [...current, ...next.filter((x) => !keys.has(x.key))] })
     }
     mount()
     const observer = new MutationObserver(mount); observer.observe(document.body, { childList: true, subtree: true })
     return () => observer.disconnect()
-  }, [user, isAdmin, records])
+  }, [user, isAdmin, records, location.pathname])
 
   const saved = async () => { setAddOpen(false); setTarget(null); setMounted([]); await load() }
   return <>
     {children}
-    {mounted.map((item) => item.type === 'add' ? createPortal(<AddButton onClick={() => setAddOpen(true)} />, item.host, item.key) : createPortal(<EditButton onClick={() => setTarget(item.record)} />, item.host, item.key))}
+    {mounted.map((item) => createPortal(<EditButton onClick={() => setTarget(item.record)} />, item.host, item.key))}
     {addOpen && <SpaModal mode="create" userId={user?.id} onClose={() => setAddOpen(false)} onSaved={saved} />}
     {target && <SpaModal mode="edit" record={target} userId={user?.id} onClose={() => setTarget(null)} onSaved={saved} />}
   </>
