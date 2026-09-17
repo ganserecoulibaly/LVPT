@@ -48,6 +48,13 @@ const icons = {
       <path d="M18 12a2 2 0 0 0 0 4h4v-4Z" />
     </svg>
   ),
+  spa: (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 21c4-2.5 7-6.5 7-11 0-2.5-1-4.5-2.5-6.5C14 5 12 8 12 11" />
+      <path d="M12 21c-4-2.5-7-6.5-7-11 0-2.5 1-4.5 2.5-6.5C10 5 12 8 12 11" />
+      <path d="M12 21V11" />
+    </svg>
+  ),
   lock: (
     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
       <rect x="3" y="11" width="18" height="11" rx="2" />
@@ -74,6 +81,7 @@ const ITEMS = [
   { id: 'depenses', label: 'Ajouter une dépense', icon: 'wallet', requiredPlan: 'occasional', action: 'depenses' },
   { id: 'playlist', label: 'Ajouter une musique', icon: 'music', requiredPlan: 'occasional', action: 'playlist' },
   { id: 'gastronomie', label: 'Ajouter un plat', icon: 'kitchen', requiredPlan: 'occasional', action: 'gastronomie' },
+  { id: 'spa', label: 'Ajouter un spa', icon: 'spa', requiredPlan: 'free', action: 'spa' },
   { id: 'activites', label: 'Ajouter une activité', icon: 'mapPin', requiredPlan: 'frequent', action: 'activites' },
 ]
 
@@ -150,6 +158,9 @@ export default function QuickAddMenu({
         break
       case 'gastronomie':
         onAddPlat?.()
+        break
+      case 'spa':
+        navigate('/spa-bien-etre', { state: { openAddSpa: true } })
         break
       case 'activites':
         onAddLieu?.()
