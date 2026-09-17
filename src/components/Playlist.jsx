@@ -40,7 +40,7 @@ function MusiqueCard(props) {
   })
 
   return (
-    <div className="bg-white border border-navy/10 rounded-xl overflow-hidden">
+    <div className="bg-white border border-navy/10 rounded-xl overflow-hidden relative">
       <div
         className="h-20 flex items-center justify-center"
         style={{ background: GRADIENTS[index % GRADIENTS.length] }}
@@ -52,15 +52,29 @@ function MusiqueCard(props) {
         </svg>
       </div>
       <div className="p-3.5">
-        <div className="flex items-center w-full min-w-0">
-          <p className="text-sm font-medium text-navy mb-0.5 truncate flex-1 min-w-0">{m.titre}</p>
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium text-navy mb-0.5 truncate">{m.titre}</p>
+            <p className="text-xs text-navy/50 truncate">
+              {m.artiste}
+              {m.pays ? ' · ' + m.pays : ''}
+            </p>
+          </div>
+          <button
+            type="button"
+            className="w-7 h-7 rounded-full border border-navy/15 text-navy/60 hover:bg-navy/5 hover:text-coral flex items-center justify-center transition-colors shrink-0"
+            aria-label="Modifier"
+            title="Modifier"
+            onClick={function (e) { e.stopPropagation(); window.dispatchEvent(new CustomEvent('lvpt:edit-musique', { detail: m })) }}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 20h9" />
+              <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1-1-4Z" />
+            </svg>
+          </button>
         </div>
-        <p className="text-xs text-navy/50 mb-2.5 truncate">
-          {m.artiste}
-          {m.pays ? ' · ' + m.pays : ''}
-        </p>
         {liensDisponibles.length > 0 ? (
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-col items-start gap-1.5 mt-2.5">
             {liensDisponibles.map(function (p) {
               return (
                 <a
@@ -76,7 +90,7 @@ function MusiqueCard(props) {
             })}
           </div>
         ) : (
-          <p className="text-[11px] text-navy/30">Aucun lien renseigné</p>
+          <p className="text-[11px] text-navy/30 mt-2.5">Aucun lien renseigné</p>
         )}
       </div>
     </div>
