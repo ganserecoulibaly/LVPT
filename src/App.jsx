@@ -15,6 +15,7 @@ import Footer from './components/Footer'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
 import ItineraireEditEnhancer from './components/ItineraireEditEnhancer'
+import ContentEditEnhancer from './components/ContentEditEnhancer'
 
 const Dashboard = lazy(() => import('./components/Dashboard'))
 const VolsHebergements = lazy(() => import('./components/VolsHebergements'))
@@ -80,7 +81,7 @@ export default function App() {
           <Route path="/itineraires" element={<ProtectedRoute><Itineraires /></ProtectedRoute>} />
           <Route path="/itineraires/:id" element={<ProtectedRoute><ItineraireEditEnhancer><ItineraireDetail /></ItineraireEditEnhancer></ProtectedRoute>} />
           <Route path="/spa-bien-etre" element={<ProtectedRoute><SpaBienEtre /></ProtectedRoute>} />
-          <Route path="/voyage-commun" element={<ProtectedRoute><VoyageCommun /></ProtectedRoute>} />
+          <Route path="/voyage-commun" element={<ProtectedRoute><ContentEditEnhancer><VoyageCommun /></ContentEditEnhancer></ProtectedRoute>} />
           <Route path="/voyage-commun/:id" element={<ProtectedRoute><VoyageCommunDetail /></ProtectedRoute>} />
           <Route path="/mes-contenus" element={<ProtectedRoute><ContentManager /></ProtectedRoute>} />
           <Route path="/feuille-de-route" element={<AdminRoute><RoadmapInterne /></AdminRoute>} />
@@ -92,10 +93,10 @@ export default function App() {
           <Route path="/cgv" element={<CGV />} />
           <Route path="/confidentialite" element={<Confidentialite />} />
           <Route path="/sejours" element={<ProtectedRoute><Sejours /></ProtectedRoute>} />
-          <Route path="/depenses" element={<ProtectedRoute><Depenses /></ProtectedRoute>} />
-          <Route path="/playlist" element={<ProtectedRoute><Playlist /></ProtectedRoute>} />
-          <Route path="/activites" element={<ProtectedRoute><Activites /></ProtectedRoute>} />
-          <Route path="/carnet-gastronomique" element={<ProtectedRoute><Gastronomie /></ProtectedRoute>} />
+          <Route path="/depenses" element={<ProtectedRoute><ContentEditEnhancer><Depenses /></ContentEditEnhancer></ProtectedRoute>} />
+          <Route path="/playlist" element={<ProtectedRoute><ContentEditEnhancer><Playlist /></ContentEditEnhancer></ProtectedRoute>} />
+          <Route path="/activites" element={<ProtectedRoute><ContentEditEnhancer><Activites /></ContentEditEnhancer></ProtectedRoute>} />
+          <Route path="/carnet-gastronomique" element={<ProtectedRoute><ContentEditEnhancer><Gastronomie /></ContentEditEnhancer></ProtectedRoute>} />
           <Route path="/carnet-gastronomique/:id" element={<ProtectedRoute><PlatDetail /></ProtectedRoute>} />
           <Route path="/ateliers" element={<ProtectedRoute><Ateliers /></ProtectedRoute>} />
           <Route path="/ateliers/confirmation" element={<ProtectedRoute><AtelierConfirmation /></ProtectedRoute>} />
