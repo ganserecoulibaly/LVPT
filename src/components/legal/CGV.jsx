@@ -3,92 +3,43 @@ import LegalPageLayout from './LegalPageLayout'
 
 export default function CGV() {
   return (
-    <LegalPageLayout title="Conditions générales de vente" updatedAt="31 juillet 2026">
-      <p>
-        Les présentes conditions générales de vente (CGV) s'appliquent à
-        tout abonnement payant souscrit sur le site Le Voyage Pour Tous,
-        édité par une entreprise individuelle (voir les{' '}
-        <a href="/mentions-legales" className="text-coral hover:underline">mentions légales</a>).
-      </p>
+    <LegalPageLayout title="Conditions générales de vente" updatedAt="17 septembre 2026">
+      <p>Les présentes CGV encadrent les ventes réalisées par Le Voyage Pour Tous (LVPT) auprès des consommateurs pour les offres payantes proposées sur le site.</p>
 
-      <h2>1. Formules d'abonnement</h2>
-      <p>Le site propose trois formules :</p>
-      <ul>
-        <li><strong>Gratuit</strong> — 0€, sans engagement.</li>
-        <li><strong>Voyageur occasionnel</strong> — 4,90€/mois, ou 49€/an (soit environ 4,08€/mois).</li>
-        <li><strong>Grand Voyageur</strong> — 8,90€/mois, ou 89€/an (soit environ 7,42€/mois).</li>
-      </ul>
-      <p className="text-navy/50 text-xs">
-        [Ces montants sont ceux discutés à ce jour et pourront évoluer avant
-        le lancement commercial définitif — à reconfirmer avant publication.]
-      </p>
+      <h2>1. Vendeur</h2>
+      <p>Le vendeur est <strong>NOM PRÉNOM</strong>, entrepreneur individuel, éditeur et exploitant de LVPT. Les coordonnées complètes figurent dans les <a href="/mentions-legales" className="text-coral hover:underline">mentions légales</a>.</p>
 
-      <h2>2. Paiement</h2>
-      <p>
-        Les paiements sont traités par notre prestataire de paiement
-        sécurisé, Stripe. Le site ne stocke à aucun moment les données
-        bancaires de l'utilisateur — celles-ci sont saisies directement
-        sur l'interface sécurisée de Stripe.
-      </p>
-      <p>
-        L'abonnement mensuel ou annuel est renouvelé automatiquement à
-        chaque échéance, sauf résiliation préalable par l'utilisateur.
-      </p>
+      <h2>2. Offres et prix</h2>
+      <p>Les fonctionnalités payantes, leurs prix, leur périodicité et leurs éventuelles conditions particulières sont présentés au moment de la souscription. Le prix applicable est celui affiché avant la validation de la commande.</p>
+      <p>Les prix sont indiqués en euros. Le traitement fiscal applicable, notamment la TVA lorsqu'elle est due, est précisé lors de la commande.</p>
 
-      <h2>3. Résiliation</h2>
-      <p>
-        L'utilisateur peut résilier son abonnement à tout moment depuis son
-        profil. La résiliation prend effet à la fin de la période déjà
-        payée : l'utilisateur conserve l'accès aux fonctionnalités de son
-        plan jusqu'à cette date, puis son compte repasse automatiquement
-        en formule Gratuit. Aucun remboursement au prorata n'est effectué
-        pour la période en cours, sauf disposition légale contraire.
-      </p>
+      <h2>3. Souscription</h2>
+      <p>La souscription devient effective après validation de la commande et confirmation du paiement par le prestataire de paiement. L'utilisateur reçoit les informations relatives à son abonnement selon les modalités prévues par le service.</p>
 
-      <h2>4. Droit de rétractation</h2>
-      <p>
-        Conformément à l'article L221-28 du Code de la consommation, le
-        droit de rétractation ne s'applique pas aux contenus numériques
-        fournis sur un support immatériel dont l'exécution a commencé
-        après accord préalable exprès du consommateur, qui reconnaît
-        ainsi renoncer à son droit de rétractation. En souscrivant à un
-        abonnement payant et en accédant immédiatement aux fonctionnalités
-        associées, l'utilisateur reconnaît expressément renoncer à ce
-        droit pour la période souscrite.
-      </p>
+      <h2>4. Paiement</h2>
+      <p>Les paiements sont traités par Stripe. LVPT ne stocke pas les coordonnées complètes de carte bancaire.</p>
+      <p>Pour un abonnement reconduit tacitement, le paiement est renouvelé selon la périodicité choisie jusqu'à sa résiliation.</p>
 
-      <h2>5. Modification ou arrêt d'une formule</h2>
-      <p>
-        L'éditeur se réserve le droit de modifier le contenu ou le tarif
-        des formules d'abonnement, ou de cesser de proposer une formule.
-        Toute modification tarifaire ne s'applique qu'aux nouveaux
-        abonnements ou aux renouvellements postérieurs à son entrée en
-        vigueur, sauf accord contraire.
-      </p>
+      <h2>5. Résiliation</h2>
+      <p>L'utilisateur peut résilier son abonnement selon la fonctionnalité de résiliation proposée dans son espace client. Lorsque l'abonnement est payé pour une période déterminée, l'accès aux fonctionnalités payantes reste disponible jusqu'à l'échéance de la période déjà réglée, sauf disposition légale contraire.</p>
 
-      <h2>6. Programme de vote pour les fonctionnalités</h2>
-      <p>
-        L'accès au système de vote sur les prochaines fonctionnalités et à
-        la proposition d'idées ne constitue pas un engagement contractuel
-        de l'éditeur à développer une fonctionnalité donnée, quel que soit
-        le résultat du vote.
-      </p>
+      <h2>6. Droit de rétractation</h2>
+      <p>Lorsque le droit de rétractation est applicable, le consommateur dispose en principe d'un délai de quatorze jours à compter de la conclusion du contrat. Pour un service numérique dont l'exécution commence avant la fin de ce délai, les modalités relatives au consentement exprès du consommateur et à la perte éventuelle du droit de rétractation sont présentées au moment de la souscription conformément aux règles applicables.</p>
 
-      <h2>7. Réclamations</h2>
-      <p>
-        Toute question ou réclamation relative à un paiement peut être
-        adressée à :{' '}
-        <a href="mailto:levoyagepourtous@gmail.com" className="text-coral hover:underline">
-          levoyagepourtous@gmail.com
-        </a>
-      </p>
+      <h2>7. Garanties et réclamations</h2>
+      <p>Les garanties légales applicables aux consommateurs demeurent applicables. Pour toute question ou réclamation, contactez <a href="mailto:EMAIL" className="text-coral hover:underline">EMAIL</a>.</p>
 
-      <h2>8. Droit applicable</h2>
-      <p>
-        Les présentes CGV sont soumises au droit français. En cas de
-        litige, une solution amiable sera recherchée avant toute action
-        judiciaire.
-      </p>
+      <h2>8. Ateliers</h2>
+      <p>Les futurs ateliers pourront faire l'objet d'une réservation et d'un paiement spécifiques. Leurs tarifs, modalités de réservation, conditions d'annulation, de report, de remboursement et, le cas échéant, conditions liées au format de l'atelier seront présentés avant toute commande. Tant que cette offre n'est pas ouverte à la vente, aucune réservation d'atelier n'est constituée par les présentes CGV.</p>
+
+      <h2>9. Modification des offres</h2>
+      <p>LVPT peut faire évoluer ses offres. Les modifications de prix ou de contenu d'un abonnement en cours sont soumises aux règles applicables et aux informations communiquées au client avant leur prise d'effet.</p>
+
+      <h2>10. Médiation de la consommation</h2>
+      <p>Lorsque la médiation de la consommation est applicable, les coordonnées du médiateur compétent seront communiquées conformément aux obligations légales. Cette section sera complétée avec les coordonnées du médiateur effectivement choisi avant le lancement commercial concerné.</p>
+
+      <h2>11. Droit applicable</h2>
+      <p>Les présentes CGV sont soumises au droit français. Les consommateurs bénéficient des dispositions impératives qui leur sont applicables.</p>
     </LegalPageLayout>
   )
 }
