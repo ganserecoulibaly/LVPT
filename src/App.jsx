@@ -30,6 +30,7 @@ const MentionsLegales = lazy(() => import('./components/legal/MentionsLegales'))
 const CGU = lazy(() => import('./components/legal/CGU'))
 const CGV = lazy(() => import('./components/legal/CGV'))
 const Confidentialite = lazy(() => import('./components/legal/Confidentialite'))
+const Cookies = lazy(() => import('./components/legal/Cookies'))
 const Ateliers = lazy(() => import('./components/atelier/Ateliers'))
 const Sejours = lazy(() => import('./components/Sejours'))
 const Depenses = lazy(() => import('./components/Depenses'))
@@ -95,6 +96,7 @@ export default function App() {
             <Route path="/cgu" element={<CGU />} />
             <Route path="/cgv" element={<CGV />} />
             <Route path="/confidentialite" element={<Confidentialite />} />
+            <Route path="/cookies" element={<Cookies />} />
             <Route path="/sejours" element={<ProtectedRoute><Sejours /></ProtectedRoute>} />
             <Route path="/depenses" element={<ProtectedRoute><ContentEditEnhancer><Depenses /></ContentEditEnhancer></ProtectedRoute>} />
             <Route path="/playlist" element={<ProtectedRoute><ContentEditEnhancer><Playlist /></ContentEditEnhancer></ProtectedRoute>} />
