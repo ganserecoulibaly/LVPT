@@ -90,7 +90,7 @@ export default function SpaContentEnhancer({ children }) {
   useEffect(() => { load() }, [user])
 
   useEffect(() => {
-    if (!user || records.length === 0) return undefined
+    if (!user) return undefined
     const mount = () => {
       const next = []
       const heading = Array.from(document.querySelectorAll('h1')).find((el) => el.textContent?.trim() === 'Spa & bien-être')
