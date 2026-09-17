@@ -13,14 +13,14 @@ const CONFIG = {
 
 const LABELS = {
   nom: 'Nom', pays: 'Pays', ville: 'Ville', quartier: 'Quartier', description: 'Description', adresse: 'Adresse', lien_photo: 'Photo',
-  nom_plat: 'Nom du plat', nom_restaurant: 'Restaurant', adresse_restaurant: 'Adresse du restaurant', prix: 'Prix', notes: 'Notes',
+  nom_plat: 'Nom du plat', nom_restaurant: 'Restaurant', adresse_restaurant: 'Adresse du restaurant', ville: 'Ville', pays: 'Pays', prix: 'Prix', notes: 'Notes',
   titre: 'Titre', artiste: 'Artiste', lien_spotify: 'Spotify', lien_youtube: 'YouTube', lien_apple_music: 'Apple Music', lien_deezer: 'Deezer',
   intitule: 'Intitulé', montant: 'Montant', devise: 'Devise', categorie: 'Catégorie', date_depense: 'Date',
 }
 
 function canEdit(record, userId, isAdmin) { return Boolean(isAdmin || record?.pid === userId) }
 function EditIcon() { return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1-1-4Z"/></svg> }
-function EditButton({ onClick }) { return <button type="button" onClick={(e) => { e.stopPropagation(); onClick() }} className="w-7 h-7 rounded-full border border-navy/15 text-navy/60 hover:bg-navy/5 hover:text-coral flex items-center justify-center transition-colors ml-2 shrink-0" aria-label="Modifier" title="Modifier"><EditIcon /></button> }
+function EditButton({ onClick }) { return <button type="button" onClick={(e) => { e.stopPropagation(); onClick() }} className="w-7 h-7 rounded-full border border-navy/15 text-navy/60 hover:bg-navy/5 hover:text-coral flex items-center justify-center transition-colors shrink-0" aria-label="Modifier" title="Modifier"><EditIcon /></button> }
 
 function EditModal({ target, onClose, onSaved }) {
   const [draft, setDraft] = useState(() => Object.fromEntries(target.config.fields.map((f) => [f, target.record[f] ?? ''])))
@@ -46,7 +46,10 @@ function findTitleNode(title) { return Array.from(document.querySelectorAll('p,h
 function findCard(titleNode) {
   if (!titleNode) return null
   let current = titleNode
-  for (let i = 0; i < 5 && current; i += 1) { if (current.querySelector?.('button[aria-label="Favori"]')) return current; current = current.parentElement }
+  for (let i = 0; i < 8 && current; i += 1) {
+    if (current.querySelector?.('button[aria-label="Favori"]')) return current
+    current = current.parentElement
+  }
   return titleNode.parentElement
 }
 function findAmountAnchor(card, record) {
@@ -71,13 +74,16 @@ export default function ContentEditEnhancer({ children }) {
         if (!canEdit(record, user.id, isAdmin)) return
         const title = normalize(record[config.title]); if (!title) return
         const titleNode = findTitleNode(title); const card = findCard(titleNode); if (!card) return
+        const heart = card.querySelector('button[aria-label="Favori"]')
         let anchor
-        if (config.table === 's_depense') anchor = findAmountAnchor(card, record) || titleNode
-        else if (config.table === 'd_lieu') anchor = titleNode
-        else anchor = card.querySelector('button[aria-label="Favori"]') || titleNode
+        if (heart) anchor = heart
+        else if (config.table === 's_depense') anchor = findAmountAnchor(card, record) || titleNode
+        else anchor = titleNode
         if (!anchor || anchor.dataset.lvptContentEdit) return
-        const host = document.createElement('span'); host.className = 'inline-flex items-center'
-        anchor.parentNode.insertBefore(host, anchor.nextSibling); anchor.dataset.lvptContentEdit = record[config.id]
+        const host = document.createElement('span')
+        host.className = heart ? 'absolute top-2 right-10 z-10' : 'inline-flex items-center ml-1'
+        anchor.parentNode.insertBefore(host, anchor.nextSibling)
+        anchor.dataset.lvptContentEdit = record[config.id]
         next.push({ key: `${config.table}-${record[config.id]}`, host, record, config, table: config.table })
       })
       if (next.length) setMounted((current) => { const existing = new Set(current.map((x) => x.key)); return [...current, ...next.filter((x) => !existing.has(x.key))] })
