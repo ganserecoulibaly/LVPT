@@ -1,5 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
+import { openCookieSettings } from './CookieConsent'
 
 const LEGAL_LINKS = [
   { label: 'Mentions légales', href: '/mentions-legales' },
@@ -56,6 +57,8 @@ export default function Footer() {
             {LEGAL_LINKS.map((link) => (
               <React.Fragment key={link.href}><span className="text-white/15">·</span><Link to={link.href} className="underline underline-offset-2 hover:text-coral transition-colors">{link.label}</Link></React.Fragment>
             ))}
+            <span className="text-white/15">·</span>
+            <button type="button" onClick={openCookieSettings} className="underline underline-offset-2 hover:text-coral transition-colors">Gérer les cookies</button>
           </div>
           <p className="font-handwriting text-white/30 text-sm">✦ Bon voyage</p>
         </div>

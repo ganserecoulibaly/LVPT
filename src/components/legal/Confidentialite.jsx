@@ -39,7 +39,7 @@ export default function Confidentialite() {
         <li><strong>Google :</strong> authentification Google lorsque vous choisissez cette option.</li>
         <li><strong>Resend :</strong> envoi d'emails lorsque ce service est utilisé par LVPT.</li>
         <li><strong>Cloudflare Turnstile :</strong> protection contre les inscriptions automatisées et abus.</li>
-        <li><strong>Google Analytics / Hotjar :</strong> analyse et compréhension de l'utilisation du site lorsque ces outils sont activés conformément à votre consentement et aux règles applicables.</li>
+        <li><strong>Google Analytics / Hotjar / Metricool :</strong> analyse et compréhension de l'utilisation du site lorsque ces outils sont activés conformément à votre consentement et aux règles applicables.</li>
       </ul>
       <h2>7. Transferts internationaux</h2>
       <p>Certains prestataires utilisés par LVPT peuvent traiter des données en dehors de l'Espace économique européen. Lorsque cela est applicable, les transferts sont encadrés conformément aux exigences du RGPD et aux garanties mises en œuvre par le prestataire concerné.</p>
