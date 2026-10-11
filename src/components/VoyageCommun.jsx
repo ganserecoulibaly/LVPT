@@ -259,7 +259,7 @@ export default function VoyageCommun() {
     if (ville) query = query.eq('ville', ville)
     if (searchTerm.trim()) {
       const term = searchTerm.trim()
-      query = query.ilike('titre', `%${term}%`)
+      query = query.or(`titre.ilike.%${term}%,ville.ilike.%${term}%`)
     }
 
     const { data, error } = await query
