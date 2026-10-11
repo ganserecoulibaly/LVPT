@@ -76,7 +76,7 @@ function isUnlocked(requiredPlan, currentPlan) {
 // c'est un catalogue géré uniquement par l'admin via AdminOffres.
 const ITEMS = [
   { id: 'itineraire', label: 'Créer un itinéraire', icon: 'route', requiredPlan: 'free', action: 'itineraire' },
-  { id: 'voyage_commun', label: 'Partager un post Voyage Commun', icon: 'users', requiredPlan: 'free', action: 'voyage_commun' },
+  { id: 'voyage_commun', label: 'Ajouter un post Le Comptoir Voyage', icon: 'users', requiredPlan: 'free', action: 'voyage_commun' },
   { id: 'flights', label: 'Rechercher un vol ou un hébergement', icon: 'plane', requiredPlan: 'free', action: 'flights' },
   { id: 'depenses', label: 'Ajouter une dépense', icon: 'wallet', requiredPlan: 'occasional', action: 'depenses' },
   { id: 'playlist', label: 'Ajouter une musique', icon: 'music', requiredPlan: 'occasional', action: 'playlist' },
