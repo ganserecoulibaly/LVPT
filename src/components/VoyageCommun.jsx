@@ -258,8 +258,20 @@ export default function VoyageCommun() {
     if (pays) query = query.eq('pays', pays)
     if (ville) query = query.eq('ville', ville)
     if (searchTerm.trim()) {
-      const term = searchTerm.trim()
-      query = query.or(`titre.ilike.%${term}%,ville.ilike.%${term}%`)
+      // Recherche insensible aux accents (ex: "astérix" == "asterix") via
+      // une fonction Postgres qui compare titre/ville avec unaccent().
+      // Un simple ilike ne gère pas les accents côté Postgres.
+      const { data: matchingIds, error: searchError } = await supabase.rpc(
+        'search_voyage_commun_ids',
+        { term: searchTerm.trim() }
+      )
+      if (searchError) {
+        console.error('Erreur recherche posts:', searchError.message)
+        return []
+      }
+      const ids = (matchingIds || []).map((row) => (typeof row === 'string' ? row : row.id_post))
+      if (ids.length === 0) return []
+      query = query.in('id_post', ids)
     }
 
     const { data, error } = await query
