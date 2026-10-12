@@ -7,6 +7,37 @@ import AirportAutocomplete from './AirportAutocomplete'
 // Site Key Turnstile définie dans le fichier .env (VITE_TURNSTILE_SITE_KEY)
 const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY
 
+// Traduit les erreurs Supabase Auth en messages lisibles.
+// Certaines erreurs serveur (500) arrivent avec un message vide ou "{}" :
+// on retombe alors sur un message générique plutôt que d'afficher "{}".
+const AUTH_ERROR_MESSAGES = {
+  invalid_credentials: 'Email ou mot de passe incorrect.',
+  email_not_confirmed: 'Ton email n\'est pas encore confirmé. Vérifie ta boîte mail (et les spams).',
+  user_already_exists: 'Un compte existe déjà avec cet email. Essaie de te connecter.',
+  email_exists: 'Un compte existe déjà avec cet email. Essaie de te connecter.',
+  weak_password: 'Mot de passe trop faible : choisis-en un plus long ou plus varié.',
+  email_address_invalid: 'Cette adresse email n\'est pas acceptée. Essaie avec une autre adresse.',
+  over_email_send_rate_limit: 'Trop d\'emails envoyés récemment. Réessaie dans quelques minutes.',
+  over_request_rate_limit: 'Trop de tentatives. Réessaie dans quelques minutes.',
+  captcha_failed: 'Le contrôle de sécurité a échoué. Merci de le valider à nouveau.',
+  signup_disabled: 'Les inscriptions sont temporairement fermées.',
+}
+
+const formatAuthError = (err) => {
+  console.error('Erreur Supabase Auth :', err)
+  if (!err) return 'Une erreur est survenue. Réessaie dans quelques minutes.'
+
+  if (err.code && AUTH_ERROR_MESSAGES[err.code]) return AUTH_ERROR_MESSAGES[err.code]
+
+  const msg = typeof err.message === 'string' ? err.message.trim() : ''
+  if (/confirmation email/i.test(msg)) {
+    return 'Impossible d\'envoyer l\'email de confirmation pour le moment. Réessaie dans quelques minutes.'
+  }
+  if (msg && msg !== '{}' && msg !== '[object Object]') return msg
+
+  return 'Une erreur est survenue. Réessaie dans quelques minutes.'
+}
+
 export default function AuthModal({ onClose, initialMode = 'login' }) {
   const navigate = useNavigate()
   const [mode, setMode] = useState(initialMode) // 'login' | 'signup'
@@ -85,7 +116,7 @@ export default function AuthModal({ onClose, initialMode = 'login' }) {
         redirectTo: `${window.location.origin}/dashboard`,
       },
     })
-    if (error) setError(error.message)
+    if (error) setError(formatAuthError(error))
   }
 
   const handleEmailSubmit = async (e) => {
@@ -135,7 +166,7 @@ export default function AuthModal({ onClose, initialMode = 'login' }) {
         },
       })
       if (error) {
-        setError(error.message)
+        setError(formatAuthError(error))
       } else if (data?.user?.identities?.length === 0) {
         // Supabase répond "succès" même si l'email existe déjà (anti-énumération).
         // Un tableau "identities" vide est l'indice qu'un compte existe déjà pour cet email.
@@ -152,7 +183,7 @@ export default function AuthModal({ onClose, initialMode = 'login' }) {
         options: { captchaToken },
       })
       if (error) {
-        setError(error.message)
+        setError(formatAuthError(error))
       } else {
         onClose()
         navigate('/dashboard')
