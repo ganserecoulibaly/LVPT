@@ -141,18 +141,44 @@
       }
     },
     {
-      "id": "c3c349cf-4048-4e8d-b51a-0e0fe7ca2767",
-      "name": "Retour à la file",
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.1,
+      "id": "969f5443-85e5-4a33-8cbc-0074a4b237d7",
+      "name": "Page de retour",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
         480,
         260
       ],
       "parameters": {
-        "respondWith": "redirect",
-        "redirectURL": "=https://n8n.gansere.com/webhook/lvpt-moderation?token={{ encodeURIComponent($('Action modération').first().json.body.token || '') }}&msg={{ encodeURIComponent($json.ok ? (($json.action === 'supprimer' ? 'Post supprimé : ' : 'Post validé : ') + $json.titre) : ('Erreur : ' + ($json.error || $json.message || 'inconnue'))) }}",
-        "options": {}
+        "jsCode": "// Page de retour après une action : renvoie vers la file de modération\n// (page HTML plutôt qu'une redirection HTTP, plus robuste)\nconst res = $input.first().json || {};\nconst body = $('Action modération').first().json.body || {};\nconst token = String(body.token || '');\n\nlet msg;\nif (res.ok === true) {\n  msg = (res.action === 'supprimer' ? 'Post supprimé : ' : 'Post validé : ') + (res.titre || '');\n} else {\n  msg = 'Erreur : ' + (res.error || res.message || 'inconnue');\n}\n\nconst url = 'https://n8n.gansere.com/webhook/lvpt-moderation?token=' + encodeURIComponent(token) + '&msg=' + encodeURIComponent(msg);\nconst esc = (s) => String(s ?? '').replace(/[&<>\"']/g, (c) => ({\n  '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', \"'\": '&#39;'\n}[c]));\n\nconst html = `<!doctype html>\n<html lang=\"fr\"><head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<meta name=\"robots\" content=\"noindex, nofollow\">\n<meta http-equiv=\"refresh\" content=\"0;url=${esc(url)}\">\n<title>Retour à la file · LVPT</title>\n<style>body{margin:0;background:#f5f3ee;color:#1e2a3a;font-family:-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;\ntext-align:center;padding:48px 16px}a{color:#e8664f;font-weight:600}</style>\n</head><body>\n<p>${esc(msg)}</p>\n<p><a href=\"${esc(url)}\">Retour à la file de modération</a></p>\n<script>location.replace(${JSON.stringify(url)});</script>\n</body></html>`;\n\nreturn [{ json: { html } }];\n"
+      }
+    },
+    {
+      "id": "6343ce34-9d97-4809-9ea8-08d452178e7d",
+      "name": "Retour à la file",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        720,
+        260
+      ],
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              },
+              {
+                "name": "Cache-Control",
+                "value": "no-store"
+              }
+            ]
+          }
+        }
       }
     }
   ],
@@ -202,6 +228,17 @@
       ]
     },
     "Appliquer l'action": {
+      "main": [
+        [
+          {
+            "node": "Page de retour",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Page de retour": {
       "main": [
         [
           {
