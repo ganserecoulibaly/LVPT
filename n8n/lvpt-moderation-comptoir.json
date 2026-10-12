@@ -1,0 +1,220 @@
+{
+  "name": "LVPT — Modération Comptoir Voyage",
+  "nodes": [
+    {
+      "id": "514f246c-6c4f-4b93-8861-11c2603398e6",
+      "name": "Page modération",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "ac3dea20-0dd8-427b-ae15-a1921cc11439",
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "lvpt-moderation",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "34345bc2-e941-4feb-902e-7fccc708c033",
+      "name": "Lire la file",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://npvbhnggirzqpffbzbtf.supabase.co/rest/v1/rpc/moderation_list",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ p_token: $json.query.token || '' }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "",
+          "name": "Supabase service_role (apikey)"
+        }
+      }
+    },
+    {
+      "id": "bacb1cb9-554d-40aa-b667-a020dd6a02b1",
+      "name": "Construire la page",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ],
+      "parameters": {
+        "jsCode": "// Construit la page HTML de la file de modération du Comptoir Voyage\nconst res = $input.first().json;\nconst q = $('Page modération').first().json.query || {};\nconst token = q.token || '';\nconst msg = q.msg || '';\n\nconst ACTION_URL = 'https://n8n.gansere.com/webhook/lvpt-moderation-action';\n\nconst esc = (s) => String(s ?? '').replace(/[&<>\"']/g, (c) => ({\n  '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', \"'\": '&#39;'\n}[c]));\n\nconst COULEURS = {\n  vert: '#2f9e6b', ambre: '#c98a12', bleu: '#3b7dd8',\n  rose: '#d4537f', teal: '#23918e', rouge: '#d64545'\n};\n\nconst hidden = (name, value) => `<input type=\"hidden\" name=\"${name}\" value=\"${esc(value)}\">`;\n\nlet titrePage = 'Modération';\nlet contenu = '';\n\nif (!res || res.ok !== true) {\n  titrePage = 'Lien invalide';\n  contenu = `<div class=\"vide\"><h2>Lien invalide</h2>\n    <p>Ouvre la page depuis le bouton « Modérer » d'une notification ntfy.</p></div>`;\n} else if (!res.items || res.items.length === 0) {\n  contenu = `<div class=\"vide\"><h2>Rien à modérer 🎉</h2>\n    <p>Tous les posts du Comptoir Voyage ont été traités.</p></div>`;\n} else {\n  titrePage = `Modération (${res.items.length})`;\n  contenu = res.items.map((p) => {\n    const couleur = COULEURS[(p.couleur || '').toLowerCase()] || p.couleur || '#6b7280';\n    const lieu = [p.ville, p.pays].filter(Boolean).join(', ');\n    const auteur = [p.auteur, p.email ? `(${p.email})` : ''].filter(Boolean).join(' ') || 'Utilisateur inconnu';\n    const nbCom = Number(p.nb_commentaires || 0);\n    return `\n    <article class=\"post\">\n      <div class=\"meta\">\n        <span class=\"chip\" style=\"background:${esc(couleur)}\">${esc(p.categorie || 'Sans catégorie')}</span>\n        <span class=\"date\">${esc(p.date)}</span>\n      </div>\n      <h2>${esc(p.titre)}</h2>\n      ${p.description ? `<p class=\"desc\">${esc(p.description).replace(/\\n/g, '<br>')}</p>` : ''}\n      <ul class=\"infos\">\n        ${lieu ? `<li>📍 ${esc(lieu)}</li>` : ''}\n        <li>👤 ${esc(auteur)}</li>\n        <li>💬 ${nbCom} commentaire${nbCom > 1 ? 's' : ''}</li>\n      </ul>\n      <div class=\"actions\">\n        <form method=\"post\" action=\"${ACTION_URL}\">\n          ${hidden('token', token)}${hidden('id', p.id_post)}${hidden('action', 'valider')}\n          <button type=\"submit\" class=\"btn ok\">✓ Valider</button>\n        </form>\n        <form method=\"post\" action=\"${ACTION_URL}\"\n              onsubmit=\"return confirm('Supprimer définitivement ce post et ses commentaires ?')\">\n          ${hidden('token', token)}${hidden('id', p.id_post)}${hidden('action', 'supprimer')}\n          <button type=\"submit\" class=\"btn danger\">Supprimer</button>\n        </form>\n      </div>\n    </article>`;\n  }).join('');\n}\n\nconst bandeau = msg && res && res.ok === true\n  ? `<div class=\"bandeau ${msg.startsWith('Erreur') ? 'erreur' : ''}\">${esc(msg)}</div>`\n  : '';\n\nconst html = `<!doctype html>\n<html lang=\"fr\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<meta name=\"robots\" content=\"noindex, nofollow\">\n<title>${esc(titrePage)} · LVPT</title>\n<style>\n  :root { --coral:#e8664f; --navy:#1e2a3a; --fond:#f5f3ee; --carte:#ffffff; --gris:#6b7280; --vert:#2f9e6b; }\n  * { box-sizing:border-box; }\n  body { margin:0; background:var(--fond); color:var(--navy);\n         font-family:-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif; }\n  header { padding:20px 16px 8px; max-width:720px; margin:0 auto; }\n  header h1 { margin:0; font-size:22px; }\n  header p { margin:4px 0 0; color:var(--gris); font-size:14px; }\n  main { max-width:720px; margin:0 auto; padding:8px 16px 40px; }\n  .bandeau { background:#e7f5ee; color:#1d6b47; border-radius:10px; padding:10px 14px; margin-bottom:14px; font-size:14px; }\n  .bandeau.erreur { background:#fdeaea; color:#9b2c2c; }\n  .post { background:var(--carte); border-radius:14px; padding:16px; margin-bottom:14px;\n          box-shadow:0 1px 3px rgba(30,42,58,.08); }\n  .meta { display:flex; justify-content:space-between; align-items:center; gap:8px; }\n  .chip { color:#fff; font-size:12px; font-weight:600; padding:3px 10px; border-radius:999px; }\n  .date { color:var(--gris); font-size:13px; }\n  .post h2 { font-size:18px; margin:10px 0 6px; }\n  .desc { margin:0 0 10px; line-height:1.5; font-size:15px; white-space:normal; overflow-wrap:anywhere; }\n  .infos { list-style:none; padding:0; margin:0 0 14px; color:var(--gris); font-size:13px; }\n  .infos li { margin:2px 0; overflow-wrap:anywhere; }\n  .actions { display:flex; gap:10px; }\n  .actions form { flex:1; margin:0; }\n  .btn { width:100%; border:0; border-radius:999px; padding:12px; font-size:15px; font-weight:600; cursor:pointer; }\n  .btn.ok { background:var(--vert); color:#fff; }\n  .btn.danger { background:#fff; color:#c0392b; border:1.5px solid #e3b4ae; }\n  .vide { text-align:center; padding:48px 16px; color:var(--gris); }\n  .vide h2 { color:var(--navy); }\n</style>\n</head>\n<body>\n<header>\n  <h1>Comptoir Voyage — modération</h1>\n  <p>Posts des utilisateurs pas encore validés, du plus récent au plus ancien.</p>\n</header>\n<main>\n  ${bandeau}\n  ${contenu}\n</main>\n</body>\n</html>`;\n\nreturn [{ json: { html } }];\n"
+      }
+    },
+    {
+      "id": "2a3776ee-1ddb-497b-ad4a-4e77cc4455e6",
+      "name": "Afficher la page",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        720,
+        0
+      ],
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              },
+              {
+                "name": "Cache-Control",
+                "value": "no-store"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "2fba5b20-a0ae-43e1-a986-141e381d03ca",
+      "name": "Action modération",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        260
+      ],
+      "webhookId": "9e912de2-f7be-4966-a10d-9796d2e1ad28",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lvpt-moderation-action",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "dd780d91-ff76-4ad7-b9cd-5be046632b95",
+      "name": "Appliquer l'action",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        260
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://npvbhnggirzqpffbzbtf.supabase.co/rest/v1/rpc/moderation_action",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ p_token: $json.body.token || '', p_id: $json.body.id, p_action: $json.body.action }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "",
+          "name": "Supabase service_role (apikey)"
+        }
+      }
+    },
+    {
+      "id": "c3c349cf-4048-4e8d-b51a-0e0fe7ca2767",
+      "name": "Retour à la file",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        480,
+        260
+      ],
+      "parameters": {
+        "respondWith": "redirect",
+        "redirectURL": "=https://n8n.gansere.com/webhook/lvpt-moderation?token={{ encodeURIComponent($('Action modération').first().json.body.token || '') }}&msg={{ encodeURIComponent($json.ok ? (($json.action === 'supprimer' ? 'Post supprimé : ' : 'Post validé : ') + $json.titre) : ('Erreur : ' + ($json.error || $json.message || 'inconnue'))) }}",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Page modération": {
+      "main": [
+        [
+          {
+            "node": "Lire la file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lire la file": {
+      "main": [
+        [
+          {
+            "node": "Construire la page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construire la page": {
+      "main": [
+        [
+          {
+            "node": "Afficher la page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Action modération": {
+      "main": [
+        [
+          {
+            "node": "Appliquer l'action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Appliquer l'action": {
+      "main": [
+        [
+          {
+            "node": "Retour à la file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}

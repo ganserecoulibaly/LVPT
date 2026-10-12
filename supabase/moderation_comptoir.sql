@@ -1,22 +1,41 @@
 -- =====================================================================
--- Modération du Comptoir Voyage via n8n
--- Notif ntfy (lvpt-comptoir) avec lien signé -> page n8n -> bouton Supprimer
+-- Modération du Comptoir Voyage via n8n — file de modération unique
+--
+-- Parcours :
+--   nouveau post d'un utilisateur (hors admin)
+--   -> notif ntfy "lvpt-comptoir" avec bouton "Modérer"
+--   -> page n8n qui liste TOUS les posts pas encore modérés
+--   -> pour chaque post : bouton "Valider" (sort de la file) ou "Supprimer"
+--
+-- Sécurité : la page n'est accessible qu'avec un jeton secret (dans le lien
+-- de la notif). Les fonctions de modération sont fermées aux utilisateurs du
+-- site (anon / authenticated) et réservées au service_role utilisé par n8n.
 -- =====================================================================
 
--- 1. Secret de signature des liens (créé une seule fois dans le Vault)
+-- 1. Colonne "modéré le" : un post sort de la file dès qu'il est validé
+alter table public.s_voyage_commun
+  add column if not exists modere_le timestamptz;
+
+-- Les posts déjà publiés avant la mise en place sont considérés comme modérés,
+-- pour que la file démarre vide.
+update public.s_voyage_commun
+  set modere_le = now()
+  where modere_le is null;
+
+-- 2. Secret de signature (créé une seule fois dans le Vault)
 do $$
 begin
   if not exists (select 1 from vault.secrets where name = 'lvpt_moderation_secret') then
     perform vault.create_secret(
       encode(extensions.gen_random_bytes(32), 'hex'),
       'lvpt_moderation_secret',
-      'Signature HMAC des liens de modération du Comptoir Voyage (n8n)'
+      'Jeton d''accès à la page de modération du Comptoir Voyage (n8n)'
     );
   end if;
 end $$;
 
--- 2. Jeton signé pour un post (jamais appelable depuis le client)
-create or replace function public.moderation_token(p_id uuid)
+-- 3. Jeton d'accès à la page de modération (jamais appelable depuis le client)
+create or replace function public.moderation_access_token()
 returns text
 language plpgsql
 security definer
@@ -33,13 +52,14 @@ begin
     return null;
   end if;
 
-  return encode(extensions.hmac(p_id::text, v_secret, 'sha256'), 'hex');
+  return encode(extensions.hmac('lvpt-moderation', v_secret, 'sha256'), 'hex');
 end;
 $$;
 
-revoke all on function public.moderation_token(uuid) from public, anon, authenticated;
+revoke all on function public.moderation_access_token() from public, anon, authenticated;
 
--- 3. Notification ntfy avec lien cliquable et bouton d'action
+-- 4. Notification ntfy avec lien cliquable et bouton d'action
+--    (l'ancienne fonction ntfy_notify reste inchangée)
 create or replace function public.ntfy_notify_link(
   p_topic text,
   p_title text,
@@ -95,7 +115,7 @@ $$;
 
 revoke all on function public.ntfy_notify_link(text, text, text, integer, text, text) from public, anon, authenticated;
 
--- 4. Trigger : nouveau post d'un utilisateur (hors admin) -> notif avec lien de modération
+-- 5. Trigger existant : même logique, avec en plus le lien vers la file de modération
 create or replace function public.notify_new_comptoir_post()
 returns trigger
 language plpgsql
@@ -128,8 +148,8 @@ begin
 
   v_lieu := nullif(concat_ws(' — ', NEW.ville, NEW.pays), '');
 
-  v_lien := 'https://n8n.gansere.com/webhook/lvpt-comptoir?id=' || NEW.id_post
-            || '&token=' || public.moderation_token(NEW.id_post);
+  v_lien := 'https://n8n.gansere.com/webhook/lvpt-moderation?token='
+            || public.moderation_access_token();
 
   perform public.ntfy_notify_link(
     'lvpt-comptoir',
@@ -147,48 +167,57 @@ exception when others then
 end;
 $$;
 
--- 5. Lecture d'un post pour la page de modération (jeton obligatoire)
-create or replace function public.moderation_get_comptoir_post(p_id uuid, p_token text)
+-- 6. Liste des posts à modérer (jeton obligatoire)
+create or replace function public.moderation_list(p_token text)
 returns jsonb
 language plpgsql
 security definer
 set search_path to 'public', 'extensions'
 as $$
 declare
-  v_result jsonb;
+  v_items jsonb;
 begin
-  if p_token is null or p_token <> public.moderation_token(p_id) then
+  if p_token is null or p_token is distinct from public.moderation_access_token() then
     return jsonb_build_object('ok', false, 'error', 'lien_invalide');
   end if;
 
-  select jsonb_build_object(
-      'ok', true,
-      'id_post', p.id_post,
-      'titre', p.titre,
-      'description', p.description,
-      'ville', p.ville,
-      'pays', p.pays,
-      'categorie', c.nom,
-      'created_at', to_char(p.created_at at time zone 'Europe/Paris', 'DD/MM/YYYY "à" HH24:MI'),
-      'auteur', nullif(trim(concat_ws(' ', u.prenom, u.nom)), ''),
-      'email', u.email,
-      'nb_commentaires', (select count(*) from public.voyage_commun_commentaire vc where vc.id_post = p.id_post)
-    )
-    into v_result
-    from public.s_voyage_commun p
-    left join public.voyage_commun_categorie c on c.id_categorie = p.id_categorie
-    left join public.lvpt u on u.id = p.pid
-    where p.id_post = p_id;
+  select coalesce(jsonb_agg(x.item order by x.created_at desc), '[]'::jsonb)
+    into v_items
+    from (
+      select p.created_at,
+             jsonb_build_object(
+               'id_post', p.id_post,
+               'titre', p.titre,
+               'description', p.description,
+               'ville', p.ville,
+               'pays', p.pays,
+               'categorie', c.nom,
+               'couleur', c.couleur,
+               'date', to_char(p.created_at at time zone 'Europe/Paris', 'DD/MM/YYYY "à" HH24:MI'),
+               'auteur', nullif(trim(concat_ws(' ', u.prenom, u.nom)), ''),
+               'email', u.email,
+               'nb_commentaires', (select count(*) from public.voyage_commun_commentaire vc
+                                    where vc.id_post = p.id_post)
+             ) as item
+        from public.s_voyage_commun p
+        left join public.voyage_commun_categorie c on c.id_categorie = p.id_categorie
+        left join public.lvpt u on u.id = p.pid
+        where p.modere_le is null
+          and coalesce(u.is_admin, false) = false
+        order by p.created_at desc
+        limit 50
+    ) x;
 
-  return coalesce(v_result, jsonb_build_object('ok', false, 'error', 'post_introuvable'));
+  return jsonb_build_object('ok', true, 'items', v_items);
 end;
 $$;
 
-revoke all on function public.moderation_get_comptoir_post(uuid, text) from public, anon, authenticated;
-grant execute on function public.moderation_get_comptoir_post(uuid, text) to service_role;
+revoke all on function public.moderation_list(text) from public, anon, authenticated;
+grant execute on function public.moderation_list(text) to service_role;
 
--- 6. Suppression d'un post (jeton obligatoire ; les commentaires partent en cascade)
-create or replace function public.moderation_delete_comptoir_post(p_id uuid, p_token text)
+-- 7. Action sur un post : 'valider' (sort de la file) ou 'supprimer'
+--    (les commentaires partent en cascade ; l'entrée du fil d'activité est retirée)
+create or replace function public.moderation_action(p_token text, p_id uuid, p_action text)
 returns jsonb
 language plpgsql
 security definer
@@ -197,21 +226,37 @@ as $$
 declare
   v_titre text;
 begin
-  if p_token is null or p_token <> public.moderation_token(p_id) then
+  if p_token is null or p_token is distinct from public.moderation_access_token() then
     return jsonb_build_object('ok', false, 'error', 'lien_invalide');
   end if;
 
-  delete from public.s_voyage_commun
-    where id_post = p_id
-    returning titre into v_titre;
+  if p_action = 'valider' then
+    update public.s_voyage_commun
+      set modere_le = now()
+      where id_post = p_id
+      returning titre into v_titre;
+
+  elsif p_action = 'supprimer' then
+    delete from public.s_voyage_commun
+      where id_post = p_id
+      returning titre into v_titre;
+
+    if v_titre is not null then
+      delete from public.activity_feed
+        where type = 'voyage_commun' and id_entite = p_id;
+    end if;
+
+  else
+    return jsonb_build_object('ok', false, 'error', 'action_inconnue');
+  end if;
 
   if v_titre is null then
     return jsonb_build_object('ok', false, 'error', 'post_introuvable');
   end if;
 
-  return jsonb_build_object('ok', true, 'titre', v_titre);
+  return jsonb_build_object('ok', true, 'action', p_action, 'titre', v_titre);
 end;
 $$;
 
-revoke all on function public.moderation_delete_comptoir_post(uuid, text) from public, anon, authenticated;
-grant execute on function public.moderation_delete_comptoir_post(uuid, text) to service_role;
+revoke all on function public.moderation_action(text, uuid, text) from public, anon, authenticated;
+grant execute on function public.moderation_action(text, uuid, text) to service_role;
