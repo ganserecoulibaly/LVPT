@@ -175,7 +175,7 @@ export default function CreateVoyageCommunModal({ userId, onClose, onCreated, ed
 
         <label className="flex items-center gap-2 text-xs text-navy/70 mb-3 cursor-pointer">
           <input type="checkbox" checked={isGeneral} onChange={(e) => setIsGeneral(e.target.checked)} />
-          Conseil général (valable dans tous les pays)
+          Général (valable dans tous les pays)
         </label>
 
         {!isGeneral && (
