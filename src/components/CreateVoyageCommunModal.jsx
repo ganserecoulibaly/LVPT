@@ -52,7 +52,10 @@ export default function CreateVoyageCommunModal({ userId, onClose, onCreated, ed
   const [categories, setCategories] = useState([])
   const [selectedCategorieId, setSelectedCategorieId] = useState(editingPost?.id_categorie || '')
   const [titre, setTitre] = useState(editingPost?.titre || '')
-  const [pays, setPays] = useState(editingPost?.pays || '')
+  // Conseil général : valable partout, stocké avec pays = 'Monde' (pays est
+  // NOT NULL en base) et sans ville.
+  const [isGeneral, setIsGeneral] = useState(editingPost?.pays === 'Monde')
+  const [pays, setPays] = useState(editingPost && editingPost.pays !== 'Monde' ? editingPost.pays : '')
   const [ville, setVille] = useState(editingPost?.ville || '')
   const [paysSuggestions, setPaysSuggestions] = useState([])
   const [villeSuggestions, setVilleSuggestions] = useState([])
@@ -105,7 +108,7 @@ export default function CreateVoyageCommunModal({ userId, onClose, onCreated, ed
       setError('Choisis un type de post.')
       return
     }
-    if (!titre.trim() || !pays.trim() || !description.trim()) {
+    if (!titre.trim() || (!isGeneral && !pays.trim()) || !description.trim()) {
       setError('Le titre, le pays et la description sont obligatoires.')
       return
     }
@@ -115,8 +118,8 @@ export default function CreateVoyageCommunModal({ userId, onClose, onCreated, ed
     const payload = {
       id_categorie: selectedCategorieId,
       titre: titre.trim(),
-      pays: pays.trim(),
-      ville: ville.trim() || null,
+      pays: isGeneral ? 'Monde' : pays.trim(),
+      ville: isGeneral ? null : (ville.trim() || null),
       description: description.trim(),
     }
 
@@ -170,6 +173,12 @@ export default function CreateVoyageCommunModal({ userId, onClose, onCreated, ed
         <input value={titre} onChange={(e) => setTitre(e.target.value)} placeholder="ex: Vol Paris-Lisbonne à 42 euros"
           className="w-full px-3 py-2.5 border border-navy/15 rounded-lg text-sm mb-3 focus:outline-none focus:border-coral" />
 
+        <label className="flex items-center gap-2 text-xs text-navy/70 mb-3 cursor-pointer">
+          <input type="checkbox" checked={isGeneral} onChange={(e) => setIsGeneral(e.target.checked)} />
+          Conseil général (valable dans tous les pays)
+        </label>
+
+        {!isGeneral && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
           <div className="relative">
             <FieldLabel required>Pays</FieldLabel>
@@ -202,6 +211,7 @@ export default function CreateVoyageCommunModal({ userId, onClose, onCreated, ed
             )}
           </div>
         </div>
+        )}
 
         <FieldLabel required>Description</FieldLabel>
         <textarea

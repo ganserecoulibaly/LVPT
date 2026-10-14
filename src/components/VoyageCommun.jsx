@@ -255,7 +255,12 @@ export default function VoyageCommun() {
       .range(offset, offset + PAGE_SIZE - 1)
 
     if (categorie) query = query.eq('id_categorie', categorie)
-    if (pays) query = query.eq('pays', pays)
+    // Les conseils généraux (pays = 'Monde') restent visibles quand on
+    // filtre sur un pays, sauf si une ville précise est choisie.
+    if (pays) {
+      if (pays !== 'Monde' && !ville) query = query.or(`pays.eq."${pays.replace(/"/g, '')}",pays.eq.Monde`)
+      else query = query.eq('pays', pays)
+    }
     if (ville) query = query.eq('ville', ville)
     if (searchTerm.trim()) {
       // Recherche insensible aux accents (ex: "astérix" == "asterix") via
