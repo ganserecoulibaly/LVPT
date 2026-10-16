@@ -388,9 +388,17 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!user) return
-    supabase.from('lvpt').select('profil_a_completer_vu').eq('id', user.id).single()
+    // N'ouvre la popup que si le profil est réellement incomplet (pas
+    // d'aéroport de départ, seul champ obligatoire) : un compte créé par
+    // e-mail a déjà tout renseigné à l'inscription.
+    supabase.from('lvpt').select('profil_a_completer_vu, ville_depart_fav').eq('id', user.id).single()
       .then(({ data }) => {
-        if (!data?.profil_a_completer_vu) setFirstTimeProfileOpen(true)
+        if (!data || data.profil_a_completer_vu) return
+        if (data.ville_depart_fav && data.ville_depart_fav.trim()) {
+          supabase.from('lvpt').update({ profil_a_completer_vu: true }).eq('id', user.id)
+          return
+        }
+        setFirstTimeProfileOpen(true)
       })
   }, [user])
 
