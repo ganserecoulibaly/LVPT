@@ -8,7 +8,7 @@ import ToolboxModal from './ToolboxModal'
 import Footer from './Footer'
 import { usePlanAccess } from './usePlanAccess'
 import { useFavoriLieuxPlatsSpas } from './useFavoriLieuxPlatsSpas'
-import { SECTIONS, PLAN_NAMES, COMING_SOON, EXAMPLE_POST, ADD_STEPS, ADD_INTRO, SEARCH_NOTE } from '../data/guideContent'
+import { SECTIONS, PLAN_NAMES, COMING_SOON, EXAMPLE_POST, ADD_STEPS, ADD_INTRO, SEARCH_NOTE, OUTILS } from '../data/guideContent'
 
 // Page /guide : même contenu que la pop-up de bienvenue, en détaillant
 // chaque rubrique. Accessible depuis "Mon compte > Guide du site".
@@ -89,6 +89,19 @@ export default function GuidePage() {
                 </div>
               </section>
             ))}
+
+            <section className="mb-6">
+              <h2 className="font-serif text-xl text-navy mb-3">Miles et outils</h2>
+              <div className="flex flex-col gap-3">
+                {OUTILS.map((o) => (
+                  <div key={o.nom} className="bg-white rounded-2xl p-4 sm:p-5">
+                    <p className="font-medium text-navy mb-1">{o.nom}</p>
+                    <p className="text-sm text-navy/70 mb-2">{o.contenu}</p>
+                    <p className="text-xs text-navy/50">{o.acces}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
 
             <p className="text-sm text-navy/50">Bientôt disponibles : {COMING_SOON.join(', ')}.</p>
           </div>

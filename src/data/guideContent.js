@@ -88,3 +88,23 @@ export const ADD_STEPS = [
 export const ADD_INTRO = 'Dans toutes les rubriques (sauf Vols & hébergements), tu remplis des champs et ton contenu s’affiche ensuite sur le site :'
 
 export const SEARCH_NOTE = 'Vols & hébergements fonctionne autrement : tu remplis un formulaire de recherche, il nous est transmis directement et on te propose des offres.'
+
+// Outils transversaux, accessibles à tous depuis le menu de gauche
+// (pas des rubriques de contenu : rien à publier).
+export const TOOLBOX_TOOLS = [
+  'Conduite', 'Devises', 'Fuseaux horaires', 'Jours fériés', 'Météo', 'Pourboire', 'Prises & voltage',
+  'Santé', 'Tailles', 'Traducteur', 'Unités', 'Urgences', 'Valise', 'Visa',
+]
+
+export const OUTILS = [
+  {
+    nom: 'Miles',
+    acces: 'Menu de gauche > Miles > Miles vs Euros',
+    contenu: 'Un calculateur qui compare le prix d’un billet en euros et son prix en miles (Flying Blue, Avios d’Iberia, Miles&Smiles de Turkish) pour savoir ce qui est le plus avantageux. Tu peux aussi renseigner tes soldes de miles dans « Mon compte > Modifier le profil » (facultatif).',
+  },
+  {
+    nom: 'Boîte à outils',
+    acces: 'Menu de gauche > Boîte à outils',
+    contenu: 'Des outils pratiques à portée de main, sans rien publier : ' + TOOLBOX_TOOLS.join(', ') + '.',
+  },
+]
