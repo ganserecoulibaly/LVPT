@@ -72,10 +72,10 @@ export const COMING_SOON = ['Carnet d’hébergements', 'Documents de transport'
 // Exemple unique, montré dans la pop-up et sur la page : tous les
 // formulaires fonctionnent sur le même principe.
 export const EXAMPLE_POST = [
-  ['Type', 'Vol'],
-  ['Titre', 'Vol Paris-Lisbonne à 42 euros'],
-  ['Pays / Ville', 'Portugal / Lisbonne'],
-  ['Description', 'Trouvé pour des départs en mars, bagage cabine inclus…'],
+  ['Type', 'Conseil'],
+  ['Titre', 'Gourde vide au contrôle sécurité, pleine à l’embarquement'],
+  ['Lieu', 'Général (valable dans tous les pays)'],
+  ['Description', 'Passe le contrôle avec une gourde vide, puis remplis-la gratuitement à une fontaine côté embarquement…'],
 ]
 
 export const ADD_STEPS = [
