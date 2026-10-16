@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 // Icônes en ligne, mêmes tracés que ceux déjà utilisés ailleurs dans
@@ -85,6 +85,18 @@ const ITEMS = [
   { id: 'activites', label: 'Ajouter une activité', icon: 'mapPin', requiredPlan: 'frequent', action: 'activites' },
 ]
 
+// Mémorise, dans le navigateur uniquement, que la personne a déjà ouvert
+// le menu "+" : tant que ce n'est pas le cas, le bouton pulse doucement
+// pour attirer l'œil. localStorage peut être indisponible (navigation
+// privée, stockage bloqué) : on retombe alors sur "jamais utilisé".
+const USED_KEY = 'lvpt_quickadd_used'
+function readUsed() {
+  try { return localStorage.getItem(USED_KEY) === '1' } catch { return false }
+}
+function writeUsed() {
+  try { localStorage.setItem(USED_KEY, '1') } catch { /* ignoré */ }
+}
+
 // Menu "+" partagé entre Dashboard, Itineraires, VolsHebergements et
 // VoyageCommun — pas de dépendance externe, fermeture au clic extérieur
 // (même pattern que le menu de compte dans Navbar.jsx).
@@ -118,6 +130,12 @@ export default function QuickAddMenu({
   const ref = useRef(null)
   const menuRef = useRef(null)
   const navigate = useNavigate()
+  const [used, setUsed] = useState(readUsed)
+
+  const handleToggle = () => {
+    if (!used) { writeUsed(); setUsed(true) }
+    onToggle?.()
+  }
 
   useEffect(() => {
     function handleClickOutside(e) {
@@ -195,25 +213,52 @@ export default function QuickAddMenu({
     })
   }
 
+  const plusIcon = (size, rotated) => (
+    <svg
+      width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+      strokeLinecap="round" strokeLinejoin="round"
+      style={{ transition: 'transform 150ms', transform: rotated ? 'rotate(45deg)' : 'none' }}
+    >
+      <line x1="12" y1="5" x2="12" y2="19" />
+      <line x1="5" y1="12" x2="19" y2="12" />
+    </svg>
+  )
+
+  // Anneau qui pulse tant que le menu n'a jamais été ouvert (désactivé si
+  // la personne a demandé moins d'animations).
+  const pulse = !used && (
+    <span aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-full bg-coral/50 motion-safe:animate-ping" />
+  )
+
   return (
     <div className="relative" ref={ref}>
+      {/* Ordinateur : bouton à côté du titre */}
       <button
-        onClick={onToggle}
-        className="w-10 h-10 rounded-full bg-coral text-white flex items-center justify-center hover:bg-coral/90 transition-colors"
+        onClick={handleToggle}
+        className="hidden sm:flex relative w-10 h-10 rounded-full bg-coral text-white items-center justify-center hover:bg-coral/90 transition-colors"
         aria-label="Ajouter du contenu"
         title="Ajouter du contenu"
       >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-          <line x1="12" y1="5" x2="12" y2="19" />
-          <line x1="5" y1="12" x2="19" y2="12" />
-        </svg>
+        {pulse}
+        <span className="relative">{plusIcon(18, false)}</span>
+      </button>
+
+      {/* Mobile : bouton flottant en bas à droite, visible pendant le défilement */}
+      <button
+        onClick={handleToggle}
+        className="sm:hidden fixed bottom-5 right-4 z-40 w-14 h-14 rounded-full bg-coral text-white flex items-center justify-center shadow-lg active:scale-95 transition-transform"
+        aria-label="Ajouter du contenu"
+        aria-expanded={open}
+      >
+        {pulse}
+        <span className="relative">{plusIcon(24, open)}</span>
       </button>
 
       {open && (
         <>
           <div
             ref={menuRef}
-            className="sm:hidden fixed left-1/2 -translate-x-1/2 top-24 w-[calc(100vw-2rem)] max-w-sm bg-white rounded-xl shadow-lg border border-navy/10 py-1.5 z-50"
+            className="sm:hidden fixed left-1/2 -translate-x-1/2 bottom-24 w-[calc(100vw-2rem)] max-w-sm bg-white rounded-xl shadow-lg border border-navy/10 py-1.5 z-50"
           >
             {renderItems()}
           </div>
