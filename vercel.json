@@ -1,5 +1,16 @@
 {
   "rewrites": [
+    {
+      "source": "/voyage-commun/:id",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(WhatsApp|facebookexternalhit|Facebot|Twitterbot|TelegramBot|Slackbot|LinkedInBot|Discordbot|Pinterest|SkypeUriPreview).*"
+        }
+      ],
+      "destination": "/api/share/voyage-commun?id=:id"
+    },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

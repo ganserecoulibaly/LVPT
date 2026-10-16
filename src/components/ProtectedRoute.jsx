@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Navigate, useLocation } from 'react-router-dom'
 import { supabase } from './supabaseClient'
+import { saveReturnTo, isShareablePath } from './returnTo'
 
 /**
  * Enveloppe n'importe quelle page privée.
@@ -10,6 +11,7 @@ import { supabase } from './supabaseClient'
  */
 export default function ProtectedRoute({ children }) {
   const [status, setStatus] = useState('loading') // 'loading' | 'authed' | 'guest'
+  const location = useLocation()
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -32,6 +34,12 @@ export default function ProtectedRoute({ children }) {
   }
 
   if (status === 'guest') {
+    // Lien partagé (post, itinéraire) : on retient la page pour y revenir
+    // après connexion, et on ouvre directement l'inscription sur l'accueil.
+    if (isShareablePath(location.pathname)) {
+      saveReturnTo(location.pathname)
+      return <Navigate to="/" replace state={{ openAuth: 'signup' }} />
+    }
     return <Navigate to="/" replace />
   }
 

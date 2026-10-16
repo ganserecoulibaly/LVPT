@@ -11,6 +11,7 @@ import Sidebar from './Sidebar'
 import PageHeader from './PageHeader'
 import EditProfileModal from './EditProfileModal'
 import GuideModal from './GuideModal'
+import { consumeReturnTo } from './returnTo'
 import NextTripCard from './NextTripCard'
 import ActivityFeed from './ActivityFeed'
 import FeatureVoting from './FeatureVoting'
@@ -389,6 +390,14 @@ export default function Dashboard() {
         })
       })
   }, [user, searchParams])
+
+  // Visiteur arrivé par un lien partagé : une fois connecté, on le ramène
+  // sur le post ou l'itinéraire qu'il voulait ouvrir.
+  useEffect(() => {
+    if (!user) return
+    const target = consumeReturnTo()
+    if (target) navigate(target, { replace: true })
+  }, [user])
 
   useEffect(() => {
     if (!user) return

@@ -50,15 +50,14 @@ function IconCopy() {
 // Messages, etc. apparaissent automatiquement si installés — c'est la
 // seule voie fiable pour ces deux plateformes, qui n'offrent aucune API
 // de partage direct par URL. Sur desktop (où l'API n'existe pas), on
-// retombe sur le menu de liens directs existant (WhatsApp/Facebook/X),
-// avec "Copier le lien" en plus pour Instagram/TikTok (l'utilisateur
-// colle ensuite lui-même dans une story ou une légende).
+// affiche directement les boutons WhatsApp / X / Facebook, avec "Copier
+// le lien" en plus pour Instagram/TikTok (l'utilisateur colle ensuite
+// lui-même dans une story ou une légende).
 export default function ShareButton(props) {
   const titre = props.titre
   const urlProp = props.url
   const small = props.small
 
-  const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState(false)
   const url = urlProp ? urlProp : (typeof window !== 'undefined' ? window.location.href : '')
 
@@ -75,8 +74,7 @@ export default function ShareButton(props) {
       setCopied(true)
       setTimeout(function () {
         setCopied(false)
-        setOpen(false)
-      }, 1200)
+      }, 1500)
     }).catch(function (err) {
       console.error('Impossible de copier le lien :', err)
     })
@@ -101,46 +99,46 @@ export default function ShareButton(props) {
     )
   }
 
-  function toggleOpen(e) {
-    e.stopPropagation()
-    setOpen(!open)
-  }
-
-  function closeMenu() {
-    setOpen(false)
-  }
-
   function stopClick(e) {
     e.stopPropagation()
   }
 
-  return (
-    <div className="relative">
-      <button onClick={toggleOpen} className={labelClass}>
-        <IconShare />
-        Partager
-      </button>
+  // Ordinateur : les réseaux sont directement visibles (plus de menu à
+  // ouvrir), chacun avec son logo et sa couleur.
+  const roundClass = 'w-7 h-7 rounded-full flex items-center justify-center transition-opacity hover:opacity-85'
 
-      {open && (
-        <div onClick={stopClick} className="absolute top-full right-0 mt-2 bg-white rounded-lg shadow-lg border border-navy/10 py-1.5 z-20 min-w-[170px]">
-          <a href={whatsappHref} target="_blank" rel="noopener noreferrer" onClick={closeMenu} className="flex items-center gap-2.5 px-3 py-2 text-sm text-navy hover:bg-navy/5 transition-colors">
-            <IconWhatsApp />
-            WhatsApp
-          </a>
-          <a href={facebookHref} target="_blank" rel="noopener noreferrer" onClick={closeMenu} className="flex items-center gap-2.5 px-3 py-2 text-sm text-navy hover:bg-navy/5 transition-colors">
-            <IconFacebook />
-            Facebook
-          </a>
-          <a href={twitterHref} target="_blank" rel="noopener noreferrer" onClick={closeMenu} className="flex items-center gap-2.5 px-3 py-2 text-sm text-navy hover:bg-navy/5 transition-colors">
-            <IconX />
-            X
-          </a>
-          <button onClick={handleCopyLink} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-navy hover:bg-navy/5 transition-colors text-left">
-            <IconCopy />
-            {copied ? 'Copié !' : 'Copier le lien (Instagram, TikTok…)'}
-          </button>
-        </div>
-      )}
+  return (
+    <div className="flex items-center gap-1.5" onClick={stopClick}>
+      {!small && <span className="text-xs text-navy/50 mr-0.5">Partager</span>}
+      <a
+        href={whatsappHref} target="_blank" rel="noopener noreferrer"
+        className={roundClass + ' bg-[#25D366] text-white'}
+        aria-label="Partager sur WhatsApp" title="WhatsApp"
+      >
+        <IconWhatsApp />
+      </a>
+      <a
+        href={twitterHref} target="_blank" rel="noopener noreferrer"
+        className={roundClass + ' bg-navy text-white'}
+        aria-label="Partager sur X" title="X"
+      >
+        <IconX />
+      </a>
+      <a
+        href={facebookHref} target="_blank" rel="noopener noreferrer"
+        className={roundClass + ' bg-[#1877F2] text-white'}
+        aria-label="Partager sur Facebook" title="Facebook"
+      >
+        <IconFacebook />
+      </a>
+      <button
+        onClick={handleCopyLink}
+        className={roundClass + ' border border-navy/15 text-navy/60 hover:bg-navy/5'}
+        aria-label="Copier le lien" title="Copier le lien (Instagram, TikTok…)"
+      >
+        <IconCopy />
+      </button>
+      {copied && <span className="text-xs text-navy/60">Copié !</span>}
     </div>
   )
 }

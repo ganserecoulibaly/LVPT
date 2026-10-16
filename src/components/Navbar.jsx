@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from './supabaseClient'
 import AuthModal from './AuthModal'
 
@@ -11,6 +11,7 @@ const NAV_LINKS = [
 
 export default function Navbar({ forceOpaque = false }) {
   const navigate = useNavigate()
+  const location = useLocation()
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
@@ -81,6 +82,18 @@ export default function Navbar({ forceOpaque = false }) {
     document.addEventListener('keydown', handleMobileMenuKeyDown)
     return () => document.removeEventListener('keydown', handleMobileMenuKeyDown)
   }, [mobileNavOpen])
+
+  // Arrivée depuis un lien partagé (voir ProtectedRoute) : on ouvre
+  // directement l'inscription, puis on efface l'état pour qu'un
+  // rechargement de la page ne la rouvre pas.
+  useEffect(() => {
+    const mode = location.state?.openAuth
+    if (!mode) return
+    setAuthMode(mode)
+    setAuthModalOpen(true)
+    window.history.replaceState({}, '')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const openAuthModal = (mode) => {
     setMenuOpen(false)
