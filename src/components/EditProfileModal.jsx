@@ -22,6 +22,7 @@ export default function EditProfileModal({ userId, onClose, firstTime = false })
   const [milesStarAlliance, setMilesStarAlliance] = useState('')
   const [milesSkyteam, setMilesSkyteam] = useState('')
   const [milesOneworld, setMilesOneworld] = useState('')
+  const [emailsMarketing, setEmailsMarketing] = useState(true)
 
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -34,7 +35,7 @@ export default function EditProfileModal({ userId, onClose, firstTime = false })
   useEffect(() => {
     async function load() {
       const [{ data: profile }, { data: { user } }] = await Promise.all([
-        supabase.from('lvpt').select('prenom, nom, telephone, ville_depart_fav, pays_depart_fav, miles_star_alliance, miles_skyteam, miles_oneworld').eq('id', userId).single(),
+        supabase.from('lvpt').select('prenom, nom, telephone, ville_depart_fav, pays_depart_fav, miles_star_alliance, miles_skyteam, miles_oneworld, emails_marketing').eq('id', userId).single(),
         supabase.auth.getUser(),
       ])
       if (profile) {
@@ -46,6 +47,7 @@ export default function EditProfileModal({ userId, onClose, firstTime = false })
         setMilesStarAlliance(profile.miles_star_alliance != null ? String(profile.miles_star_alliance) : '')
         setMilesSkyteam(profile.miles_skyteam != null ? String(profile.miles_skyteam) : '')
         setMilesOneworld(profile.miles_oneworld != null ? String(profile.miles_oneworld) : '')
+        setEmailsMarketing(profile.emails_marketing !== false)
       }
       // Un compte connecté uniquement via Google n'a pas de mot de passe —
       // proposer d'en changer un n'aurait pas de sens pour lui.
@@ -135,6 +137,7 @@ export default function EditProfileModal({ userId, onClose, firstTime = false })
         miles_star_alliance: milesStarAlliance ? parseInt(milesStarAlliance, 10) : null,
         miles_skyteam: milesSkyteam ? parseInt(milesSkyteam, 10) : null,
         miles_oneworld: milesOneworld ? parseInt(milesOneworld, 10) : null,
+        emails_marketing: emailsMarketing,
       })
       .eq('id', userId)
 
@@ -289,6 +292,23 @@ export default function EditProfileModal({ userId, onClose, firstTime = false })
                   placeholder="Nombre de miles" className={inputClass}
                 />
               </div>
+
+              <div className="flex items-center gap-2 mt-2 mb-1">
+                <div className="flex-1 h-px bg-navy/10" />
+                <span className="text-xs text-navy/60">e-mails</span>
+                <div className="flex-1 h-px bg-navy/10" />
+              </div>
+              <label className="flex items-start gap-2 text-sm text-navy/80 cursor-pointer">
+                <input
+                  type="checkbox" checked={emailsMarketing}
+                  onChange={(e) => setEmailsMarketing(e.target.checked)}
+                  className="mt-1"
+                />
+                <span>
+                  Recevoir nos e-mails de conseils et de bons plans voyage
+                  <span className="block text-xs text-navy/50">Les e-mails liés à ton compte et à ton abonnement restent envoyés dans tous les cas.</span>
+                </span>
+              </label>
 
               {error && <p className="text-sm text-red-600">{error}</p>}
 

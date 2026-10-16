@@ -699,8 +699,9 @@ export default function Dashboard() {
           onClose={async () => {
             setGuideOpen(false)
             // await : sans lui, la requête Supabase n'est jamais envoyée et le
-            // guide se rouvrirait à chaque connexion.
-            const { error } = await supabase.from('lvpt').update({ guide_vu: true }).eq('id', user.id)
+            // guide se rouvrirait à chaque connexion. guide_vu n'est pas
+            // modifiable directement : seule la fonction mark_guide_seen le fait.
+            const { error } = await supabase.rpc('mark_guide_seen')
             if (error) console.error('Erreur guide_vu:', error.message)
           }}
         />
