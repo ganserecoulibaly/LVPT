@@ -82,7 +82,12 @@ export default function ShareButton(props) {
 
   const urlEncoded = encodeURIComponent(url)
   const titreEncoded = encodeURIComponent(titre)
-  const whatsappHref = 'https://wa.me/?text=' + encodeURIComponent(titre + ' — ' + url)
+  // wa.me affiche une page intermédiaire ("ouvrir / télécharger l'application")
+  // peu adaptée à un ordinateur : on ouvre directement WhatsApp Web, avec le
+  // message prêt, et wa.me reste réservé aux navigateurs mobiles.
+  const isMobileUA = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+  const whatsappText = encodeURIComponent(titre + ' — ' + url)
+  const whatsappHref = (isMobileUA ? 'https://wa.me/?text=' : 'https://web.whatsapp.com/send?text=') + whatsappText
   const facebookHref = 'https://www.facebook.com/sharer/sharer.php?u=' + urlEncoded
   const twitterHref = 'https://twitter.com/intent/tweet?text=' + titreEncoded + '&url=' + urlEncoded
 
