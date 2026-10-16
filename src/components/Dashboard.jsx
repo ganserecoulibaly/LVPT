@@ -10,6 +10,7 @@ import Footer from './Footer'
 import Sidebar from './Sidebar'
 import PageHeader from './PageHeader'
 import EditProfileModal from './EditProfileModal'
+import GuideModal from './GuideModal'
 import NextTripCard from './NextTripCard'
 import ActivityFeed from './ActivityFeed'
 import FeatureVoting from './FeatureVoting'
@@ -346,6 +347,9 @@ export default function Dashboard() {
   const [searchOpen, setSearchOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [firstTimeProfileOpen, setFirstTimeProfileOpen] = useState(false)
+  const [guideOpen, setGuideOpen] = useState(false)
+  // Le guide ne s'ouvre qu'après la popup profil (si elle est affichée).
+  const [guidePending, setGuidePending] = useState(false)
   const [toolboxOpen, setToolboxOpen] = useState(false)
   const [toolboxTab, setToolboxTab] = useState('currency')
 
@@ -388,17 +392,28 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!user) return
-    // N'ouvre la popup que si le profil est réellement incomplet (pas
+    // Popup profil : seulement si le profil est réellement incomplet (pas
     // d'aéroport de départ, seul champ obligatoire) : un compte créé par
     // e-mail a déjà tout renseigné à l'inscription.
-    supabase.from('lvpt').select('profil_a_completer_vu, ville_depart_fav').eq('id', user.id).single()
+    // Popup guide : une seule fois, après la popup profil quand il y en a une.
+    supabase.from('lvpt').select('profil_a_completer_vu, ville_depart_fav, guide_vu').eq('id', user.id).single()
       .then(({ data }) => {
-        if (!data || data.profil_a_completer_vu) return
-        if (data.ville_depart_fav && data.ville_depart_fav.trim()) {
-          supabase.from('lvpt').update({ profil_a_completer_vu: true }).eq('id', user.id)
-          return
+        if (!data) return
+        let profileNeeded = false
+        if (!data.profil_a_completer_vu) {
+          if (data.ville_depart_fav && data.ville_depart_fav.trim()) {
+            supabase.from('lvpt').update({ profil_a_completer_vu: true }).eq('id', user.id)
+          } else {
+            profileNeeded = true
+          }
         }
-        setFirstTimeProfileOpen(true)
+        const guideNeeded = !data.guide_vu
+        if (profileNeeded) {
+          setFirstTimeProfileOpen(true)
+          setGuidePending(guideNeeded)
+        } else if (guideNeeded) {
+          setGuideOpen(true)
+        }
       })
   }, [user])
 
@@ -668,7 +683,23 @@ export default function Dashboard() {
       )}
 
       {firstTimeProfileOpen && (
-        <EditProfileModal userId={user.id} firstTime onClose={() => setFirstTimeProfileOpen(false)} />
+        <EditProfileModal
+          userId={user.id}
+          firstTime
+          onClose={() => {
+            setFirstTimeProfileOpen(false)
+            if (guidePending) { setGuidePending(false); setGuideOpen(true) }
+          }}
+        />
+      )}
+
+      {guideOpen && (
+        <GuideModal
+          onClose={() => {
+            setGuideOpen(false)
+            supabase.from('lvpt').update({ guide_vu: true }).eq('id', user.id)
+          }}
+        />
       )}
 
       {quickCreateItineraireOpen && (

@@ -114,6 +114,7 @@ export default function PageHeader({ onFavoritesClick, onUpgradeClick, onProfile
     { label: 'Upgrade plan', onClick: onUpgradeClick },
     ...(hasPaidPlan ? [{ label: openingPortal ? 'Ouverture…' : 'Facturation', onClick: () => openBillingPortal(setOpeningPortal) }] : []),
     { label: 'Modifier le profil', onClick: onProfileClick },
+    { label: 'Guide du site', onClick: () => navigate('/guide') },
     { label: 'Mes contenus', onClick: () => navigate('/mes-contenus') },
     { label: 'Se déconnecter', onClick: () => supabase.auth.signOut(), danger: true },
   ]
@@ -164,6 +165,12 @@ export default function PageHeader({ onFavoritesClick, onUpgradeClick, onProfile
                 className="w-full text-left px-4 py-2.5 text-sm text-navy hover:bg-navy/5 transition-colors"
               >
                 Modifier le profil
+              </button>
+              <button
+                onClick={() => { setAccountMenuOpen(false); navigate('/guide') }}
+                className="w-full text-left px-4 py-2.5 text-sm text-navy hover:bg-navy/5 transition-colors"
+              >
+                Guide du site
               </button>
               <button
                 onClick={() => { setAccountMenuOpen(false); navigate('/mes-contenus') }}

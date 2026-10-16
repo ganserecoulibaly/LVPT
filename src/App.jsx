@@ -41,6 +41,7 @@ const PlatDetail = lazy(() => import('./components/PlatDetail'))
 const AtelierDetail = lazy(() => import('./components/atelier/AtelierDetail'))
 const AtelierConfirmation = lazy(() => import('./components/atelier/AtelierConfirmation'))
 const MilesVsEuros = lazy(() => import('./components/MilesVsEuros'))
+const GuidePage = lazy(() => import('./components/GuidePage'))
 const DefisCommunaute = lazy(() => import('./components/DefisCommunaute'))
 const AdminOffres = lazy(() => import('./components/AdminOffres'))
 const EspacePro = lazy(() => import('./components/EspacePro'))
@@ -107,6 +108,7 @@ export default function App() {
             <Route path="/ateliers/confirmation" element={<ProtectedRoute><AtelierConfirmation /></ProtectedRoute>} />
             <Route path="/ateliers/:id" element={<ProtectedRoute><AtelierDetail /></ProtectedRoute>} />
             <Route path="/miles-vs-euros" element={<ProtectedRoute><MilesVsEuros /></ProtectedRoute>} />
+            <Route path="/guide" element={<ProtectedRoute><GuidePage /></ProtectedRoute>} />
           </Routes>
         </DisplayLabelEnhancer>
       </Suspense>
