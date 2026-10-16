@@ -136,4 +136,4 @@ export const DASHBOARD_BLOCS = [
   },
 ]
 
-export const COMING_SOON_PAGE = [...COMING_SOON, 'Nos ateliers (le bouton de l’en-tête est verrouillé pour l’instant)']
+export const COMING_SOON_PAGE = [...COMING_SOON]
