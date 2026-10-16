@@ -8,7 +8,7 @@ import ToolboxModal from './ToolboxModal'
 import Footer from './Footer'
 import { usePlanAccess } from './usePlanAccess'
 import { useFavoriLieuxPlatsSpas } from './useFavoriLieuxPlatsSpas'
-import { SECTIONS, PLAN_NAMES, COMING_SOON, EXAMPLE_POST, ADD_STEPS, ADD_INTRO, SEARCH_NOTE, OUTILS } from '../data/guideContent'
+import { SECTIONS, PLAN_NAMES, EXAMPLE_POST, ADD_STEPS, ADD_INTRO, SEARCH_NOTE, OUTILS, INTERACTIONS, DASHBOARD_BLOCS, COMING_SOON_PAGE } from '../data/guideContent'
 
 // Page /guide : même contenu que la pop-up de bienvenue, en détaillant
 // chaque rubrique. Accessible depuis "Mon compte > Guide du site".
@@ -103,7 +103,32 @@ export default function GuidePage() {
               </div>
             </section>
 
-            <p className="text-sm text-navy/50">Bientôt disponibles : {COMING_SOON.join(', ')}.</p>
+            <section className="mb-6">
+              <h2 className="font-serif text-xl text-navy mb-3">Favoris, votes et commentaires</h2>
+              <div className="flex flex-col gap-3">
+                {INTERACTIONS.map((o) => (
+                  <div key={o.nom} className="bg-white rounded-2xl p-4 sm:p-5">
+                    <p className="font-medium text-navy mb-1">{o.nom}</p>
+                    <p className="text-sm text-navy/70">{o.contenu}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section className="mb-6">
+              <h2 className="font-serif text-xl text-navy mb-3">Le Dashboard</h2>
+              <p className="text-sm text-navy/60 mb-3">Ta page d’accueil une fois connecté(e) :</p>
+              <div className="flex flex-col gap-3">
+                {DASHBOARD_BLOCS.map((o) => (
+                  <div key={o.nom} className="bg-white rounded-2xl p-4 sm:p-5">
+                    <p className="font-medium text-navy mb-1">{o.nom}</p>
+                    <p className="text-sm text-navy/70">{o.contenu}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <p className="text-sm text-navy/50">Bientôt disponibles : {COMING_SOON_PAGE.join(', ')}.</p>
           </div>
         </div>
 

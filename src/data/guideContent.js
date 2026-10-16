@@ -108,3 +108,32 @@ export const OUTILS = [
     contenu: 'Des outils pratiques à portée de main, sans rien publier : ' + TOOLBOX_TOOLS.join(', ') + '.',
   },
 ]
+
+// Réservé à la page Guide (la pop-up de bienvenue ne les reprend pas).
+export const INTERACTIONS = [
+  {
+    nom: 'Favoris',
+    contenu: 'Clique sur le cœur d’une carte pour la mettre de côté. Retrouve tout ce que tu as gardé avec le bouton « Mes favoris », en haut de chaque page.',
+  },
+  {
+    nom: 'Votes et commentaires',
+    contenu: 'Ouvre un post du Comptoir Voyage pour voter et laisser un commentaire. Le tri « Tendance » fait remonter les posts les mieux notés.',
+  },
+]
+
+export const DASHBOARD_BLOCS = [
+  {
+    nom: 'Prochain voyage',
+    contenu: 'Ton prochain départ en un coup d’œil, avec l’état de tes billets et de ton hébergement (réservé ou à réserver).',
+  },
+  {
+    nom: 'Quoi de neuf dans la communauté',
+    contenu: 'Les derniers contenus publiés sur le site.',
+  },
+  {
+    nom: 'Vote pour la prochaine fonctionnalité',
+    contenu: 'Vote pour les idées qui te plaisent ou propose la tienne avec « + Proposer une idée » : c’est comme ça que le site évolue.',
+  },
+]
+
+export const COMING_SOON_PAGE = [...COMING_SOON, 'Nos ateliers (le bouton de l’en-tête est verrouillé pour l’instant)']
