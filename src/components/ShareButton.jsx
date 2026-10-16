@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { whatsappWebUrl, openWhatsAppOnMobile } from './whatsapp'
 
 function IconWhatsApp() {
   return (
@@ -117,6 +118,7 @@ export default function ShareButton(props) {
       {!small && <span className="text-xs text-navy/50 mr-0.5">Partager</span>}
       <a
         href={whatsappHref} target="_blank" rel="noopener noreferrer"
+        onClick={function (e) { if (openWhatsAppOnMobile(whatsappText)) e.preventDefault() }}
         className={roundClass + ' bg-[#25D366] text-white'}
         aria-label="Partager sur WhatsApp" title="WhatsApp"
       >

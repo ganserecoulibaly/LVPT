@@ -1,3 +1,4 @@
+import { whatsappWebUrl, openWhatsAppOnMobile } from './whatsapp'
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from './supabaseClient'
@@ -83,7 +84,8 @@ function ShareButton({ titre }) {
   const networks = [
     {
       name: 'WhatsApp',
-      href: `https://wa.me/?text=${encodeURIComponent(`${titre} — ${url}`)}`,
+      href: whatsappWebUrl(`${titre} — ${url}`),
+      onClick: () => openWhatsAppOnMobile(`${titre} — ${url}`),
       icon: (
         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.1-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1-.2.2-.7.8-.8.9-.2.2-.3.2-.5.1-1.4-.7-2.3-1.2-3.2-2.8-.2-.4.2-.4.6-1.2.1-.2 0-.4 0-.5C10.2 9.7 9.8 8.7 9.6 8.3c-.2-.4-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.2-1 1-1 2.3 0 1.4 1 2.7 1.1 2.9.1.2 2 3 4.8 4.3.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3Z"/></svg>
       ),
@@ -121,7 +123,7 @@ function ShareButton({ titre }) {
           {networks.map((n) => (
             <a
               key={n.name} href={n.href} target="_blank" rel="noopener noreferrer"
-              onClick={() => setOpen(false)}
+              onClick={(e) => { setOpen(false); if (n.onClick && n.onClick()) e.preventDefault() }}
               className="flex items-center gap-2.5 px-3 py-2 text-sm text-navy hover:bg-navy/5 transition-colors"
             >
               {n.icon} {n.name}
