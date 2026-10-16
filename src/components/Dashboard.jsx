@@ -402,7 +402,8 @@ export default function Dashboard() {
         let profileNeeded = false
         if (!data.profil_a_completer_vu) {
           if (data.ville_depart_fav && data.ville_depart_fav.trim()) {
-            supabase.from('lvpt').update({ profil_a_completer_vu: true }).eq('id', user.id)
+            // .then() obligatoire : sans lui, la requête Supabase n'est jamais envoyée.
+            supabase.from('lvpt').update({ profil_a_completer_vu: true }).eq('id', user.id).then(() => {})
           } else {
             profileNeeded = true
           }
@@ -695,9 +696,12 @@ export default function Dashboard() {
 
       {guideOpen && (
         <GuideModal
-          onClose={() => {
+          onClose={async () => {
             setGuideOpen(false)
-            supabase.from('lvpt').update({ guide_vu: true }).eq('id', user.id)
+            // await : sans lui, la requête Supabase n'est jamais envoyée et le
+            // guide se rouvrirait à chaque connexion.
+            const { error } = await supabase.from('lvpt').update({ guide_vu: true }).eq('id', user.id)
+            if (error) console.error('Erreur guide_vu:', error.message)
           }}
         />
       )}
