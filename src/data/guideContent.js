@@ -13,8 +13,9 @@ export const SECTIONS = [
   {
     nom: 'Vols & hébergements',
     plan: 'free',
-    contenu: 'Les offres de vols et d’hébergements repérées pour toi, avec les meilleurs prix du moment.',
+    contenu: 'Tu remplis un formulaire avec ta recherche : il nous est transmis directement et on te propose des offres de vols et d’hébergements.',
     ajout: 'Rechercher un vol ou un hébergement',
+    envoi: true,
   },
   {
     nom: 'Le Comptoir Voyage',
@@ -83,3 +84,7 @@ export const ADD_STEPS = [
   'Remplis le formulaire : les champs avec une étoile rouge sont obligatoires.',
   'Clique sur « Publier » ou « Enregistrer ».',
 ]
+
+export const ADD_INTRO = 'Dans toutes les rubriques (sauf Vols & hébergements), tu remplis des champs et ton contenu s’affiche ensuite sur le site :'
+
+export const SEARCH_NOTE = 'Vols & hébergements fonctionne autrement : tu remplis un formulaire de recherche, il nous est transmis directement et on te propose des offres.'

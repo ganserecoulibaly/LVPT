@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
-import { SECTIONS, PLAN_NAMES, COMING_SOON, EXAMPLE_POST, ADD_STEPS } from '../data/guideContent'
+import { SECTIONS, PLAN_NAMES, COMING_SOON, EXAMPLE_POST, ADD_STEPS, ADD_INTRO, SEARCH_NOTE } from '../data/guideContent'
 
 // Pop-up de bienvenue en 3 pages, affichée une seule fois à la première
 // connexion (voir Dashboard.jsx). Le détail complet vit sur /guide.
@@ -37,7 +37,7 @@ function PageAjout() {
     <>
       <p className="font-serif text-lg text-navy mb-1">Ajouter du contenu</p>
       <p className="text-sm text-navy/55 mb-4">
-        Dans toutes les rubriques, ça se passe de la même façon :
+        {ADD_INTRO}
       </p>
       <ol className="text-sm text-navy/80 mb-4 flex flex-col gap-1.5">
         {ADD_STEPS.map((step, i) => (
@@ -55,6 +55,7 @@ function PageAjout() {
           </p>
         ))}
       </div>
+      <p className="text-xs text-navy/50 mt-3">{SEARCH_NOTE}</p>
     </>
   )
 }

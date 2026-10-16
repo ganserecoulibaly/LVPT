@@ -8,7 +8,7 @@ import ToolboxModal from './ToolboxModal'
 import Footer from './Footer'
 import { usePlanAccess } from './usePlanAccess'
 import { useFavoriLieuxPlatsSpas } from './useFavoriLieuxPlatsSpas'
-import { SECTIONS, PLAN_NAMES, COMING_SOON, EXAMPLE_POST, ADD_STEPS } from '../data/guideContent'
+import { SECTIONS, PLAN_NAMES, COMING_SOON, EXAMPLE_POST, ADD_STEPS, ADD_INTRO, SEARCH_NOTE } from '../data/guideContent'
 
 // Page /guide : même contenu que la pop-up de bienvenue, en détaillant
 // chaque rubrique. Accessible depuis "Mon compte > Guide du site".
@@ -46,7 +46,7 @@ export default function GuidePage() {
 
             <section className="bg-white rounded-2xl p-5 sm:p-6 mb-6">
               <h2 className="font-serif text-xl text-navy mb-3">Ajouter du contenu</h2>
-              <p className="text-sm text-navy/60 mb-3">Dans toutes les rubriques, ça se passe de la même façon :</p>
+              <p className="text-sm text-navy/60 mb-3">{ADD_INTRO}</p>
               <ol className="text-sm text-navy/80 mb-4 flex flex-col gap-1.5">
                 {ADD_STEPS.map((step, i) => (
                   <li key={step} className="flex gap-2">
@@ -63,7 +63,8 @@ export default function GuidePage() {
                   </p>
                 ))}
               </div>
-              <p className="text-xs text-navy/50 mt-3">
+              <p className="text-xs text-navy/50 mt-3">{SEARCH_NOTE}</p>
+              <p className="text-xs text-navy/50 mt-1">
                 Tu peux modifier ou supprimer ce que tu as publié depuis « Mon compte &gt; Mes contenus ».
               </p>
             </section>
@@ -80,7 +81,7 @@ export default function GuidePage() {
                       <p className="text-sm text-navy/70 mb-2">{s.contenu}</p>
                       <p className="text-xs text-navy/50">
                         {s.ajout
-                          ? <>Pour ajouter : bouton « + » &gt; <span className="text-navy/70">{s.ajout}</span></>
+                          ? <>{s.envoi ? 'Pour envoyer ta recherche' : 'Pour ajouter'} : bouton « + » &gt; <span className="text-navy/70">{s.ajout}</span></>
                           : 'Contenu géré par l’équipe : rien à renseigner de ton côté.'}
                       </p>
                     </div>
