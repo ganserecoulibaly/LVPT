@@ -71,6 +71,8 @@ Deno.serve(async (req) => {
       mode: "payment",
       line_items: [{ price: atelier.stripe_price_id, quantity: 1 }],
       client_reference_id: user.id,
+      // Champ « code promo » affiché sur la page de paiement (tests, offres).
+      allow_promotion_codes: true,
       ...(profile.stripe_customer_id
         ? { customer: profile.stripe_customer_id }
         : { customer_email: user.email ?? undefined }),
