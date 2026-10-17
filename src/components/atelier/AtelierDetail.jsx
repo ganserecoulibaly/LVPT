@@ -10,15 +10,22 @@ import FavoritesModal from '../FavoritesModal'
 import ToolboxModal from '../ToolboxModal'
 import Footer from '../Footer'
 
-// TODO : remplacer par le vrai appel une fois le compte Stripe créé et
-// les Products/Prices configurés (même schéma que PricingModal.jsx) :
-// const { data } = await supabase.functions.invoke('create-checkout-session', {
-//   body: { priceId: atelier.stripe_price_id, atelierId: atelier.id_atelier }
-// })
-// window.location.href = data.url
-function startCheckout(atelier, userId) {
-  console.log('Stripe Checkout (atelier)', { atelierId: atelier.id_atelier, prix: atelier.prix, userId })
-  alert("Le paiement n'est pas encore branché — le compte Stripe reste à créer.")
+// Paiement unique via la fonction create-atelier-checkout : redirection
+// vers Stripe Checkout, qui revient sur /ateliers/confirmation.
+async function startCheckout(atelier, setPaying, setPayError) {
+  setPayError('')
+  setPaying(true)
+  try {
+    const { data, error } = await supabase.functions.invoke('create-atelier-checkout', {
+      body: { atelierId: atelier.id_atelier },
+    })
+    if (error || !data?.url) throw error || new Error('URL de paiement manquante')
+    window.location.href = data.url
+  } catch (err) {
+    console.error('Paiement atelier :', err)
+    setPayError("Impossible de lancer le paiement pour l'instant. Réessaie dans un instant.")
+    setPaying(false)
+  }
 }
 
 export default function AtelierDetail() {
@@ -27,6 +34,8 @@ export default function AtelierDetail() {
   const [user, setUser] = useState(null)
   const { favoriLieuxEtPlats, toggleFavoriGeneric } = useFavoriLieuxPlatsSpas(user)
   const [atelier, setAtelier] = useState(null)
+  const [paying, setPaying] = useState(false)
+  const [payError, setPayError] = useState('')
   const [pricingOpen, setPricingOpen] = useState(false)
   const [favoritesOpen, setFavoritesOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
@@ -128,12 +137,14 @@ export default function AtelierDetail() {
               <div className="border-t border-navy/10 pt-5 flex items-center justify-between">
                 <p className="text-2xl text-coral font-medium">{Number(atelier.prix).toFixed(0)}€</p>
                 <button
-                  onClick={() => startCheckout(atelier, user.id)}
-                  className="btn-primary text-sm py-2.5 px-6"
+                  onClick={() => startCheckout(atelier, setPaying, setPayError)}
+                  disabled={paying || !atelier.stripe_price_id}
+                  className="btn-primary text-sm py-2.5 px-6 disabled:opacity-60"
                 >
-                  Réserver ma session
+                  {paying ? 'Redirection…' : 'Réserver ma session'}
                 </button>
               </div>
+              {payError && <p className="text-xs text-red-600 mt-3">{payError}</p>}
             </div>
           </div>
         </div>
