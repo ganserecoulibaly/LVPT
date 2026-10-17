@@ -44,7 +44,10 @@ export default function AtelierDetail() {
 
   if (!user || !atelier) return null
 
-  const puces = atelier.description.split('\n').filter(Boolean)
+  const lignes = (texte) => (texte || '').split('\n').filter(Boolean)
+  const puces = lignes(atelier.description)
+  const pourQui = lignes(atelier.pour_qui)
+  const reparsAvec = lignes(atelier.repars_avec)
 
   return (
     <>
@@ -71,9 +74,16 @@ export default function AtelierDetail() {
                 <i className={`ti ${atelier.icone} text-xl text-[#712B13]`} aria-hidden="true" />
               </div>
 
-              <h1 className="font-serif text-2xl text-navy mb-5">{atelier.titre}</h1>
+              <h1 className="font-serif text-2xl text-navy mb-3">{atelier.titre}</h1>
 
-              <p className="text-xs text-navy/40 uppercase tracking-wide mb-2">Ce que tu apprends</p>
+              {atelier.format && (
+                <p className="text-xs text-navy/50 mb-4">{atelier.format}</p>
+              )}
+              {atelier.accroche && (
+                <p className="text-sm text-navy/75 leading-relaxed mb-6">{atelier.accroche}</p>
+              )}
+
+              <p className="text-xs text-navy/40 uppercase tracking-wide mb-2">{atelier.accroche ? 'Au programme' : 'Ce que tu apprends'}</p>
               <div className="flex flex-col gap-2 mb-6">
                 {puces.map((puce, i) => (
                   <div key={i} className="flex items-start gap-2 text-sm text-navy/75">
@@ -85,6 +95,36 @@ export default function AtelierDetail() {
                 ))}
               </div>
 
+              {pourQui.length > 0 && (
+                <>
+                  <p className="text-xs text-navy/40 uppercase tracking-wide mb-2">Pour qui ?</p>
+                  <div className="flex flex-col gap-2 mb-6">
+                    {pourQui.map((ligne, i) => (
+                      <div key={i} className="flex items-start gap-2 text-sm text-navy/75">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D85A30" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0">
+                      <path d="M20 6L9 17l-5-5" />
+                    </svg>
+                        {ligne}
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+              {reparsAvec.length > 0 && (
+                <>
+                  <p className="text-xs text-navy/40 uppercase tracking-wide mb-2">Tu repars avec</p>
+                  <div className="flex flex-col gap-2 mb-6">
+                    {reparsAvec.map((ligne, i) => (
+                      <div key={i} className="flex items-start gap-2 text-sm text-navy/75">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D85A30" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0">
+                      <path d="M20 6L9 17l-5-5" />
+                    </svg>
+                        {ligne}
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
               <div className="border-t border-navy/10 pt-5 flex items-center justify-between">
                 <p className="text-2xl text-coral font-medium">{Number(atelier.prix).toFixed(0)}€</p>
                 <button
