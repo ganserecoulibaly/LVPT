@@ -90,6 +90,8 @@ Deno.serve(async (req) => {
     return json({ url: session.url }, 200, cors);
   } catch (error) {
     console.error("Erreur create-atelier-checkout :", error);
-    return json({ error: "Impossible de créer la session de paiement" }, 500, getCorsHeaders(req.headers.get("origin")));
+    // Détail renvoyé : la fonction est réservée à l'admin, il aide au diagnostic.
+    const detail = error instanceof Error ? error.message : String(error);
+    return json({ error: "Impossible de créer la session de paiement", detail }, 500, getCorsHeaders(req.headers.get("origin")));
   }
 });

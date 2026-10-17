@@ -19,11 +19,15 @@ async function startCheckout(atelier, setPaying, setPayError) {
     const { data, error } = await supabase.functions.invoke('create-atelier-checkout', {
       body: { atelierId: atelier.id_atelier },
     })
-    if (error || !data?.url) throw error || new Error('URL de paiement manquante')
+    if (error || !data?.url) {
+      let detail = ''
+      try { detail = (await error?.context?.json())?.detail || '' } catch { /* réponse non JSON */ }
+      throw new Error(detail || error?.message || 'URL de paiement manquante')
+    }
     window.location.href = data.url
   } catch (err) {
     console.error('Paiement atelier :', err)
-    setPayError("Impossible de lancer le paiement pour l'instant. Réessaie dans un instant.")
+    setPayError("Impossible de lancer le paiement : " + (err?.message || 'erreur inconnue'))
     setPaying(false)
   }
 }
