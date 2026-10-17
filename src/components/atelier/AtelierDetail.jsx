@@ -25,7 +25,7 @@ export default function AtelierDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [user, setUser] = useState(null)
-  const { favoriLieuxEtPlats, toggleFavoriGeneric } = useFavoriLieuxEtPlats(user)
+  const { favoriLieuxEtPlats, toggleFavoriGeneric } = useFavoriLieuxPlatsSpas(user)
   const [atelier, setAtelier] = useState(null)
   const [pricingOpen, setPricingOpen] = useState(false)
   const [favoritesOpen, setFavoritesOpen] = useState(false)

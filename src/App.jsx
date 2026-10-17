@@ -104,9 +104,9 @@ export default function App() {
             <Route path="/activites" element={<ProtectedRoute><ContentEditEnhancer><Activites /></ContentEditEnhancer></ProtectedRoute>} />
             <Route path="/carnet-gastronomique" element={<ProtectedRoute><ContentEditEnhancer><Gastronomie /></ContentEditEnhancer></ProtectedRoute>} />
             <Route path="/carnet-gastronomique/:id" element={<ProtectedRoute><PlatDetail /></ProtectedRoute>} />
-            <Route path="/ateliers" element={<ProtectedRoute><Ateliers /></ProtectedRoute>} />
-            <Route path="/ateliers/confirmation" element={<ProtectedRoute><AtelierConfirmation /></ProtectedRoute>} />
-            <Route path="/ateliers/:id" element={<ProtectedRoute><AtelierDetail /></ProtectedRoute>} />
+            <Route path="/ateliers" element={<AdminRoute><Ateliers /></AdminRoute>} />
+            <Route path="/ateliers/confirmation" element={<AdminRoute><AtelierConfirmation /></AdminRoute>} />
+            <Route path="/ateliers/:id" element={<AdminRoute><AtelierDetail /></AdminRoute>} />
             <Route path="/miles-vs-euros" element={<ProtectedRoute><MilesVsEuros /></ProtectedRoute>} />
             <Route path="/guide" element={<ProtectedRoute><GuidePage /></ProtectedRoute>} />
           </Routes>
