@@ -638,9 +638,49 @@ Deno.serve(async (req) => {
       break;
     }
 
+    // Page de paiement non terminée (expire au bout de 24 h) : si c'est un
+    // atelier, la réservation « en_attente » passe à « echoue ».
+    case 'checkout.session.expired': {
+      const session = event.data.object as any;
+      if (session.metadata?.type === 'atelier') {
+        const { error } = await supabase
+          .from('s_atelier_reservation')
+          .update({ statut_paiement: 'echoue' })
+          .eq('stripe_session_id', session.id)
+          .eq('statut_paiement', 'en_attente');
+        if (error) console.error('Réservation expirée non mise à jour :', error);
+      }
+      break;
+    }
+
     // Remboursement (total ou partiel)
     case 'charge.refunded': {
       const charge = event.data.object as any;
+
+      // Remboursement COMPLET d'un atelier : la réservation passe à « rembourse ».
+      // Le paiement d'atelier est retrouvé via sa session Checkout.
+      let atelierMention = '';
+      if (charge.refunded && charge.payment_intent) {
+        try {
+          const sessions = await stripe.checkout.sessions.list({
+            payment_intent: charge.payment_intent,
+            limit: 1,
+          });
+          const sess: any = sessions.data[0];
+          if (sess?.metadata?.type === 'atelier') {
+            const { data: maj, error: majErr } = await supabase
+              .from('s_atelier_reservation')
+              .update({ statut_paiement: 'rembourse' })
+              .eq('stripe_session_id', sess.id)
+              .select('id_atelier');
+            if (majErr) console.error('Statut remboursé non enregistré :', majErr);
+            else if (maj?.length) atelierMention = '\nRéservation d\'atelier passée à « remboursé »';
+          }
+        } catch (err) {
+          console.error('Recherche de la session du remboursement :', err);
+        }
+      }
+
       const person = await findPerson(
         supabase,
         { customerId: charge.customer },
@@ -649,7 +689,7 @@ Deno.serve(async (req) => {
       await notifyAdmin(
         'lvpt-business',
         'Remboursement',
-        `${person}\n${formatAmount(charge.amount_refunded, charge.currency)} remboursés sur ${formatAmount(charge.amount, charge.currency)}`,
+        `${person}\n${formatAmount(charge.amount_refunded, charge.currency)} remboursés sur ${formatAmount(charge.amount, charge.currency)}${atelierMention}`,
         3
       );
       break;
