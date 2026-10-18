@@ -69,6 +69,9 @@ Deno.serve(async (req) => {
     const appUrl = Deno.env.get("APP_URL")!;
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
+      // Carte uniquement (Apple Pay / Google Pay restent proposés avec la
+      // carte) : évite que Stripe Link s'affiche en premier moyen de paiement.
+      payment_method_types: ["card"],
       line_items: [{ price: atelier.stripe_price_id, quantity: 1 }],
       client_reference_id: user.id,
       // Champ « code promo » affiché sur la page de paiement (tests, offres).
