@@ -103,6 +103,11 @@ export const OUTILS = [
     contenu: 'Un calculateur qui compare le prix d’un billet en euros et son prix en miles (Flying Blue, Avios d’Iberia, Miles&Smiles de Turkish) pour savoir ce qui est le plus avantageux. Tu peux aussi renseigner tes soldes de miles dans « Mon compte > Modifier le profil » (facultatif).',
   },
   {
+    nom: 'Ateliers',
+    acces: 'Menu du haut > Nos ateliers',
+    contenu: 'Des sessions en ligne animées par l’équipe pour optimiser ses voyages. Tu réserves et paies en ligne, puis tu choisis ton créneau et tu reçois un e-mail de confirmation.',
+  },
+  {
     nom: 'Boîte à outils',
     acces: 'Menu de gauche > Boîte à outils',
     contenu: 'Des outils pratiques à portée de main, sans rien publier : ' + TOOLBOX_TOOLS.join(', ') + '.',
