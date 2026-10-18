@@ -70,7 +70,7 @@ Deno.serve(async (req) => {
       client_reference_id: user.id,
       // Champ « code promo » affiché sur la page de paiement (tests, offres).
       allow_promotion_codes: true,
-      ...(profile.stripe_customer_id
+      ...(profile?.stripe_customer_id
         ? { customer: profile.stripe_customer_id }
         : { customer_email: user.email ?? undefined }),
       metadata: { type: "atelier", pid: user.id, atelier_id: atelier.id_atelier },
@@ -89,8 +89,6 @@ Deno.serve(async (req) => {
     return json({ url: session.url }, 200, cors);
   } catch (error) {
     console.error("Erreur create-atelier-checkout :", error);
-    // Détail renvoyé : la fonction est réservée à l'admin, il aide au diagnostic.
-    const detail = error instanceof Error ? error.message : String(error);
-    return json({ error: "Impossible de créer la session de paiement", detail }, 500, getCorsHeaders(req.headers.get("origin")));
+    return json({ error: "Impossible de créer la session de paiement" }, 500, getCorsHeaders(req.headers.get("origin")));
   }
 });
