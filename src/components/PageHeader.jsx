@@ -101,16 +101,12 @@ export default function PageHeader({ onFavoritesClick, onUpgradeClick, onProfile
   const hasPaidPlan = currentPlan && currentPlan !== 'free'
 
   const handleAteliersClick = () => {
-    if (isAdmin) {
-      navigate('/ateliers')
-    } else {
-      setComingSoonOpen(true)
-    }
+    navigate('/ateliers')
   }
 
   const items = [
     { label: 'Mes favoris', onClick: onFavoritesClick },
-    { label: 'Nos ateliers', onClick: handleAteliersClick, locked: !isAdmin },
+    { label: 'Nos ateliers', onClick: handleAteliersClick },
     { label: 'Upgrade plan', onClick: onUpgradeClick },
     ...(hasPaidPlan ? [{ label: openingPortal ? 'Ouverture…' : 'Facturation', onClick: () => openBillingPortal(setOpeningPortal) }] : []),
     { label: 'Modifier le profil', onClick: onProfileClick },
@@ -127,11 +123,6 @@ export default function PageHeader({ onFavoritesClick, onUpgradeClick, onProfile
         </button>
         <button onClick={handleAteliersClick} className="btn-primary text-sm py-2.5 px-5 relative">
           Nos ateliers
-          {!isAdmin && (
-            <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-navy flex items-center justify-center">
-              <LockIcon />
-            </span>
-          )}
         </button>
         <button onClick={onUpgradeClick} className="btn-primary text-sm py-2.5 px-5">
           Upgrade plan
@@ -227,7 +218,6 @@ export default function PageHeader({ onFavoritesClick, onUpgradeClick, onProfile
 
       <div className="sm:hidden h-10 mb-10" aria-hidden="true" />
 
-      {comingSoonOpen && <ComingSoonModal onClose={() => setComingSoonOpen(false)} />}
     </>
   )
 }

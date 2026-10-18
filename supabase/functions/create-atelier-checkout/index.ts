@@ -1,9 +1,7 @@
 import Stripe from "npm:stripe@17.4.0";
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
 
-// Paiement unique d'un atelier. Réservé à l'admin tant que la section
-// Ateliers n'est pas ouverte au public (retirer le contrôle is_admin
-// ci-dessous au moment de l'ouverture).
+// Paiement unique d'un atelier (tout utilisateur connecté).
 const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!, {
   apiVersion: "2026-07-29.dahlia",
   httpClient: Stripe.createFetchHttpClient(),
@@ -52,10 +50,9 @@ Deno.serve(async (req) => {
 
     const { data: profile } = await admin
       .from("lvpt")
-      .select("is_admin, stripe_customer_id")
+      .select("stripe_customer_id")
       .eq("id", user.id)
       .single();
-    if (!profile?.is_admin) return json({ error: "Accès réservé" }, 403, cors);
 
     const { data: atelier } = await admin
       .from("d_atelier")
