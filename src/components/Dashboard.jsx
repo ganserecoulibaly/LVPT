@@ -777,7 +777,7 @@ export default function Dashboard() {
                 <line x1="6" y1="6" x2="18" y2="18" />
               </svg>
             </button>
-            <FlightHotelSearch hideIntro />
+            <FlightHotelSearch hideIntro source="dashboard" />
           </div>
         </div>
       )}

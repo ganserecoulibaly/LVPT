@@ -40,7 +40,7 @@ const emptyForm = {
 // marketing destiné aux visiteurs de la landing page publique, ET masque
 // les champs identité (prénom/nom/email/téléphone) puisqu'on les récupère
 // directement depuis son profil lvpt plutôt que de les lui redemander.
-export default function FlightHotelSearch({ hideIntro = false }) {
+export default function FlightHotelSearch({ hideIntro = false, source = 'accueil' }) {
   const [mode, setMode] = useState('vols')
   const [form, setForm] = useState(emptyForm)
   const [status, setStatus] = useState('idle') // idle | sending | success | error
@@ -88,6 +88,7 @@ export default function FlightHotelSearch({ hideIntro = false }) {
         : `Nouvelle recherche d'hébergement — ${form.prenom} ${form.nom}`,
       from_name: 'Le Voyage Pour Tous',
       type: mode,
+      source, // accueil | dashboard | vols-hebergements : d'où vient la demande
       ...form,
     }
 
@@ -100,6 +101,10 @@ export default function FlightHotelSearch({ hideIntro = false }) {
       const result = await response.json()
 
       if (result.success) {
+        // Notification ntfy (best-effort : n'empêche jamais la confirmation)
+        supabase.functions
+          .invoke('notify-recherche', { body: { ...payload, access_key: undefined } })
+          .catch((err) => console.warn('Notification non envoyée :', err))
         setStatus('success')
         setForm(emptyForm)
         setShowModal(true)
