@@ -1,5 +1,6 @@
-import React, { Suspense, lazy } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import React, { Suspense, lazy, useEffect, useState } from 'react'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { supabase } from './components/supabaseClient'
 import ScrollToTop from './components/ScrollToTop'
 import CookieConsent from './components/CookieConsent'
 import AnalyticsTracker from './components/AnalyticsTracker'
@@ -48,7 +49,36 @@ const EspacePro = lazy(() => import('./components/EspacePro'))
 const SpaBienEtre = lazy(() => import('./components/SpaBienEtre'))
 const ContentManager = lazy(() => import('./components/ContentManager'))
 
+// Indice synchrone : Supabase garde la session dans le localStorage
+// (clé « sb-…-auth-token »). Sert uniquement à éviter d'afficher l'accueil
+// une fraction de seconde à quelqu'un de connecté ; la vraie vérification
+// est faite par getSession() ci-dessous.
+function hasStoredSession() {
+  try {
+    return Object.keys(localStorage).some((k) => k.startsWith('sb-') && k.endsWith('-auth-token'))
+  } catch {
+    return false
+  }
+}
+
+// Une personne connectée qui arrive sur l'accueil (favori, adresse tapée,
+// clic sur le logo) est envoyée sur son Dashboard. Les visiteurs voient
+// l'accueil tout de suite, sans attente.
 function HomePage() {
+  const [check, setCheck] = useState(hasStoredSession() ? 'checking' : 'guest')
+
+  useEffect(() => {
+    if (check !== 'checking') return undefined
+    let cancelled = false
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!cancelled) setCheck(session ? 'authed' : 'guest')
+    }).catch(() => { if (!cancelled) setCheck('guest') })
+    return () => { cancelled = true }
+  }, [check])
+
+  if (check === 'checking') return <PageLoader />
+  if (check === 'authed') return <Navigate to="/dashboard" replace />
+
   return (
     <div className="min-h-screen">
       <Navbar />
