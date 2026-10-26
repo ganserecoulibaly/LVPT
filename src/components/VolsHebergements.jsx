@@ -479,6 +479,48 @@ function BudgetSummary({ vols, stays, nights }) {
   )
 }
 
+// Aperçu admin en lecture seule : affiche les propositions d'un utilisateur avec les
+// mêmes composants que sa page « Vols & hébergements ». Aucune écriture en base :
+// les boutons « choisir » / « retirer » sont sans effet.
+export function PropositionsApercu({ pid }) {
+  const [vols, setVols] = useState([])
+  const [stays, setStays] = useState([])
+  const [volsError, setVolsError] = useState(null)
+  const [staysError, setStaysError] = useState(null)
+  const [nights, setNights] = useState(1)
+
+  useEffect(() => {
+    if (!pid) return
+    let annule = false
+    setVolsError(null); setStaysError(null)
+    supabase.from('s_vol').select('*').eq('pid', pid).neq('statut', 'refus').order('prix', { ascending: true })
+      .then(({ data, error }) => { if (annule) return; if (error) setVolsError(error.message); setVols(data || []) })
+    supabase.from('s_hebergement').select('*').eq('pid', pid).neq('statut', 'refus').order('prix_nuit', { ascending: true })
+      .then(({ data, error }) => { if (annule) return; if (error) setStaysError(error.message); setStays(data || []) })
+    return () => { annule = true }
+  }, [pid])
+
+  const noop = () => {}
+  const empty = new Set()
+
+  return (
+    <div>
+      <VolsSection vols={vols} removingIds={empty} onSelect={noop} onHide={noop} onNewSearch={noop} loadError={volsError} />
+      <HebergementsSection
+        stays={stays}
+        removingIds={empty}
+        onSelect={noop}
+        onHide={noop}
+        onNewSearch={noop}
+        loadError={staysError}
+        nights={nights}
+        setNights={setNights}
+      />
+      <BudgetSummary vols={vols} stays={stays} nights={nights} />
+    </div>
+  )
+}
+
 export default function VolsHebergements() {
   const navigate = useNavigate()
   const [user, setUser] = useState(null)
