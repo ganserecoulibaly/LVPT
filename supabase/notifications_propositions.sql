@@ -1,6 +1,6 @@
 -- =====================================================================
 -- Notifications « nouvelles propositions » (hébergements et vols)
--- À RELIRE AVANT EXÉCUTION — non appliqué.
+-- Validé le 26/10/2026 et appliqué (migration notifications_propositions).
 --
 -- Ce que ça change :
 --  1. Un seul e-mail par série de propositions (fenêtre de 45 minutes).
@@ -90,7 +90,7 @@ begin
     v_astuce :=
       '<div style="background:#f6f3ee;border-radius:10px;padding:16px 18px;margin:22px 0;">' ||
       '<p style="margin:0 0 8px;"><strong>💡 Astuce Airbnb : gagne du cashback</strong></p>' ||
-      '<p style="margin:0 0 8px;">Achète une carte cadeau Airbnb (50 € ou 100 €) sur Widilo avant de réserver : tu récupères <strong>3,1 % de cashback</strong> (taux à vérifier sur Widilo au moment de l''achat).</p>' ||
+      '<p style="margin:0 0 8px;">Achète une carte cadeau Airbnb (50 € ou 100 €) sur Widilo avant de réserver : tu récupères <strong>3,1 % de cashback</strong>, soit <strong>1,55 €</strong> sur une carte de 50 € et <strong>3,10 €</strong> sur une carte de 100 € (taux à vérifier sur Widilo au moment de l''achat).</p>' ||
       '<ul style="margin:0 0 10px;padding-left:20px;">' ||
       '<li>Valable 5 ans, en ligne uniquement, utilisable en une ou plusieurs fois.</li>' ||
       '<li>Ni échangeable ni remboursable, et non valable sur les Expériences.</li>' ||
@@ -105,7 +105,7 @@ begin
     '<div style="font-family:Arial,Helvetica,sans-serif;color:#1b2a41;max-width:560px;">' ||
     '<h2>Du nouveau pour ton séjour à ' || public.html_escape(new.ville) || ', ' || public.html_escape(coalesce(v_prenom, 'toi')) || ' !</h2>' ||
     '<p>On a ajouté de nouvelles propositions d''hébergement pour toi. Tu les retrouves dans ton tableau de bord.</p>' ||
-    '<p><a href="https://levoyagepourtous.com/vols-hebergements" style="display:inline-block;background:#e8735a;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:999px;">Voir mes propositions</a></p>' ||
+    '<p style="text-align:center;margin:24px 0;"><a href="https://levoyagepourtous.com/vols-hebergements" style="display:inline-block;background:#e8735a;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:999px;">Voir mes propositions</a></p>' ||
     v_astuce ||
     '<p>À bientôt sur Le Voyage Pour Tous !</p>' ||
     '</div>';
@@ -146,7 +146,7 @@ begin
     '<div style="font-family:Arial,Helvetica,sans-serif;color:#1b2a41;max-width:560px;">' ||
     '<h2>Du nouveau pour ton vol ' || public.html_escape(new.aeroport_depart) || ' → ' || public.html_escape(new.aeroport_arrivee) || ', ' || public.html_escape(coalesce(v_prenom, 'toi')) || ' !</h2>' ||
     '<p>On a ajouté de nouvelles propositions de vol pour toi. Tu les retrouves dans ton tableau de bord.</p>' ||
-    '<p><a href="https://levoyagepourtous.com/vols-hebergements" style="display:inline-block;background:#e8735a;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:999px;">Voir mes propositions</a></p>' ||
+    '<p style="text-align:center;margin:24px 0;"><a href="https://levoyagepourtous.com/vols-hebergements" style="display:inline-block;background:#e8735a;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:999px;">Voir mes propositions</a></p>' ||
     '<p>À bientôt sur Le Voyage Pour Tous !</p>' ||
     '</div>';
 
