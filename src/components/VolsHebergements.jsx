@@ -281,8 +281,6 @@ function VolsSection({ vols, removingIds, onSelect, onHide, onNewSearch, loadErr
 function StayRow({ heb, onSelect, onHide, removing, nights }) {
   const pricePerNight = Number(heb.prix_nuit)
   const fixedTotal = Number(heb.prix_totoal) > 0 ? Number(heb.prix_totoal) : null
-  const nuits = Number(heb.nb_nuit) > 0 ? Number(heb.nb_nuit) : nights
-  const total = fixedTotal ?? pricePerNight * nuits
   return (
     <div className={`flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-4 rounded-xl border transition-all duration-400 ease-in ${
       heb.primary_hebergement ? 'border-green-600 bg-green-50' : 'border-navy/10 bg-white'
@@ -311,9 +309,7 @@ function StayRow({ heb, onSelect, onHide, removing, nights }) {
           ) : (
             <>
               <p className="text-2xl font-serif text-coral leading-none">{pricePerNight.toFixed(0)}€</p>
-              <p className="text-[10px] text-navy/40 mt-1">
-                × {nuits} nuit{nuits > 1 ? 's' : ''} = {total.toFixed(0)}€
-              </p>
+              <p className="text-[10px] text-navy/40 mt-1">par nuit · taxes éventuelles non incluses</p>
             </>
           )}
         </div>
