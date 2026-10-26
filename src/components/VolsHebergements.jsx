@@ -280,7 +280,8 @@ function VolsSection({ vols, removingIds, onSelect, onHide, onNewSearch, loadErr
 
 function StayRow({ heb, onSelect, onHide, removing, nights }) {
   const pricePerNight = Number(heb.prix_nuit)
-  const total = pricePerNight * nights
+  const fixedTotal = Number(heb.prix_totoal) > 0 ? Number(heb.prix_totoal) : null
+  const total = fixedTotal ?? pricePerNight * nights
   return (
     <div className={`flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-4 rounded-xl border transition-all duration-400 ease-in ${
       heb.primary_hebergement ? 'border-green-600 bg-green-50' : 'border-navy/10 bg-white'
@@ -288,7 +289,7 @@ function StayRow({ heb, onSelect, onHide, removing, nights }) {
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-navy">{heb.type_hebergement || 'Hébergement'} — {heb.ville}</p>
         <p className="text-xs text-navy/55 mt-0.5">
-          {heb.quartier ? `${heb.quartier} · ` : ''}{formatDate(heb.date_depart)} → {formatDate(heb.date_arrivee)}
+          {heb.quartier ? `${heb.quartier} · ` : ''}{formatDate(heb.date_arrivee)} → {formatDate(heb.date_depart)}
         </p>
         {heb.lien_resa && (
           <a href={heb.lien_resa} target="_blank" rel="noopener noreferrer" className="text-xs text-coral hover:underline mt-1 inline-block">
@@ -299,10 +300,21 @@ function StayRow({ heb, onSelect, onHide, removing, nights }) {
 
       <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0">
         <div className="text-right">
-          <p className="text-2xl font-serif text-coral leading-none">{pricePerNight.toFixed(0)}€</p>
-          <p className="text-[10px] text-navy/40 mt-1">
-            × {nights} nuit{nights > 1 ? 's' : ''} = {total.toFixed(0)}€
-          </p>
+          {fixedTotal ? (
+            <>
+              <p className="text-2xl font-serif text-coral leading-none">{fixedTotal.toFixed(0)}€</p>
+              <p className="text-[10px] text-navy/40 mt-1">
+                au total{heb.nb_nuit ? ` · ${heb.nb_nuit} nuit${heb.nb_nuit > 1 ? 's' : ''}` : ''}{Number.isFinite(pricePerNight) && pricePerNight > 0 ? ` · ${pricePerNight.toFixed(0)}€ / nuit` : ''}
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="text-2xl font-serif text-coral leading-none">{pricePerNight.toFixed(0)}€</p>
+              <p className="text-[10px] text-navy/40 mt-1">
+                × {nights} nuit{nights > 1 ? 's' : ''} = {total.toFixed(0)}€
+              </p>
+            </>
+          )}
         </div>
         <SelectActions
           selected={heb.primary_hebergement}
@@ -453,7 +465,7 @@ function BudgetSummary({ vols, stays, nights }) {
   if (!primaryVol && !primaryStay) return null
 
   const volPrice = primaryVol ? Number(primaryVol.prix) : 0
-  const stayTotal = primaryStay ? Number(primaryStay.prix_nuit) * nights : 0
+  const stayTotal = primaryStay ? (Number(primaryStay.prix_totoal) > 0 ? Number(primaryStay.prix_totoal) : Number(primaryStay.prix_nuit) * nights) : 0
   const total = volPrice + stayTotal
 
   return (
@@ -467,7 +479,7 @@ function BudgetSummary({ vols, stays, nights }) {
       )}
       {primaryStay && (
         <div className="flex justify-between text-sm text-navy mb-2">
-          <span>✓ {primaryStay.type_hebergement || 'hébergement'} ({nights} nuit{nights > 1 ? 's' : ''})</span>
+          <span>✓ {primaryStay.type_hebergement || 'hébergement'} ({Number(primaryStay.prix_totoal) > 0 && primaryStay.nb_nuit ? primaryStay.nb_nuit : nights} nuit{(Number(primaryStay.prix_totoal) > 0 && primaryStay.nb_nuit ? primaryStay.nb_nuit : nights) > 1 ? 's' : ''})</span>
           <span className="font-medium">{stayTotal.toFixed(0)}€</span>
         </div>
       )}
@@ -475,6 +487,48 @@ function BudgetSummary({ vols, stays, nights }) {
         <span>Total</span>
         <span>{total.toFixed(0)}€</span>
       </div>
+    </div>
+  )
+}
+
+// Aperçu admin en lecture seule : affiche les propositions d'un utilisateur avec les
+// mêmes composants que sa page « Vols & hébergements ». Aucune écriture en base :
+// les boutons « choisir » / « retirer » sont sans effet.
+export function PropositionsApercu({ pid }) {
+  const [vols, setVols] = useState([])
+  const [stays, setStays] = useState([])
+  const [volsError, setVolsError] = useState(null)
+  const [staysError, setStaysError] = useState(null)
+  const [nights, setNights] = useState(1)
+
+  useEffect(() => {
+    if (!pid) return
+    let annule = false
+    setVolsError(null); setStaysError(null)
+    supabase.from('s_vol').select('*').eq('pid', pid).neq('statut', 'refus').order('prix', { ascending: true })
+      .then(({ data, error }) => { if (annule) return; if (error) setVolsError(error.message); setVols(data || []) })
+    supabase.from('s_hebergement').select('*').eq('pid', pid).neq('statut', 'refus').order('prix_nuit', { ascending: true })
+      .then(({ data, error }) => { if (annule) return; if (error) setStaysError(error.message); setStays(data || []) })
+    return () => { annule = true }
+  }, [pid])
+
+  const noop = () => {}
+  const empty = new Set()
+
+  return (
+    <div>
+      <VolsSection vols={vols} removingIds={empty} onSelect={noop} onHide={noop} onNewSearch={noop} loadError={volsError} />
+      <HebergementsSection
+        stays={stays}
+        removingIds={empty}
+        onSelect={noop}
+        onHide={noop}
+        onNewSearch={noop}
+        loadError={staysError}
+        nights={nights}
+        setNights={setNights}
+      />
+      <BudgetSummary vols={vols} stays={stays} nights={nights} />
     </div>
   )
 }

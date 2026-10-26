@@ -7,6 +7,7 @@ import CreateVoyageCommunModal from './CreateVoyageCommunModal'
 import AjouterMusiqueModal from './AjouterMusiqueModal'
 import AjouterPlatModal from './AjouterPlatModal'
 import AjouterLieuModal from './AjouterLieuModal'
+import { PropositionsApercu } from './VolsHebergements'
 
 const inputClass =
   'w-full px-3 py-2.5 border border-navy/15 rounded-lg text-sm focus:outline-none focus:border-coral'
@@ -57,6 +58,7 @@ const SECTIONS = [
   { key: 'gastronomie', label: 'Carnet gastronomique' },
   { key: 'activites', label: 'Activités' },
   { key: 'spa', label: 'Spa & bien-être' },
+  { key: 'apercu', label: 'Aperçu Vols & hébergements' },
 ]
 
 const emptyVol = {
@@ -101,6 +103,14 @@ const SPA_TYPE_LABELS = {
 // côté utilisateur, avec le pid de l'admin lui-même.
 export default function AdminOffres() {
   const [section, setSection] = useState('vol')
+  // --- Aperçu utilisateur (lecture seule) ---
+  const [apercuUsers, setApercuUsers] = useState([])
+  const [apercuPid, setApercuPid] = useState('')
+  useEffect(() => {
+    if (section !== 'apercu' || apercuUsers.length) return
+    supabase.from('lvpt').select('id, email, prenom, nom').order('created_at', { ascending: false }).limit(500)
+      .then(({ data }) => setApercuUsers(data || []))
+  }, [section])
   const [adminId, setAdminId] = useState(null)
 
   useEffect(() => {
@@ -606,6 +616,27 @@ export default function AdminOffres() {
           )}
 
           {/* --- SÉJOUR --- */}
+          {section === 'apercu' && (
+            <div>
+              <div className="bg-white rounded-2xl p-6 border border-navy/10 mb-6">
+                <h2 className="font-serif text-xl text-navy mb-1">Aperçu des propositions d'un utilisateur</h2>
+                <p className="text-xs text-navy/60 mb-4">
+                  Lecture seule : tu vois les vols et hébergements comme l'utilisateur les voit. Rien n'est modifié.
+                </p>
+                <label className="text-xs text-navy/70 mb-1 block">Utilisateur</label>
+                <select className={inputClass} value={apercuPid} onChange={(e) => setApercuPid(e.target.value)}>
+                  <option value="">Choisir un utilisateur…</option>
+                  {apercuUsers.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {`${u.prenom || ''} ${u.nom || ''}`.trim() || '(sans nom)'} — {u.email}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {apercuPid && <PropositionsApercu pid={apercuPid} />}
+            </div>
+          )}
+
           {section === 'sejour' && (
             <form onSubmit={handleSubmitSejour} className="bg-white rounded-2xl p-6 flex flex-col gap-3">
               <p className="font-serif text-lg text-navy mb-2">Ajouter un séjour</p>
