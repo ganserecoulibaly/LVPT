@@ -260,3 +260,20 @@ create trigger trg_activate_proposals_job after insert on public.s_vol
   for each statement execute function public.activate_proposals_job();
 
 select cron.unschedule('send-pending-proposals');
+
+-- ---------------------------------------------------------------------
+-- Droits admin pour le formulaire /admin-offres (migration admin_offres_policies) :
+-- retrouver un demandeur dans lvpt et ajouter/lire/modifier/supprimer ses offres.
+-- ---------------------------------------------------------------------
+create or replace function public.est_admin()
+returns boolean language sql stable security definer set search_path = public as $$
+  select coalesce((select is_admin from public.lvpt where id = auth.uid()), false)
+$$;
+revoke all on function public.est_admin() from public, anon;
+grant execute on function public.est_admin() to authenticated;
+
+create policy lvpt_select_admin on public.lvpt for select to authenticated using (public.est_admin());
+create policy s_hebergement_admin_all on public.s_hebergement for all to authenticated
+  using (public.est_admin()) with check (public.est_admin());
+create policy s_vol_admin_all on public.s_vol for all to authenticated
+  using (public.est_admin()) with check (public.est_admin());
