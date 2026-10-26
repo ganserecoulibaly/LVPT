@@ -44,6 +44,7 @@ begin
     ),
     body := jsonb_build_object(
       'from', 'LVPT <notifications@levoyagepourtous.com>',
+      'reply_to', 'levoyagepourtous@gmail.com',
       'to', p_to,
       'subject', p_subject,
       'html', p_html
