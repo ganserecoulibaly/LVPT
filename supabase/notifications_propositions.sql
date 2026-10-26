@@ -58,7 +58,7 @@ revoke all on function public.send_resend_email(text, text, text) from public, a
 -- ligne n'arrive depuis 45 minutes (envoi différé par un job planifié).
 --  - On réutilise la colonne existante « notifie » (false à l'insertion).
 --  - Les anciens déclencheurs « ajoute » (envoi immédiat) sont supprimés.
---  - L'ancien job quotidien de 18h (send_new_offers_notifications) est retiré :
+--  - L'ancien job quotidien de 18h (send_new_offers_notifications) est désactivé (pas supprimé) :
 --    il enverrait un second e-mail générique pour les mêmes lignes.
 -- ---------------------------------------------------------------------
 drop trigger if exists trg_notify_hebergement_ajoute on public.s_hebergement;
@@ -157,7 +157,7 @@ $$;
 revoke all on function public.send_pending_proposals() from public, anon, authenticated;
 
 -- Job : toutes les 5 minutes (l'e-mail part donc 45 à 50 min après la dernière ligne)
-select cron.unschedule('send-new-offers-notifications');
+select cron.alter_job((select jobid from cron.job where jobname = 'send-new-offers-notifications'), active := false);
 select cron.schedule('send-pending-proposals', '*/5 * * * *', $cron$select public.send_pending_proposals();$cron$);
 
 -- ---------------------------------------------------------------------
