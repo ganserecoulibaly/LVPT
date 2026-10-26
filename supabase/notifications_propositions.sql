@@ -225,3 +225,38 @@ begin
   return new;
 end;
 $$;
+
+-- ---------------------------------------------------------------------
+-- Job à la demande (migration proposals_job_on_demand) : plus de job permanent.
+-- La 1re insertion dans s_vol / s_hebergement crée le job (vérification chaque
+-- minute) ; il se supprime tout seul quand plus aucune ligne n'attend d'envoi.
+-- ---------------------------------------------------------------------
+create or replace function public.send_pending_proposals_tick()
+returns void language plpgsql security definer set search_path = public, cron as $$
+begin
+  perform public.send_pending_proposals();
+  if not exists (select 1 from public.s_hebergement where notifie = false)
+     and not exists (select 1 from public.s_vol where notifie = false) then
+    perform cron.unschedule('send-pending-proposals');
+  end if;
+end;
+$$;
+revoke all on function public.send_pending_proposals_tick() from public, anon, authenticated;
+
+create or replace function public.activate_proposals_job()
+returns trigger language plpgsql security definer set search_path = public, cron as $$
+begin
+  perform cron.schedule('send-pending-proposals', '* * * * *', $cron$select public.send_pending_proposals_tick();$cron$);
+  return null;
+end;
+$$;
+revoke all on function public.activate_proposals_job() from public, anon, authenticated;
+
+drop trigger if exists trg_activate_proposals_job on public.s_hebergement;
+create trigger trg_activate_proposals_job after insert on public.s_hebergement
+  for each statement execute function public.activate_proposals_job();
+drop trigger if exists trg_activate_proposals_job on public.s_vol;
+create trigger trg_activate_proposals_job after insert on public.s_vol
+  for each statement execute function public.activate_proposals_job();
+
+select cron.unschedule('send-pending-proposals');
