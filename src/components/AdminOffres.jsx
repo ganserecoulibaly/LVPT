@@ -174,6 +174,19 @@ export default function AdminOffres() {
     setSavingVolHeb(true)
     const { pid, error: resolveError } = await resolvePid(hebergementForm.demandeur)
     if (resolveError) { setErrorVolHeb(resolveError); setSavingVolHeb(false); return }
+    // Prix / nuit facultatif : s'il manque, on le déduit du prix total et du nombre de nuits
+    // (le dashboard de l'utilisateur s'appuie sur le prix par nuit pour l'affichage et le tri).
+    let nbNuit = hebergementForm.nb_nuit ? parseInt(hebergementForm.nb_nuit, 10) : null
+    if (!nbNuit && hebergementForm.date_arrivee && hebergementForm.date_depart) {
+      const diff = Math.round((new Date(hebergementForm.date_depart) - new Date(hebergementForm.date_arrivee)) / 86400000)
+      if (diff > 0) nbNuit = diff
+    }
+    let prixNuit = hebergementForm.prix_nuit ? parseFloat(hebergementForm.prix_nuit) : null
+    const prixTotal = hebergementForm.prix_totoal ? parseFloat(hebergementForm.prix_totoal) : null
+    if (prixNuit === null && prixTotal !== null && nbNuit) prixNuit = Math.round((prixTotal / nbNuit) * 100) / 100
+    if (prixNuit === null && prixTotal === null) {
+      setErrorVolHeb('Indique au moins le prix total (ou le prix par nuit).'); setSavingVolHeb(false); return
+    }
     const { error: insertError } = await supabase.from('s_hebergement').insert({
       pid,
       ville: hebergementForm.ville.trim(),
@@ -181,9 +194,9 @@ export default function AdminOffres() {
       type_hebergement: hebergementForm.type_hebergement.trim() || null,
       date_arrivee: hebergementForm.date_arrivee || null,
       date_depart: hebergementForm.date_depart || null,
-      nb_nuit: hebergementForm.nb_nuit ? parseInt(hebergementForm.nb_nuit, 10) : null,
-      prix_nuit: hebergementForm.prix_nuit ? parseFloat(hebergementForm.prix_nuit) : null,
-      prix_totoal: hebergementForm.prix_totoal ? parseFloat(hebergementForm.prix_totoal) : null,
+      nb_nuit: nbNuit,
+      prix_nuit: prixNuit,
+      prix_totoal: prixTotal,
       nb_adulte: parseInt(hebergementForm.nb_adulte, 10) || 1,
       nb_enfant: parseInt(hebergementForm.nb_enfant, 10) || 0,
       lien_resa: hebergementForm.lien_resa.trim() || null,
@@ -538,7 +551,7 @@ export default function AdminOffres() {
                   </div>
                   <div>
                     <label className="text-xs text-navy/70 mb-1 block">Prix / nuit (€)</label>
-                    <input type="number" min="0" step="0.01" required className={inputClass}
+                    <input type="number" min="0" step="0.01" className={inputClass}
                       value={hebergementForm.prix_nuit} onChange={(e) => setHebergementForm((p) => ({ ...p, prix_nuit: e.target.value }))} />
                   </div>
                   <div>
@@ -579,7 +592,7 @@ export default function AdminOffres() {
                       <div className="text-sm">
                         <p className="font-medium text-navy">{h.type_hebergement} à {h.ville}</p>
                         <p className="text-navy/50 text-xs">
-                          {h.lvpt ? `${h.lvpt.prenom || ''} ${h.lvpt.nom || ''} (${h.lvpt.email})` : h.pid} · {h.prix_nuit}€/nuit
+                          {h.lvpt ? `${h.lvpt.prenom || ''} ${h.lvpt.nom || ''} (${h.lvpt.email})` : h.pid} · {h.prix_totoal ? `${h.prix_totoal}€ au total` : (h.prix_nuit ? `${h.prix_nuit}€/nuit` : 'prix non renseigné')}
                         </p>
                       </div>
                       <button onClick={() => handleDeleteVolHeb('s_hebergement', 'id_hebergement', h.id_hebergement)} className="text-xs text-red-500 hover:text-red-700">
