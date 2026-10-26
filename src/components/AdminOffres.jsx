@@ -58,7 +58,7 @@ const SECTIONS = [
   { key: 'gastronomie', label: 'Carnet gastronomique' },
   { key: 'activites', label: 'Activités' },
   { key: 'spa', label: 'Spa & bien-être' },
-  { key: 'apercu', label: 'Aperçu utilisateur' },
+  { key: 'apercu', label: 'Aperçu Vols & hébergements' },
 ]
 
 const emptyVol = {
