@@ -4,6 +4,7 @@ import { supabase } from './components/supabaseClient'
 import ScrollToTop from './components/ScrollToTop'
 import CookieConsent from './components/CookieConsent'
 import AnalyticsTracker from './components/AnalyticsTracker'
+import AttributionSync from './components/AttributionSync'
 import Navbar from './components/Navbar'
 import Hero from './components/Hero'
 import FlightHotelSearch from './components/FlightHotelSearch'
@@ -107,6 +108,7 @@ export default function App() {
     <BrowserRouter>
       <ScrollToTop />
       <AnalyticsTracker />
+      <AttributionSync />
       <Suspense fallback={<PageLoader />}>
         <DisplayLabelEnhancer>
           <Routes>

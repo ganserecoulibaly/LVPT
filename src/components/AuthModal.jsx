@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from './supabaseClient'
+import { sourceInscription } from './attribution'
 import AirportAutocomplete from './AirportAutocomplete'
 
 // Site Key Turnstile définie dans le fichier .env (VITE_TURNSTILE_SITE_KEY)
@@ -162,6 +163,8 @@ export default function AuthModal({ onClose, initialMode = 'login' }) {
             // directement pour le matching avec d_vol.aeroport_depart.
             ville_depart_fav: villeDepartFav.split(' (')[0].trim(),
             pays_depart_fav: paysDepartFav || null,
+            // Provenance (interne, non affichée) : TikTok, Instagram, direct, etc.
+            source_inscription: sourceInscription(),
           },
         },
       })

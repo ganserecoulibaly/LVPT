@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { hasAnalyticsConsent } from './CookieConsent'
+import { captureAttribution } from './attribution'
 
 const GA_MEASUREMENT_ID = 'G-PHZ2FN6G1J'
 const HOTJAR_ID = 3913405
@@ -60,8 +61,9 @@ function loadAnalyticsTrackers() {
 export default function AnalyticsTracker() {
   useEffect(() => {
     loadAnalyticsTrackers()
+    captureAttribution()
 
-    const handleConsent = () => loadAnalyticsTrackers()
+    const handleConsent = () => { loadAnalyticsTrackers(); captureAttribution() }
     window.addEventListener('lvpt:analytics-consent', handleConsent)
 
     return () => {
