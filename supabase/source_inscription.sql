@@ -22,3 +22,6 @@ begin
   return new;
 end;
 $function$;
+
+-- 13/11/2026 (migration handle_new_user_noms_google) : prénom / nom lus aussi depuis les champs
+-- Google (given_name, family_name, full_name, name). Voir handle_new_lvpt_user() en base.
